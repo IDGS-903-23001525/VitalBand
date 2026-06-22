@@ -1,0 +1,176 @@
+﻿@model VitalBand.Models.UsuarioResumenViewModel
+@{
+    ViewData["Title"] = "Mi Perfil Médico - VitalBand";
+}
+
+@section Styles {
+    <style>
+        .perfil-container {
+            max-width: 650px;
+            margin: 2rem auto;
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+            .perfil-container h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+                border-left: 3px solid #0891b2;
+                padding-left: 0.75rem;
+                color: #0f172a;
+            }
+
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+
+        /* Diseño en dos columnas para campos compartidos */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: #475569;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            background: rgba(255,255,255,0.7);
+            border: 1.5px solid rgba(6,182,212,0.2);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            color: #0f172a;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+            .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+                border-color: #0891b2;
+                background: rgba(255,255,255,0.85);
+                box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
+            }
+
+        /* Alertas de éxito o error */
+        .alert-mensaje {
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(34,197,94,0.15);
+            color: #15803d;
+            border: 1px solid rgba(34,197,94,0.3);
+        }
+
+        .alert-danger {
+            background: rgba(239,68,68,0.15);
+            color: #b91c1c;
+            border: 1px solid rgba(239,68,68,0.3);
+        }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.8rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            width: 100%;
+            margin-top: 1rem;
+            box-shadow: 0 4px 12px rgba(6,182,212,0.3);
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+            .btn-guardar:hover {
+                opacity: 0.95;
+                transform: translateY(-1px);
+            }
+    </style>
+}
+
+<div class="perfil-container">
+    <h2>Editar mi perfil y expediente de salud</h2>
+
+    @if (TempData["Mensaje"] != null)
+    {
+        <div class="alert-mensaje alert-success">@TempData["Mensaje"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-mensaje alert-danger">@TempData["Error"]</div>
+    }
+
+    <form asp-action="ActualizarPerfil" method="post">
+        @Html.AntiForgeryToken()
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="form-group">
+            <label asp-for="Nombre">Nombre completo</label>
+            <input asp-for="Nombre" required placeholder="Tu nombre completo" />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Email">Correo electrónico</label>
+            <input asp-for="Email" type="email" required placeholder="ejemplo@vitalband.com" />
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label asp-for="Sexo">Género asignado</label>
+                <select asp-for="Sexo">
+                    <option value="Masculino">Masculino</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label asp-for="Edad">Edad actual (Calculada)</label>
+                <input asp-for="Edad" type="number" readonly style="background: rgba(0,0,0,0.05); color: #64748b; cursor: not-allowed;" />
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label asp-for="Peso">Peso actual (kg)</label>
+                <input asp-for="Peso" type="number" step="0.1" required placeholder="ej. 75.4" />
+            </div>
+            <div class="form-group">
+                <label asp-for="Altura">Estatura actual (m)</label>
+                <input asp-for="Altura" type="number" step="0.01" required placeholder="ej. 1.72" />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="HistorialMedico">Historial clínico breve</label>
+            <textarea asp-for="HistorialMedico" placeholder="Indica padecimientos crónicos, cirugías previas, tipo de sangre o alergias bajo control médico..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-guardar">💾 Guardar cambios clínicos</button>
+    </form>
+</div>
