@@ -1,0 +1,107 @@
+﻿@model VitalBand.Models.UsuarioResumenViewModel
+@{
+    ViewData["Title"] = "Mi Perfil - VitalBand";
+}
+
+@section Styles {
+    <style>
+        .perfil-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow:
+                0 8px 40px rgba(8,145,178,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+            .perfil-container h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+                border-left: 3px solid #0891b2;
+                padding-left: 0.75rem;
+            }
+
+        .form-group {
+            margin-bottom: 1.1rem;
+        }
+
+            .form-group label {
+                display: block;
+                font-size: 0.72rem;
+                font-weight: 600;
+                margin-bottom: 0.35rem;
+                color: var(--gray-600, #475569);
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+            }
+
+            .form-group input, .form-group select {
+                width: 100%;
+                padding: 0.65rem 0.9rem;
+                background: rgba(255,255,255,0.55);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1.5px solid rgba(6,182,212,0.18);
+                border-radius: 10px;
+                font-family: inherit;
+                font-size: 0.9rem;
+                color: var(--gray-900, #0f172a);
+                transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+                outline: none;
+            }
+
+            .form-group input:focus, .form-group select:focus {
+                border-color: rgba(6,182,212,0.5);
+                background: rgba(255,255,255,0.8);
+                box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+            }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+            border: none;
+            padding: 0.65rem 1.6rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 16px rgba(6,182,212,0.35);
+            transition: opacity 0.15s, transform 0.1s;
+        }
+
+        .btn-guardar:hover { opacity: 0.9; transform: translateY(-1px); }
+    </style>
+}
+
+<div class="perfil-container">
+    <h2>Editar mis datos personales</h2>
+    <form asp-action="ActualizarPerfil" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="form-group">
+            <label asp-for="Nombre">Nombre completo</label>
+            <input asp-for="Nombre" required />
+        </div>
+        <div class="form-group">
+            <label asp-for="Edad">Edad</label>
+            <input asp-for="Edad" type="number" required />
+        </div>
+        <div class="form-group">
+            <label asp-for="Sexo">Sexo</label>
+            <select asp-for="Sexo">
+                <option>Masculino</option>
+                <option>Femenino</option>
+                <option>Otro</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label asp-for="Email">Correo electrónico</label>
+            <input asp-for="Email" type="email" required />
+        </div>
+        <button type="submit" class="btn-guardar">Guardar cambios</button>
+    </form>
+</div>

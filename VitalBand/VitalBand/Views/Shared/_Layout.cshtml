@@ -1,0 +1,648 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - VitalBand</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/VitalBand.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            /* Teal */
+            --teal-900: #0d3d40;
+            --teal-700: #0a6775;
+            --teal-600: #0891b2;
+            --teal-500: #06b6d4;
+            --teal-400: #22d3ee;
+            --teal-100: #cffafe;
+            --teal-50:  #ecfeff;
+            /* Emerald */
+            --em-700: #047857;
+            --em-600: #059669;
+            --em-500: #10b981;
+            --em-400: #34d399;
+            --em-100: #d1fae5;
+            --em-50:  #ecfdf5;
+            /* Aliases para vistas existentes */
+            --blue-600: #0891b2;
+            --blue-500: #06b6d4;
+            --blue-100: #cffafe;
+            --blue-50:  #ecfeff;
+            --green-600: #059669;
+            --green-50:  #ecfdf5;
+            /* Grays neutros fríos */
+            --gray-900: #0f172a;
+            --gray-800: #1e293b;
+            --gray-700: #334155;
+            --gray-600: #475569;
+            --gray-400: #94a3b8;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --gray-50:  #f8fafc;
+            --white:    #ffffff;
+            /* Status */
+            --red-600: #dc2626;
+            --red-500: #ef4444;
+            --red-50:  #fef2f2;
+            --amber-500: #f59e0b;
+            --amber-50:  #fffbeb;
+            /* Page */
+            --page-bg: #c8eef7;
+        }
+
+        html, body { height: 100%; margin: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Gradiente vivo para que el efecto cristal se note */
+            background: linear-gradient(145deg,
+                #a8d8e8 0%,
+                #b8ebd8 35%,
+                #c4e8f0 60%,
+                #a8dce8 100%);
+            background-attachment: fixed;
+            color: var(--gray-900);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ───────────────────────────────────────────────── */
+        .vb-navbar {
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(6,182,212,0.12);
+            padding: 0 2.5rem;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .vb-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--teal-700);
+            text-decoration: none;
+            letter-spacing: -0.3px;
+        }
+
+        .vb-brand:hover { color: var(--teal-600); text-decoration: none; }
+
+        .vb-brand-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--teal-600), var(--teal-400));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(6,182,212,0.3);
+        }
+
+        .vb-brand-icon svg { width: 16px; height: 16px; }
+
+        .vb-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .vb-nav-links li a {
+            display: block;
+            padding: 0.38rem 0.95rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-500, #64748b);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .vb-nav-links li a:hover {
+            background: rgba(6,182,212,0.08);
+            color: var(--teal-700);
+        }
+
+        .vb-nav-links li a.active {
+            background: rgba(6,182,212,0.1);
+            color: var(--teal-700);
+            font-weight: 600;
+            border: 1px solid rgba(6,182,212,0.22);
+        }
+
+        .vb-nav-actions { display: flex; align-items: center; gap: 4px; }
+
+        .vb-icon-btn {
+            width: 36px;
+            height: 36px;
+            background: none;
+            border: none;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray-400);
+            transition: background 0.12s, color 0.12s;
+        }
+
+        .vb-icon-btn:hover { background: rgba(6,182,212,0.08); color: var(--teal-700); }
+        .vb-icon-btn svg { width: 19px; height: 19px; }
+
+        .vb-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-500), var(--em-500));
+            border: 2px solid rgba(6,182,212,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--white);
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(6,182,212,0.25);
+        }
+
+        .vb-hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--gray-400); }
+        .vb-hamburger svg { width: 22px; height: 22px; }
+
+        /* ── Content ─────────────────────────────────────────────── */
+        .vb-content { flex: 1; }
+
+        /* ── Footer ─────────────────────────────────────────────── */
+        .vb-footer {
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-top: 1px solid rgba(6,182,212,0.1);
+            padding: 1rem 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .vb-footer-brand {
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: linear-gradient(90deg, var(--teal-700), var(--em-600));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .vb-footer-copy { font-size: 0.75rem; color: var(--gray-400); }
+
+        .vb-footer-links { display: flex; gap: 1.25rem; list-style: none; margin: 0; padding: 0; }
+        .vb-footer-links a { font-size: 0.75rem; color: var(--gray-400); text-decoration: none; }
+        .vb-footer-links a:hover { color: var(--teal-600); }
+
+        /* ── Utilidad glass card ─────────────────────────────────── */
+        .glass-card {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(32px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(32px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.45);
+            border-radius: 18px;
+            box-shadow:
+                0 8px 32px rgba(8,145,178,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+
+        /* ── Inputs / selects / textareas globales cristal iOS ────── */
+        input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),
+        select,
+        textarea {
+            background: rgba(255,255,255,0.35) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255,255,255,0.55) !important;
+            border-radius: 10px !important;
+            font-family: 'Inter', sans-serif;
+            color: var(--gray-900);
+            transition: all 0.2s ease;
+            outline: none !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.06) !important;
+        }
+
+        input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]):focus,
+        select:focus,
+        textarea:focus {
+            background: rgba(255,255,255,0.55) !important;
+            border-color: rgba(255,255,255,0.8) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 3px rgba(6,182,212,0.18), 0 2px 12px rgba(0,0,0,0.08) !important;
+        }
+
+        /* ── Tablas globales cristal ─────────────────────────────── */
+        table { border-collapse: collapse; width: 100%; }
+
+        th {
+            background: rgba(255,255,255,0.25) !important;
+            color: var(--teal-700) !important;
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 0.7rem 0.75rem !important;
+            border-bottom: 1px solid rgba(255,255,255,0.4) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+
+        td {
+            padding: 0.75rem 0.75rem !important;
+            border-bottom: 1px solid rgba(255,255,255,0.25) !important;
+            vertical-align: middle;
+            background: transparent !important;
+        }
+
+        tr:hover td {
+            background: rgba(255,255,255,0.15) !important;
+        }
+
+        /* ── Mobile ──────────────────────────────────────────────── */
+        @@media (max-width: 640px) {
+            .vb-navbar { padding: 0 1rem; }
+            .vb-nav-links { display: none; }
+            .vb-hamburger { display: flex; }
+            .vb-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+        }
+    </style>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            /* Cyan / Teal */
+            --teal-900: #0d3d40;
+            --teal-700: #0a6775;
+            --teal-600: #0891b2;
+            --teal-500: #06b6d4;
+            --teal-400: #22d3ee;
+            --teal-100: #cffafe;
+            --teal-50:  #ecfeff;
+            /* Emerald */
+            --em-700: #065f46;
+            --em-600: #059669;
+            --em-500: #10b981;
+            --em-400: #34d399;
+            --em-100: #d1fae5;
+            --em-50:  #ecfdf5;
+            /* Aliases */
+            --blue-600: #0891b2;
+            --blue-500: #06b6d4;
+            --blue-100: #cffafe;
+            --blue-50:  #ecfeff;
+            --green-600: #059669;
+            --green-50:  #ecfdf5;
+            /* Grays (fríos) */
+            --gray-900: #0f172a;
+            --gray-800: #1e293b;
+            --gray-700: #334155;
+            --gray-600: #475569;
+            --gray-400: #94a3b8;
+            --gray-300: #cbd5e1;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --gray-50:  #f8fafc;
+            --white: #ffffff;
+            /* Status */
+            --red-600: #dc2626;
+            --red-500: #ef4444;
+            --red-50:  #fef2f2;
+            --red-100: #fecaca;
+            --amber-600: #d97706;
+            --amber-50:  #fffbeb;
+            /* Page */
+            --page-bg: #f0fdfe;
+        }
+
+        html, body { height: 100%; margin: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Fondo: gradiente suave teal arriba + emerald hint abajo */
+            background: #f0fdfe;
+            background-image:
+                radial-gradient(ellipse 90% 55% at 50% -5%,  rgba(6,182,212,0.14) 0%, transparent 65%),
+                radial-gradient(ellipse 55% 45% at 95% 90%,  rgba(16,185,129,0.10) 0%, transparent 60%),
+                radial-gradient(ellipse 40% 30% at 5%  80%,  rgba(6,182,212,0.07) 0%, transparent 55%);
+            background-attachment: fixed;
+            color: var(--gray-900);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ── Navbar ────────────────────────────────────────────── */
+        .vb-navbar {
+            background: rgba(255,255,255,0.68);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-bottom: 1px solid rgba(6,182,212,0.14);
+            padding: 0 2.5rem;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 20px rgba(8,145,178,0.06);
+        }
+
+        .vb-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: var(--teal-700);
+            text-decoration: none;
+            letter-spacing: -0.4px;
+        }
+        .vb-brand:hover { color: var(--teal-600); }
+
+        .vb-brand-icon {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, var(--teal-600), var(--em-500));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(6,182,212,0.3);
+        }
+        .vb-brand-icon svg { width: 16px; height: 16px; }
+
+        .vb-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.1rem;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .vb-nav-links li a {
+            display: block;
+            padding: 0.38rem 0.95rem;
+            font-size: 0.845rem;
+            font-weight: 500;
+            color: var(--gray-600);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.15s, color 0.15s;
+            letter-spacing: -0.1px;
+        }
+        .vb-nav-links li a:hover {
+            background: rgba(6,182,212,0.08);
+            color: var(--teal-700);
+        }
+        .vb-nav-links li a.active {
+            background: rgba(6,182,212,0.1);
+            color: var(--teal-700);
+            font-weight: 600;
+            box-shadow: inset 0 0 0 1px rgba(6,182,212,0.25);
+        }
+
+        .vb-nav-actions { display: flex; align-items: center; gap: 4px; }
+
+        .vb-icon-btn {
+            width: 36px; height: 36px;
+            background: none; border: none;
+            border-radius: 9px;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: var(--gray-500, #64748b);
+            transition: background 0.15s, color 0.15s;
+        }
+        .vb-icon-btn:hover { background: rgba(6,182,212,0.1); color: var(--teal-700); }
+        .vb-icon-btn svg { width: 19px; height: 19px; }
+
+        .vb-avatar {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-500), var(--em-500));
+            border: 1.5px solid rgba(6,182,212,0.35);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700; color: var(--white);
+            cursor: pointer;
+            box-shadow: 0 1px 6px rgba(6,182,212,0.25);
+        }
+
+        .vb-hamburger { display: none; background: none; border: none; cursor: pointer; color: var(--gray-600); }
+        .vb-hamburger svg { width: 22px; height: 22px; }
+
+        /* ── Content ─────────────────────────────────────────── */
+        .vb-content { flex: 1; }
+
+        /* ── Footer ──────────────────────────────────────────── */
+        .vb-footer {
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(6,182,212,0.12);
+            padding: 1rem 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .vb-footer-brand {
+            font-size: 0.85rem; font-weight: 700;
+            background: linear-gradient(90deg, var(--teal-700), var(--em-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .vb-footer-copy { font-size: 0.78rem; color: var(--gray-400); }
+        .vb-footer-links { display: flex; gap: 1.25rem; list-style: none; margin: 0; padding: 0; }
+        .vb-footer-links a { font-size: 0.78rem; color: var(--gray-400); text-decoration: none; }
+        .vb-footer-links a:hover { color: var(--teal-600); }
+
+        /* ── Glass card utility ──────────────────────────────── */
+        .glass-card {
+            background: rgba(255,255,255,0.72);
+            backdrop-filter: blur(18px) saturate(150%);
+            -webkit-backdrop-filter: blur(18px) saturate(150%);
+            border: 1px solid rgba(6,182,212,0.18);
+            border-radius: 18px;
+            box-shadow: 0 4px 28px rgba(8,145,178,0.07), 0 1px 3px rgba(0,0,0,0.03);
+        }
+
+        /* ── Utility: emerald accent line ─────────────────── */
+        .em-accent { border-left: 3px solid var(--em-500); padding-left: 0.75rem; }
+
+        @@media (max-width: 640px) {
+            .vb-navbar { padding: 0 1rem; }
+            .vb-nav-links { display: none; }
+            .vb-hamburger { display: flex; }
+            .vb-footer { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ── Navbar ─────────────────────────────────────────── -->
+    <header>
+        <nav class="vb-navbar">
+            <!-- Marca -->
+            <a class="vb-brand" asp-controller="Dashboard" asp-action="Index">
+                <div class="vb-brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 12 L7 7 L11 15 L15 5 L19 12" />
+                    </svg>
+                </div>
+                VitalBand Portal Web
+            </a>
+
+            <!-- Links de navegación -->
+            <ul class="vb-nav-links">
+                @if (User.IsInRole("Medico"))
+                {
+                    <li>
+                        <a asp-controller="Usuarios" asp-action="Index"
+                           class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")">
+                            Mi tablero
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Historial" asp-action="Index"
+                           class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Historial" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            Historial Mensual
+                        </a>
+                    </li>
+                }
+                @if (User.IsInRole("Paciente"))
+                {
+                    <li>
+                        <a asp-controller="Historial" asp-action="MiHistorial"
+                           class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Historial" && ViewContext.RouteData.Values["action"]?.ToString() == "MiHistorial" ? "active" : "")">
+                            Mi Historial
+                        </a>
+                    </li>
+                }
+                <li>
+                    <a asp-controller="Configuracion" asp-action="Index"
+                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracion" ? "active" : "")">
+                        Configuración
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Acciones -->
+            <div class="vb-nav-actions">
+                <!-- Notificaciones -->
+                <button class="vb-icon-btn" title="Notificaciones">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                </button>
+
+                <!-- Avatar / perfil -->
+                <div class="vb-avatar" title="Mi cuenta">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                    }
+                    else
+                    {
+                        <text>U</text>
+                    }
+                </div>
+
+                <!-- Logout (solo si autenticado) -->
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="vb-icon-btn" title="Cerrar sesión">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                <polyline points="16 17 21 12 16 7" />
+                                <line x1="21" y1="12" x2="9" y2="12" />
+                            </svg>
+                        </button>
+                    </form>
+                }
+
+                <!-- Hamburger mobile -->
+                <button class="vb-hamburger" id="vbHamburger" aria-label="Menú">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ── Contenido principal ────────────────────────────── -->
+    <div class="vb-content">
+        <main role="main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <!-- ── Footer ─────────────────────────────────────────── -->
+    <footer class="vb-footer">
+        <div>
+            <span class="vb-footer-brand">Vital Health Systems</span>
+            <span class="vb-footer-copy" style="margin-left:1rem;">
+                &copy; 2026 Vital Health Systems &ndash; VitalBand Monitoring Portal
+            </span>
+        </div>
+        <ul class="vb-footer-links">
+            <li><a asp-controller="Home" asp-action="Privacy">Privacidad</a></li>
+            <li><a href="#">Soporte Técnico</a></li>
+            <li><a href="#">Términos de Servicio</a></li>
+        </ul>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Hamburger mobile toggle
+        var btn = document.getElementById('vbHamburger');
+        var nav = document.querySelector('.vb-nav-links');
+        if (btn && nav) {
+        btn.addEventListener('click', function () {
+        var open = nav.style.display === 'flex';
+        nav.style.display = open ? 'none' : 'flex';
+        nav.style.flexDirection = 'column';
+        nav.style.position = 'absolute';
+        nav.style.top = '56px';
+        nav.style.left = '0';
+        nav.style.right = '0';
+        nav.style.background = 'var(--white)';
+        nav.style.borderBottom = '1px solid var(--gray-100)';
+        nav.style.padding = '0.5rem 1rem 1rem';
+        nav.style.gap = '4px';
+        });
+        }
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

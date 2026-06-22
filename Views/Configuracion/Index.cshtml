@@ -1,0 +1,309 @@
+﻿@model VitalBand.Models.ConfiguracionViewModel
+@{
+    ViewData["Title"] = "Configuración - VitalBand";
+}
+
+@section Styles {
+    <style>
+        .config-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .config-card {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 24px;
+            padding: 1.75rem;
+            box-shadow:
+                0 8px 40px rgba(8,145,178,0.15),
+                inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+            .config-card h2 {
+                font-size: 1.25rem;
+                margin-bottom: 1rem;
+                border-left: 3px solid var(--teal-600, #0891b2);
+                padding-left: 0.75rem;
+            }
+
+        .tabla-config {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+            .tabla-config th, .tabla-config td {
+                padding: 0.65rem 0.6rem;
+                text-align: left;
+                border-bottom: 1px solid rgba(6,182,212,0.1);
+                font-size: 0.875rem;
+            }
+
+            .tabla-config th {
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+                color: var(--teal-700, #0a6775);
+                background: rgba(6,182,212,0.05);
+            }
+
+            .tabla-config tr:hover td {
+                background: rgba(6,182,212,0.04);
+            }
+
+        .color-muestra {
+            display: inline-block;
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            vertical-align: middle;
+            background-image: linear-gradient(
+                135deg,
+                rgba(255,255,255,0.45) 0%,
+                rgba(255,255,255,0.1) 45%,
+                rgba(0,0,0,0.08) 100%
+            );
+            box-shadow:
+                inset 0 1px 1px rgba(255,255,255,0.6),
+                inset 0 -1px 2px rgba(0,0,0,0.12),
+                0 2px 8px rgba(0,0,0,0.18);
+            border: 1px solid rgba(255,255,255,0.35);
+        }
+
+        .form-agregar {
+            margin-top: 1.25rem;
+            padding-top: 1.25rem;
+            border-top: 1px solid rgba(6,182,212,0.12);
+            background: rgba(6,182,212,0.03);
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+
+        .form-agregar h3 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--teal-700, #0a6775);
+        }
+
+            .form-agregar input, .form-agregar select {
+                width: 100%;
+                padding: 0.6rem 0.9rem;
+                margin-bottom: 0.6rem;
+                background: rgba(255,255,255,0.6);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+                border: 1.5px solid rgba(6,182,212,0.18);
+                border-radius: 10px;
+                font-family: inherit;
+                font-size: 0.875rem;
+                color: var(--gray-900, #0f172a);
+                outline: none;
+                transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+            }
+
+            .form-agregar input:focus, .form-agregar select:focus {
+                border-color: rgba(6,182,212,0.5);
+                background: rgba(255,255,255,0.85);
+                box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
+            }
+
+        .btn-guardar {
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ── Paleta de colores ──────────────────────────────── */
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(6, 28px);
+            gap: 5px;
+            margin-bottom: 0.6rem;
+        }
+
+        .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.2);
+            z-index: 1;
+        }
+
+        .color-swatch.selected {
+            border-color: #0891b2;
+            box-shadow: 0 0 0 3px rgba(6,182,212,0.4);
+            transform: scale(1.15);
+        }
+
+        .color-hex-preview {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 0.6rem;
+            font-size: 0.8rem;
+            color: var(--gray-600, #475569);
+        }
+
+        .color-hex-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.15);
+            cursor: pointer;
+            transition: transform 0.12s, box-shadow 0.12s;
+        }
+        .color-hex-dot:hover { transform: scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+
+        .color-palette { display: none; }
+        .color-palette.open { display: grid; }
+    </style>
+}
+
+<div class="config-container">
+    <!-- Sección: Rangos de pulso -->
+    <div class="config-card">
+        <h2>Colores de pulsaciones</h2>
+        <table class="tabla-config">
+            <thead>
+                <tr><th>Rango</th><th>Límites (BPM)</th><th>Color</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.RangosPulso)
+                {
+                    <tr>
+                        <td>@r.Nombre</td>
+                        <td>@r.Minimo - @(r.Maximo == 200 ? "∞" : r.Maximo.ToString())</td>
+                        <td><span class="color-muestra" style="background-color:@r.ColorHex"></span> @r.ColorHex</td>
+                        <td><a href="#">Editar</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="form-agregar">
+            <h3>Agregar nuevo rango</h3>
+            <form asp-action="AgregarRango" method="post">
+                <input type="text" name="Nombre" placeholder="Nombre (ej. Normal-alto)" required />
+                <input type="number" name="Minimo" placeholder="Mínimo BPM" required />
+                <input type="number" name="Maximo" placeholder="Máximo BPM (0 para infinito)" required />
+                <input type="hidden" name="ColorHex" id="colorRango" value="#2E7D32" />
+                <div class="color-hex-preview">
+                    <div class="color-hex-dot" id="dotRango" style="background:#2E7D32"></div>
+                    <span id="hexRango">#2E7D32</span>
+                </div>
+                <div class="color-palette" id="paletteRango"></div>
+                <button type="submit" class="btn-guardar">Agregar rango</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sección: Tipos de alerta -->
+    <div class="config-card">
+        <h2>Tipos de alerta</h2>
+        <table class="tabla-config">
+            <thead><tr><th>Nombre</th><th>Umbral (BPM)</th><th>Color</th><th>Activo</th></tr></thead>
+            <tbody>
+                @foreach (var t in Model.TiposAlerta)
+                {
+                    <tr>
+                        <td>@t.Nombre</td>
+                        <td>@t.UmbralMinimo - @t.UmbralMaximo</td>
+                        <td><span class="color-muestra" style="background-color:@t.ColorHex"></span></td>
+                        <td>@(t.Activo ? "✅" : "❌")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="form-agregar">
+            <h3>Nuevo tipo de alerta</h3>
+            <form asp-action="AgregarTipoAlerta" method="post">
+                <input type="text" name="Nombre" placeholder="Nombre (ej. Taquicardia)" required />
+                <input type="number" name="UmbralMinimo" placeholder="Mínimo BPM" required />
+                <input type="number" name="UmbralMaximo" placeholder="Máximo BPM" required />
+                <input type="hidden" name="ColorHex" id="colorAlerta" value="#D32F2F" />
+                <div class="color-hex-preview">
+                    <div class="color-hex-dot" id="dotAlerta" style="background:#D32F2F"></div>
+                    <span id="hexAlerta">#D32F2F</span>
+                </div>
+                <div class="color-palette" id="paletteAlerta"></div>
+                <label><input type="checkbox" name="Activo" value="true" checked /> Activo</label>
+                <button type="submit" class="btn-guardar">Agregar alerta</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    const COLORES = [
+        // Rojos
+        '#FFCDD2','#EF9A9A','#E57373','#F44336','#D32F2F','#B71C1C',
+        // Naranjas
+        '#FFE0B2','#FFCC80','#FFA726','#FB8C00','#E65100','#BF360C',
+        // Amarillos
+        '#FFF9C4','#FFF176','#FFEE58','#FDD835','#F9A825','#F57F17',
+        // Verdes claros
+        '#F1F8E9','#DCEDC8','#AED581','#8BC34A','#558B2F','#33691E',
+        // Verdes
+        '#E8F5E9','#A5D6A7','#66BB6A','#43A047','#2E7D32','#1B5E20',
+        // Teals
+        '#E0F2F1','#80CBC4','#26A69A','#00897B','#00695C','#004D40',
+        // Cianes
+        '#E0F7FA','#80DEEA','#26C6DA','#00ACC1','#00838F','#006064',
+        // Azules
+        '#E3F2FD','#90CAF9','#42A5F5','#1E88E5','#1565C0','#0D47A1',
+        // Índigos / violetas
+        '#EDE7F6','#B39DDB','#7E57C2','#5E35B1','#4527A0','#311B92',
+        // Rosados / fucsias
+        '#FCE4EC','#F48FB1','#EC407A','#D81B60','#880E4F','#4A148C',
+        // Grises
+        '#F5F5F5','#BDBDBD','#757575','#424242','#212121','#000000',
+    ];
+
+    function buildPalette(containerId, hiddenId, dotId, hexId, defaultColor) {
+        const container = document.getElementById(containerId);
+        const hidden    = document.getElementById(hiddenId);
+        const dot       = document.getElementById(dotId);
+        const hexSpan   = document.getElementById(hexId);
+
+        // Toggle al hacer clic en el círculo
+        dot.addEventListener('click', () => container.classList.toggle('open'));
+
+        COLORES.forEach(color => {
+            const swatch = document.createElement('div');
+            swatch.className = 'color-swatch' + (color === defaultColor ? ' selected' : '');
+            swatch.style.background = color;
+            swatch.title = color;
+            swatch.addEventListener('click', () => {
+                container.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                swatch.classList.add('selected');
+                hidden.value = color;
+                dot.style.background = color;
+                hexSpan.textContent = color;
+                container.classList.remove('open'); // cierra al elegir
+            });
+            container.appendChild(swatch);
+        });
+    }
+
+    buildPalette('paletteRango',  'colorRango',  'dotRango',  'hexRango',  '#2E7D32');
+    buildPalette('paletteAlerta', 'colorAlerta', 'dotAlerta', 'hexAlerta', '#D32F2F');
+</script>
+}
