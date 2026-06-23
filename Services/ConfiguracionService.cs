@@ -6,13 +6,13 @@ namespace VitalBand.Services
 {
     public class ConfiguracionService : IConfiguracionService
     {
-        private List<RangoPulsoConfig> _rangos;
-        private List<TipoAlertaConfig> _tiposAlerta;
+        // Usamos los nuevos modelos planos
+        private List<RangoPulso> _rangos;
+        private List<TipoAlerta> _tiposAlerta;
 
         public ConfiguracionService()
         {
-            // Datos iniciales de calibración médica IoT
-            _rangos = new List<RangoPulsoConfig>
+            _rangos = new List<RangoPulso>
             {
                 new() { Id = 1, Nombre = "Crítico bajo", Minimo = 0, Maximo = 49, ColorHex = "#D32F2F" },
                 new() { Id = 2, Nombre = "Precaución bajo", Minimo = 50, Maximo = 59, ColorHex = "#F4A100" },
@@ -21,7 +21,7 @@ namespace VitalBand.Services
                 new() { Id = 5, Nombre = "Crítico alto", Minimo = 111, Maximo = 200, ColorHex = "#D32F2F" }
             };
 
-            _tiposAlerta = new List<TipoAlertaConfig>
+            _tiposAlerta = new List<TipoAlerta>
             {
                 new() { Id = 1, Nombre = "Taquicardia", UmbralMinimo = 100, UmbralMaximo = 200, ColorHex = "#D32F2F", Activo = true },
                 new() { Id = 2, Nombre = "Bradicardia", UmbralMinimo = 0, UmbralMaximo = 55, ColorHex = "#F4A100", Activo = true },
@@ -29,24 +29,22 @@ namespace VitalBand.Services
             };
         }
 
-        // 👇 CORRECCIÓN: Cambiado de ObtenerRangos() a ObtenerRangosPulso() para cumplir con la interfaz
-        public List<RangoPulsoConfig> ObtenerRangosPulso() => _rangos.OrderBy(r => r.Minimo).ToList();
+        public List<RangoPulso> ObtenerRangosPulso() => _rangos.OrderBy(r => r.Minimo).ToList();
+        public List<TipoAlerta> ObtenerTiposAlerta() => _tiposAlerta;
 
-        public List<TipoAlertaConfig> ObtenerTiposAlerta() => _tiposAlerta;
-
-        public void AgregarRango(RangoPulsoConfig rango)
+        public void AgregarRango(RangoPulso rango)
         {
-            rango.Id = _rangos.Any() ? _rangos.Max(r => r.Id) + 1 : 1; // Control extra por si la lista se vacía
+            rango.Id = _rangos.Any() ? _rangos.Max(r => r.Id) + 1 : 1;
             _rangos.Add(rango);
         }
 
-        public void AgregarTipoAlerta(TipoAlertaConfig tipo)
+        public void AgregarTipoAlerta(TipoAlerta tipo)
         {
             tipo.Id = _tiposAlerta.Any() ? _tiposAlerta.Max(t => t.Id) + 1 : 1;
             _tiposAlerta.Add(tipo);
         }
 
-        public void ActualizarRango(RangoPulsoConfig rango)
+        public void ActualizarRango(RangoPulso rango)
         {
             var existente = _rangos.FirstOrDefault(r => r.Id == rango.Id);
             if (existente != null)
@@ -58,7 +56,7 @@ namespace VitalBand.Services
             }
         }
 
-        public void ActualizarTipoAlerta(TipoAlertaConfig tipo)
+        public void ActualizarTipoAlerta(TipoAlerta tipo)
         {
             var existente = _tiposAlerta.FirstOrDefault(t => t.Id == tipo.Id);
             if (existente != null)

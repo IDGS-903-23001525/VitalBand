@@ -1,313 +1,345 @@
-@model VitalBand.Models.ReporteSaludViewModel
+@model VitalBand.Models.ReporteSalud
 @{
     ViewData["Title"] = "Reporte de Salud - VitalBand";
 }
 
 @section Styles {
-<style>
-    :root {
-        --blue-600: #0891b2;
-        --blue-500: #06b6d4;
-        --blue-100: #cffafe;
-        --blue-50:  #ecfeff;
-        --teal-700: #0a6775;
-        --teal-600: #0891b2;
-        --teal-500: #06b6d4;
-        --gray-900: #0f172a;
-        --gray-700: #334155;
-        --gray-600: #475569;
-        --gray-200: #e2e8f0;
-        --gray-100: #f1f5f9;
-        --gray-50:  #f8fafc;
-        --red-600: #dc2626;
-        --red-500: #ef4444;
-        --red-50:  #fef2f2;
-        --amber-500: #f59e0b;
-        --amber-50: #fffbeb;
-        --white: #ffffff;
-        --page-bg: #f0fdfe;
-    }
+    <style>
+        :root {
+            --blue-600: #0891b2;
+            --blue-500: #06b6d4;
+            --blue-100: #cffafe;
+            --blue-50: #ecfeff;
+            --teal-700: #0a6775;
+            --teal-600: #0891b2;
+            --teal-500: #06b6d4;
+            --gray-900: #0f172a;
+            --gray-700: #334155;
+            --gray-600: #475569;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --gray-50: #f8fafc;
+            --red-600: #dc2626;
+            --red-500: #ef4444;
+            --red-50: #fef2f2;
+            --amber-500: #f59e0b;
+            --amber-50: #fffbeb;
+            --white: #ffffff;
+            --page-bg: #f0fdfe;
+        }
 
-    body { background: var(--page-bg); font-family: 'Inter', 'DM Sans', sans-serif; color: var(--gray-900); }
+        body {
+            background: var(--page-bg);
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            color: var(--gray-900);
+        }
 
-    /* ── Toolbar ── */
-    .report-toolbar {
-        display: flex;
-        justify-content: center;
-        padding: 1.5rem 0;
-    }
+        .report-toolbar {
+            display: flex;
+            justify-content: center;
+            padding: 1.5rem 0;
+        }
 
-    .btn-print {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, #0891b2, #06b6d4);
-        color: var(--white);
-        font-family: 'Inter', 'DM Sans', sans-serif;
-        font-size: 0.875rem;
-        font-weight: 600;
-        padding: 0.65rem 1.5rem;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        letter-spacing: 0.5px;
-        text-transform: uppercase;
-        transition: opacity 0.15s, box-shadow 0.15s;
-        box-shadow: 0 4px 16px rgba(6,182,212,0.4);
-    }
+        .btn-print {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: var(--white);
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.65rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            transition: opacity 0.15s, box-shadow 0.15s;
+            box-shadow: 0 4px 16px rgba(6,182,212,0.4);
+        }
 
-    .btn-print:hover { opacity: 0.9; box-shadow: 0 6px 24px rgba(6,182,212,0.5); }
+            .btn-print:hover {
+                opacity: 0.9;
+                box-shadow: 0 6px 24px rgba(6,182,212,0.5);
+            }
 
-    .btn-print svg { width: 16px; height: 16px; }
+            .btn-print svg {
+                width: 16px;
+                height: 16px;
+            }
 
-    /* ── Report card ── */
-    .report-card {
-        background: rgba(255,255,255,0.22);
-        backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-        -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-        border: 1px solid rgba(255,255,255,0.5);
-        border-radius: 24px;
-        max-width: 760px;
-        margin: 0 auto 3rem;
-        padding: 3rem;
-        box-shadow:
-            0 8px 40px rgba(8,145,178,0.15),
-            inset 0 1px 0 rgba(255,255,255,0.7);
-    }
+        .report-card {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 24px;
+            max-width: 760px;
+            margin: 0 auto 3rem;
+            padding: 3rem;
+            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+        }
 
-    /* Header del reporte */
-    .report-title {
-        text-align: center;
-        margin-bottom: 2rem;
-    }
+        .report-title {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
 
-    .report-title h1 {
-        font-size: 1.5rem;
-        font-weight: 700;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        color: var(--gray-900);
-        margin-bottom: 0.5rem;
-    }
+            .report-title h1 {
+                font-size: 1.5rem;
+                font-weight: 700;
+                letter-spacing: 1px;
+                text-transform: uppercase;
+                color: var(--gray-900);
+                margin-bottom: 0.5rem;
+            }
 
-    .report-title-bar {
-        width: 48px;
-        height: 3px;
-        background: linear-gradient(90deg, #0891b2, #06b6d4);
-        border-radius: 2px;
-        margin: 0 auto;
-    }
+        .report-title-bar {
+            width: 48px;
+            height: 3px;
+            background: linear-gradient(90deg, #0891b2, #06b6d4);
+            border-radius: 2px;
+            margin: 0 auto;
+        }
 
-    /* Datos del paciente */
-    .report-meta {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 1.75rem;
-        padding-bottom: 1.25rem;
-        border-bottom: 1px solid var(--gray-100);
-    }
+        .report-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 1.75rem;
+            padding-bottom: 1.25rem;
+            border-bottom: 1px solid var(--gray-100);
+        }
 
-    .report-meta-group label {
-        display: block;
-        font-size: 0.6875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--gray-200);
-        margin-bottom: 2px;
-    }
+        .report-meta-group label {
+            display: block;
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--gray-600);
+            margin-bottom: 2px;
+        }
 
-    .report-meta-group strong {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--gray-900);
-    }
+        .report-meta-group strong {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
 
-    /* Sección de gráfica */
-    .section-title {
-        font-size: 0.6875rem;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        color: var(--gray-200);
-        margin-bottom: 0.75rem;
-    }
+        .section-title {
+            font-size: 0.6875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--gray-600);
+            margin-bottom: 0.75rem;
+        }
 
-    .chart-placeholder {
-        background: var(--gray-50);
-        border: 1px dashed var(--gray-100);
-        border-radius: 8px;
-        height: 220px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        margin-bottom: 2rem;
-        color: var(--gray-200);
-        font-size: 0.875rem;
-        position: relative;
-        overflow: hidden;
-    }
+        .chart-placeholder {
+            background: var(--gray-50);
+            border: 1px dashed var(--gray-100);
+            border-radius: 8px;
+            height: 220px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 2rem;
+            color: var(--gray-400);
+            font-size: 0.875rem;
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* Mini sparkline decorativa */
-    .chart-placeholder canvas {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        opacity: 0.35;
-    }
+            .chart-placeholder canvas {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                opacity: 0.35;
+            }
 
-    .chart-placeholder-inner {
-        position: relative;
-        z-index: 1;
-        text-align: center;
-    }
+        .chart-placeholder-inner {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+        }
 
-    .chart-placeholder svg { width: 28px; height: 28px; stroke: var(--gray-200); margin-bottom: 4px; }
+        .chart-placeholder svg {
+            width: 28px;
+            height: 28px;
+            stroke: var(--gray-400);
+            margin-bottom: 4px;
+        }
 
-    /* Tabla de incidentes */
-    .incidents-section {
-        margin-bottom: 2rem;
-    }
+        .incidents-section {
+            margin-bottom: 2rem;
+        }
 
-    .incidents-header {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 1rem;
-        padding-left: 12px;
-        border-left: 3px solid #0891b2;
-    }
+        .incidents-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 1rem;
+            padding-left: 12px;
+            border-left: 3px solid #0891b2;
+        }
 
-    .incidents-header h2 {
-        font-size: 1rem;
-        font-weight: 600;
-        color: var(--gray-900);
-    }
+            .incidents-header h2 {
+                font-size: 1rem;
+                font-weight: 600;
+                color: var(--gray-900);
+            }
 
-    .incidents-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+        .incidents-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-    .incidents-table th {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        color: var(--gray-600);
-        font-weight: 500;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid var(--gray-100);
-        text-align: left;
-    }
+            .incidents-table th {
+                font-size: 0.75rem;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+                color: var(--gray-600);
+                font-weight: 500;
+                padding: 0.5rem 0;
+                border-bottom: 1px solid var(--gray-100);
+                text-align: left;
+            }
 
-    .incidents-table th:last-child { text-align: right; }
+                .incidents-table th:last-child {
+                    text-align: right;
+                }
 
-    .incidents-table td {
-        padding: 0.875rem 0;
-        font-size: 0.9rem;
-        border-bottom: 1px solid var(--gray-50);
-        color: var(--gray-700);
-    }
+            .incidents-table td {
+                padding: 0.875rem 0;
+                font-size: 0.9rem;
+                border-bottom: 1px solid var(--gray-50);
+                color: var(--gray-700);
+            }
 
-    .incidents-table td:last-child { text-align: right; }
+                .incidents-table td:last-child {
+                    text-align: right;
+                }
 
-    .incidents-table tr:last-child td { border-bottom: none; }
+            .incidents-table tr:last-child td {
+                border-bottom: none;
+            }
 
-    .event-badge {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        padding: 2px 0;
-    }
+        .event-badge {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            padding: 2px 0;
+        }
 
-    .event-badge.high   { color: var(--red-500); }
-    .event-badge.low    { color: var(--blue-500); }
-    .event-badge.irregular { color: var(--amber-500); }
+            .event-badge.high {
+                color: var(--red-500);
+            }
 
-    /* Firma y footer */
-    .report-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        padding-top: 1.5rem;
-        border-top: 1px solid var(--gray-100);
-        margin-top: 1rem;
-    }
+            .event-badge.low {
+                color: var(--blue-500);
+            }
 
-    .signature-area {
-        text-align: center;
-    }
+            .event-badge.irregular {
+                color: var(--amber-500);
+            }
 
-    .signature-line {
-        width: 160px;
-        height: 1px;
-        background: var(--gray-200);
-        margin-bottom: 6px;
-    }
+        .report-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--gray-100);
+            margin-top: 1rem;
+        }
 
-    .signature-label {
-        font-size: 0.75rem;
-        color: var(--gray-600);
-    }
+        .signature-area {
+            text-align: center;
+        }
 
-    .report-id-box {
-        text-align: right;
-    }
+        .signature-line {
+            width: 160px;
+            height: 1px;
+            background: var(--gray-200);
+            margin-bottom: 6px;
+        }
 
-    .report-id-qr {
-        width: 60px;
-        height: 60px;
-        background: var(--gray-50);
-        border: 1px solid var(--gray-100);
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-left: auto;
-        margin-bottom: 6px;
-    }
+        .signature-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
 
-    .report-id-qr svg { width: 28px; height: 28px; stroke: var(--gray-200); }
+        .report-id-box {
+            text-align: right;
+        }
 
-    .report-id-label {
-        font-size: 0.75rem;
-        color: var(--gray-600);
-    }
+        .report-id-qr {
+            width: 60px;
+            height: 60px;
+            background: var(--gray-50);
+            border: 1px solid var(--gray-100);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
+            margin-bottom: 6px;
+        }
 
-    @@media print {
-        .report-toolbar, nav, footer { display: none !important; }
-        body { background: white; }
-        .report-card { border: none; box-shadow: none; margin: 0; max-width: 100%; }
-    }
-</style>
+            .report-id-qr svg {
+                width: 28px;
+                height: 28px;
+                stroke: var(--gray-400);
+            }
+
+        .report-id-label {
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+
+        @@media print {
+            .report-toolbar, nav, footer {
+                display: none !important;
+            }
+
+            body {
+                background: white;
+            }
+
+            .report-card {
+                border: none;
+                box-shadow: none;
+                margin: 0;
+                max-width: 100%;
+                padding: 0;
+            }
+        }
+    </style>
 }
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
 <div class="container" style="max-width: 900px; margin: 0 auto; padding: 0 1.5rem;">
 
-    <!-- Botón imprimir -->
     <div class="report-toolbar">
         <button class="btn-print" onclick="window.print()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                <rect x="6" y="14" width="12" height="8"/>
+                <polyline points="6 9 6 2 18 2 18 9" />
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+                <rect x="6" y="14" width="12" height="8" />
             </svg>
             Confirmar Impresión
         </button>
     </div>
 
-    <!-- Reporte -->
     <div class="report-card" id="reporte-imprimible">
 
-        <!-- Título -->
         <div class="report-title">
             <h1>Reporte de Salud VitalBand</h1>
             <div class="report-title-bar"></div>
         </div>
 
-        <!-- Datos del paciente y período -->
         <div class="report-meta">
             <div class="report-meta-group">
                 <label>Datos del Paciente</label>
@@ -319,19 +351,17 @@
             </div>
         </div>
 
-        <!-- Gráfica de frecuencia cardíaca -->
         <p class="section-title">Análisis de Frecuencia Cardíaca</p>
         <div class="chart-placeholder">
             <canvas id="sparkChart"></canvas>
             <div class="chart-placeholder-inner">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>
                 <span>Gráfico de Tendencia Mensual</span>
             </div>
         </div>
 
-        <!-- Registro de incidentes críticos -->
         <div class="incidents-section">
             <div class="incidents-header">
                 <h2>Registro de Incidentes Críticos</h2>
@@ -345,16 +375,9 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @{
-                        var incidentes = Model?.Incidentes ?? new List<VitalBand.Models.IncidenteCritico>
-                        {
-                            new() { FechaHora = new DateTime(2026, 5, 31, 14, 30, 0), Descripcion = "Frecuencia cardíaca alta (120 BPM)", Tipo = "high" },
-                            new() { FechaHora = new DateTime(2026, 5, 25, 8,  15, 0), Descripcion = "Frecuencia cardíaca irregular",      Tipo = "irregular" },
-                            new() { FechaHora = new DateTime(2026, 5, 18, 22,  0, 0), Descripcion = "Frecuencia cardíaca baja (45 BPM)",  Tipo = "low" },
-                            new() { FechaHora = new DateTime(2026, 5,  5, 10, 45, 0), Descripcion = "Frecuencia cardíaca alta (115 BPM)", Tipo = "high" },
-                        };
-
-                        foreach (var inc in incidentes)
+                    @if (Model?.Incidentes != null && Model.Incidentes.Any())
+                    {
+                        foreach (var inc in Model.Incidentes)
                         {
                             <tr>
                                 <td>@inc.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
@@ -364,11 +387,18 @@
                             </tr>
                         }
                     }
+                    else
+                    {
+                        <tr>
+                            <td colspan="2" style="text-align: center; color: var(--gray-400); padding: 1.5rem 0;">
+                                No se registraron incidentes críticos en el período seleccionado.
+                            </td>
+                        </tr>
+                    }
                 </tbody>
             </table>
         </div>
 
-        <!-- Pie del reporte -->
         <div class="report-footer">
             <div class="signature-area">
                 <div class="signature-line"></div>
@@ -377,54 +407,56 @@
             <div class="report-id-box">
                 <div class="report-id-qr">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
-                        <rect x="18" y="18" width="3" height="3"/>
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                        <rect x="14" y="14" width="3" height="3" />
+                        <rect x="18" y="18" width="3" height="3" />
                     </svg>
                 </div>
                 <div class="report-id-label">Identificador: @(Model?.Identificador ?? "VB-2026-MAY-7742")</div>
             </div>
         </div>
 
-    </div><!-- /report-card -->
-
+    </div>
 </div>
 
 @section Scripts {
-<script>
-    (function () {
-        var canvas = document.getElementById('sparkChart');
-        if (!canvas) return;
-        var ctx = canvas.getContext('2d');
-        var W = canvas.offsetWidth, H = canvas.offsetHeight;
-        canvas.width = W; canvas.height = H;
+    <script>
+        (function () {
+            var canvas = document.getElementById('sparkChart');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var W = canvas.offsetWidth, H = canvas.offsetHeight;
+            canvas.width = W; canvas.height = H;
 
-        var bpms = [74,76,73,77,71,74,70,72,73,70,70,72,77,70,76,75,76,76,74,74,77,70,71,75,75,76,71,74,74,74,88];
-        var min = 65, max = 95;
-        var pts = bpms.map(function(v, i) {
-            return {
-                x: (i / (bpms.length - 1)) * W,
-                y: H - ((v - min) / (max - min)) * H * 0.8 - H * 0.1
-            };
-        });
+            var bpms = [74,76,73,77,71,74,70,72,73,70,70,72,77,70,76,75,76,76,74,74,77,70,71,75,75,76,71,74,74,74,88];
+            var min = 65, max = 95;
+            var pts = bpms.map(function(v, i) {
+                return {
+                    x: (i / (bpms.length - 1)) * W,
+                    y: H - ((v - min) / (max - min)) * H * 0.8 - H * 0.1
+                };
+            });
 
-        ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        for (var i = 1; i < pts.length; i++) {
-            var cp = { x: (pts[i-1].x + pts[i].x) / 2, y: (pts[i-1].y + pts[i].y) / 2 };
-            ctx.quadraticCurveTo(pts[i-1].x, pts[i-1].y, cp.x, cp.y);
-        }
-        ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
-        ctx.strokeStyle = '#378ADD';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pts[0].x, pts[0].y);
+            for (var i = 1; i < pts.length; i++) {
+                var cp = { x: (pts[i-1].x + pts[i].x) / 2, y: (pts[i-1].y + pts[i].y) / 2 };
+                ctx.quadraticCurveTo(pts[i-1].x, pts[i-1].y, cp.x, cp.y);
+            }
+            ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+            ctx.strokeStyle = '#378ADD';
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-        var grad = ctx.createLinearGradient(0, 0, 0, H);
-        grad.addColorStop(0, 'rgba(55,138,221,0.25)');
-        grad.addColorStop(1, 'rgba(55,138,221,0)');
-        ctx.fillStyle = grad;
-        ctx.fill();
-    })();
-</script>
+            ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+            var grad = ctx.createLinearGradient(0, 0, 0, H);
+            var grayColor = getComputedStyle(document.documentElement).getPropertyValue('--gray-400').trim() || '#94a3b8';
+            grad.addColorStop(0, 'rgba(55,138,221,0.25)');
+            grad.addColorStop(1, 'rgba(55,138,221,0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+        })();
+    </script>
 }

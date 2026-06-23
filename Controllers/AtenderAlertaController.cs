@@ -1,26 +1,62 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Linq;
+using VitalBand.Data;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "medico,Medico")]
     public class AtenderAlertaController : Controller
     {
+        private readonly VitalBandContext _context;
+
+        public AtenderAlertaController(VitalBandContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index(int alertaId)
         {
-            var modelo = new AtenderAlertaViewModel
+            var alertaBD = _context.Alertas.FirstOrDefault(a => a.id == alertaId);
+
+            if (alertaBD == null)
             {
-                AlertaId = alertaId,
-                Latitud = 19.4326,      // Ejemplo: CDMX
-                Longitud = -99.1332,
-                PulsoRegistrado = alertaId == 101 ? 120 : (alertaId == 102 ? 45 : 88),
-                DuracionSegundos = 35,
-                Atendida = alertaId != 102,   // la 102 no atendida
-                RespuestaUsuario = "Estaba subiendo escaleras, me mareé",
-                FechaHoraAlerta = new DateTime(2026, 5, 31, 14, 30, 0)
+                TempData["Error"] = "No se encontró el registro de la alerta biométrica.";
+                return RedirectToAction("Index", "Usuarios");
+            }
+
+            var modelo = new AtenderAlerta
+            {
+                AlertaId = alertaBD.id,
+                Latitud = alertaBD.latitud,               
+                Longitud = alertaBD.longitud,             
+                PulsoRegistrado = (int)alertaBD.fc_media, 
+                DuracionSegundos = 45,                    
+                Atendida = alertaBD.mensaje_enviado,      
+                RespuestaUsuario = "Alerta crítica disparada por el dispositivo móvil.",
+                FechaHoraAlerta = alertaBD.fecha_hora
             };
+
             return View(modelo);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GuardarSeguimiento(AtenderAlerta model)
+        {
+            var alertaBD = _context.Alertas.FirstOrDefault(a => a.id == model.AlertaId);
+
+            if (alertaBD != null)
+            {
+                alertaBD.mensaje_enviado = true;
+
+                _context.SaveChanges();
+                TempData["Mensaje"] = "¡La alerta médica ha sido atendida y registrada con éxito! ❤️✨";
+            }
+
+            return RedirectToAction("Index", "Usuarios");
         }
     }
 }

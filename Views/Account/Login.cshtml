@@ -1,4 +1,5 @@
-﻿@{
+﻿@model VitalBand.Models.Login
+@{
     ViewData["Title"] = "Iniciar Sesión - VitalBand";
     Layout = null;
 }
@@ -10,253 +11,343 @@
     <title>@ViewData["Title"]</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+            *, *::before, *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
 
-        :root {
-            --teal-700: #0a6775;
-            --teal-600: #0891b2;
-            --teal-500: #06b6d4;
-            --teal-400: #22d3ee;
-            --teal-100: #cffafe;
-            --em-600:   #059669;
-            --em-500:   #10b981;
-            --em-400:   #34d399;
-            --em-100:   #d1fae5;
-            --gray-900: #0f172a;
-            --gray-700: #334155;
-            --gray-600: #475569;
-            --gray-400: #94a3b8;
-            --gray-200: #e2e8f0;
-            --gray-100: #f1f5f9;
-            --red-600:  #dc2626;
-            --red-50:   #fef2f2;
-            --white:    #ffffff;
-        }
+            :root {
+                --teal-700: #0a6775;
+                --teal-600: #0891b2;
+                --teal-500: #06b6d4;
+                --teal-400: #22d3ee;
+                --teal-100: #cffafe;
+                --em-600: #059669;
+                --em-500: #10b981;
+                --em-400: #34d399;
+                --em-100: #d1fae5;
+                --gray-900: #0f172a;
+                --gray-700: #334155;
+                --gray-600: #475569;
+                --gray-400: #94a3b8;
+                --gray-200: #e2e8f0;
+                --gray-100: #f1f5f9;
+                --red-600: #dc2626;
+                --red-50: #fef2f2;
+                --white: #ffffff;
+            }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray-900);
-            /* Gradiente diagonal teal → esmeralda profundo */
-            background: linear-gradient(145deg, #0d3d40 0%, #065f46 40%, #0891b2 75%, #22d3ee 100%);
-            background-attachment: fixed;
-            position: relative;
-            overflow: hidden;
-        }
+            body {
+                font-family: 'Inter', sans-serif;
+                min-height: 100vh;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--gray-900);
+                background: linear-gradient(145deg, #0d3d40 0%, #065f46 40%, #0891b2 75%, #22d3ee 100%);
+                background-attachment: fixed;
+                position: relative;
+                overflow: hidden;
+            }
 
-        /* Blobs decorativos */
-        body::before {
-            content: '';
-            position: fixed;
-            top: -15%;
-            left: -10%;
-            width: 550px;
-            height: 550px;
-            background: radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 65%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
+                body::before {
+                    content: '';
+                    position: fixed;
+                    top: -15%;
+                    left: -10%;
+                    width: 550px;
+                    height: 550px;
+                    background: radial-gradient(circle, rgba(52,211,153,0.2) 0%, transparent 65%);
+                    border-radius: 50%;
+                    pointer-events: none;
+                }
 
-        body::after {
-            content: '';
-            position: fixed;
-            bottom: -15%;
-            right: -8%;
-            width: 480px;
-            height: 480px;
-            background: radial-gradient(circle, rgba(34,211,238,0.18) 0%, transparent 65%);
-            border-radius: 50%;
-            pointer-events: none;
-        }
+                body::after {
+                    content: '';
+                    position: fixed;
+                    bottom: -15%;
+                    right: -8%;
+                    width: 480px;
+                    height: 480px;
+                    background: radial-gradient(circle, rgba(34,211,238,0.18) 0%, transparent 65%);
+                    border-radius: 50%;
+                    pointer-events: none;
+                }
 
-        .login-wrapper {
-            display: flex;
-            width: 100%;
-            max-width: 880px;
-            min-height: 530px;
-            border-radius: 24px;
-            overflow: hidden;
-            margin: 2rem;
-            border: 1px solid rgba(255,255,255,0.18);
-            box-shadow: 0 32px 80px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.08);
-            position: relative;
-            z-index: 1;
-        }
+            .login-wrapper {
+                display: flex;
+                width: 100%;
+                max-width: 880px;
+                min-height: 530px;
+                border-radius: 24px;
+                overflow: hidden;
+                margin: 2rem;
+                border: 1px solid rgba(255,255,255,0.18);
+                box-shadow: 0 32px 80px rgba(0,0,0,0.28), 0 0 0 1px rgba(255,255,255,0.08);
+                position: relative;
+                z-index: 1;
+            }
 
-        /* Panel izquierdo */
-        .login-brand {
-            width: 42%;
-            background: rgba(255,255,255,0.07);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            padding: 3rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border-right: 1px solid rgba(255,255,255,0.12);
-        }
+            .login-brand {
+                width: 42%;
+                background: rgba(255,255,255,0.07);
+                backdrop-filter: blur(24px);
+                -webkit-backdrop-filter: blur(24px);
+                padding: 3rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                border-right: 1px solid rgba(255,255,255,0.12);
+            }
 
-        .brand-logo { display: flex; align-items: center; gap: 10px; }
+            .brand-logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
 
-        .brand-logo-icon {
-            width: 38px;
-            height: 38px;
-            background: rgba(255,255,255,0.12);
-            border-radius: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+            .brand-logo-icon {
+                width: 38px;
+                height: 38px;
+                background: rgba(255,255,255,0.12);
+                border-radius: 11px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border: 1px solid rgba(255,255,255,0.2);
+            }
 
-        .brand-logo-icon svg { width: 20px; height: 20px; }
-        .brand-logo-text { font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: -0.3px; }
+                .brand-logo-icon svg {
+                    width: 20px;
+                    height: 20px;
+                }
 
-        .brand-copy { margin-top: auto; }
+            .brand-logo-text {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--white);
+                letter-spacing: -0.3px;
+            }
 
-        .brand-copy h2 {
-            font-size: 1.45rem;
-            font-weight: 600;
-            color: var(--white);
-            line-height: 1.4;
-            margin-bottom: 0.75rem;
-        }
+            .brand-copy {
+                margin-top: auto;
+            }
 
-        .brand-copy p { font-size: 0.85rem; color: rgba(255,255,255,0.62); line-height: 1.7; }
+                .brand-copy h2 {
+                    font-size: 1.45rem;
+                    font-weight: 600;
+                    color: var(--white);
+                    line-height: 1.4;
+                    margin-bottom: 0.75rem;
+                }
 
-        .brand-stats { display: flex; gap: 1.5rem; margin-top: 2rem; }
+                .brand-copy p {
+                    font-size: 0.85rem;
+                    color: rgba(255,255,255,0.62);
+                    line-height: 1.7;
+                }
 
-        .brand-stat { border-top: 1px solid rgba(255,255,255,0.15); padding-top: 0.75rem; }
-        .brand-stat strong { display: block; font-size: 1.2rem; font-weight: 700; color: var(--white); }
-        .brand-stat span { font-size: 0.72rem; color: rgba(255,255,255,0.55); }
+            .brand-stats {
+                display: flex;
+                gap: 1.5rem;
+                margin-top: 2rem;
+            }
 
-        /* Línea decorativa esmeralda */
-        .brand-em-line {
-            width: 40px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--em-400), var(--teal-400));
-            border-radius: 2px;
-            margin-bottom: 1.25rem;
-        }
+            .brand-stat {
+                border-top: 1px solid rgba(255,255,255,0.15);
+                padding-top: 0.75rem;
+            }
 
-        /* Panel derecho */
-        .login-form-panel {
-            flex: 1;
-            padding: 3rem 2.5rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(24px) saturate(160%);
-            -webkit-backdrop-filter: blur(24px) saturate(160%);
-        }
+                .brand-stat strong {
+                    display: block;
+                    font-size: 1.2rem;
+                    font-weight: 700;
+                    color: var(--white);
+                }
 
-        .form-header { margin-bottom: 2rem; }
+                .brand-stat span {
+                    font-size: 0.72rem;
+                    color: rgba(255,255,255,0.55);
+                }
 
-        .form-header h1 { font-size: 1.45rem; font-weight: 700; color: var(--gray-900); margin-bottom: 0.35rem; }
-        .form-header p { font-size: 0.85rem; color: var(--gray-400); }
+            .brand-em-line {
+                width: 40px;
+                height: 3px;
+                background: linear-gradient(90deg, var(--em-400), var(--teal-400));
+                border-radius: 2px;
+                margin-bottom: 1.25rem;
+            }
 
-        .form-group { margin-bottom: 1.2rem; }
+            .login-form-panel {
+                flex: 1;
+                padding: 3rem 2.5rem;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                background: rgba(255,255,255,0.92);
+                backdrop-filter: blur(24px) saturate(160%);
+                -webkit-backdrop-filter: blur(24px) saturate(160%);
+            }
 
-        .form-group label {
-            display: block;
-            font-size: 0.72rem;
-            font-weight: 600;
-            color: var(--gray-600);
-            margin-bottom: 0.4rem;
-            text-transform: uppercase;
-            letter-spacing: 0.7px;
-        }
+            .form-header {
+                margin-bottom: 2rem;
+            }
 
-        .form-group input {
-            width: 100%;
-            padding: 0.7rem 1rem;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            color: var(--gray-900);
-            background: rgba(248,250,252,0.9);
-            border: 1.5px solid var(--gray-200);
-            border-radius: 10px;
-            outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s;
-        }
+                .form-header h1 {
+                    font-size: 1.45rem;
+                    font-weight: 700;
+                    color: var(--gray-900);
+                    margin-bottom: 0.35rem;
+                }
 
-        .form-group input:focus {
-            border-color: var(--teal-500);
-            box-shadow: 0 0 0 3px rgba(6,182,212,0.14);
-            background: var(--white);
-        }
+                .form-header p {
+                    font-size: 0.85rem;
+                    color: var(--gray-400);
+                }
 
-        .form-group input::placeholder { color: var(--gray-400); font-size: 0.875rem; }
+            .form-group {
+                margin-bottom: 1.2rem;
+            }
 
-        .form-options {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
+                .form-group label {
+                    display: block;
+                    font-size: 0.72rem;
+                    font-weight: 600;
+                    color: var(--gray-600);
+                    margin-bottom: 0.4rem;
+                    text-transform: uppercase;
+                    letter-spacing: 0.7px;
+                }
 
-        .checkbox-label {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 0.84rem;
-            color: var(--gray-600);
-            cursor: pointer;
-        }
+                .form-group input {
+                    width: 100%;
+                    padding: 0.7rem 1rem;
+                    font-family: 'Inter', sans-serif;
+                    font-size: 0.9rem;
+                    color: var(--gray-900);
+                    background: rgba(248,250,252,0.9);
+                    border: 1.5px solid var(--gray-200);
+                    border-radius: 10px;
+                    outline: none;
+                    transition: border-color 0.15s, box-shadow 0.15s;
+                }
 
-        .checkbox-label input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--teal-600); }
+                    .form-group input:focus {
+                        border-color: var(--teal-500);
+                        box-shadow: 0 0 0 3px rgba(6,182,212,0.14);
+                        background: var(--white);
+                    }
 
-        .forgot-link { font-size: 0.84rem; color: var(--teal-600); text-decoration: none; font-weight: 500; }
-        .forgot-link:hover { text-decoration: underline; }
+                    .form-group input::placeholder {
+                        color: var(--gray-400);
+                        font-size: 0.875rem;
+                    }
 
-        .btn-login {
-            width: 100%;
-            padding: 0.78rem;
-            background: linear-gradient(135deg, var(--teal-700), var(--teal-500));
-            color: var(--white);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
-            box-shadow: 0 4px 16px rgba(6,182,212,0.35);
-        }
+            .form-options {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 1.5rem;
+            }
 
-        .btn-login:hover { opacity: 0.91; box-shadow: 0 6px 22px rgba(6,182,212,0.45); }
-        .btn-login:active { transform: scale(0.99); }
+            .checkbox-label {
+                display: flex;
+                align-items: center;
+                gap: 7px;
+                font-size: 0.84rem;
+                color: var(--gray-600);
+                cursor: pointer;
+            }
 
-        .validation-summary {
-            background: var(--red-50);
-            border: 1.5px solid #fca5a5;
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            margin-bottom: 1.25rem;
-            font-size: 0.85rem;
-            color: var(--red-600);
-        }
+                .checkbox-label input[type="checkbox"] {
+                    width: 15px;
+                    height: 15px;
+                    accent-color: var(--teal-600);
+                }
 
-        .validation-summary ul { padding-left: 1rem; }
+            .forgot-link {
+                font-size: 0.84rem;
+                color: var(--teal-600);
+                text-decoration: none;
+                font-weight: 500;
+            }
 
-        .form-footer { margin-top: 1.5rem; text-align: center; font-size: 0.8rem; color: var(--gray-400); }
-        .form-footer a { color: var(--teal-600); text-decoration: none; font-weight: 500; }
+                .forgot-link:hover {
+                    text-decoration: underline;
+                }
 
-        .divider { border: none; border-top: 1px solid var(--gray-200); margin: 1.5rem 0; }
+            .btn-login {
+                width: 100%;
+                padding: 0.78rem;
+                background: linear-gradient(135deg, var(--teal-700), var(--teal-500));
+                color: var(--white);
+                font-family: 'Inter', sans-serif;
+                font-size: 0.9rem;
+                font-weight: 600;
+                border: none;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: opacity 0.15s, transform 0.1s, box-shadow 0.15s;
+                box-shadow: 0 4px 16px rgba(6,182,212,0.35);
+            }
 
-        @@media (max-width: 640px) {
-            .login-brand { display: none; }
-            .login-wrapper { margin: 1rem; border-radius: 18px; }
-        }
+                .btn-login:hover {
+                    opacity: 0.91;
+                    box-shadow: 0 6px 22px rgba(6,182,212,0.45);
+                }
+
+                .btn-login:active {
+                    transform: scale(0.99);
+                }
+
+            .validation-summary {
+                background: var(--red-50);
+                border: 1.5px solid #fca5a5;
+                border-radius: 10px;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1.25rem;
+                font-size: 0.85rem;
+                color: var(--red-600);
+            }
+
+                .validation-summary ul {
+                    padding-left: 1rem;
+                }
+
+            .form-footer {
+                margin-top: 1.5rem;
+                text-align: center;
+                font-size: 0.8rem;
+                color: var(--gray-400);
+            }
+
+                .form-footer a {
+                    color: var(--teal-600);
+                    text-decoration: none;
+                    font-weight: 500;
+                }
+
+            .divider {
+                border: none;
+                border-top: 1px solid var(--gray-200);
+                margin: 1.5rem 0;
+            }
+
+            @@media (max-width: 640px) {
+                .login-brand {
+                    display: none;
+                }
+
+                .login-wrapper {
+                    margin: 1rem;
+                    border-radius: 18px;
+                }
+            }
     </style>
 </head>
 <body>
     <div class="login-wrapper">
-        <!-- Panel de marca -->
         <div class="login-brand">
             <div class="brand-logo">
                 <div class="brand-logo-icon">
@@ -284,7 +375,6 @@
             </div>
         </div>
 
-        <!-- Formulario -->
         <div class="login-form-panel">
             <div class="form-header">
                 <h1>Bienvenido de vuelta</h1>
@@ -304,13 +394,13 @@
                 <div class="form-group">
                     <label for="email">Correo electrónico</label>
                     <input type="email" id="email" name="Email" placeholder="usuario@vitalband.com" autocomplete="username" required />
-                    <span asp-validation-for="@(new VitalBand.Models.LoginViewModel().Email)" class="text-danger" style="font-size:0.8rem;color:var(--red-600);display:block;margin-top:4px;"></span>
+                    <span asp-validation-for="Email" class="text-danger" style="font-size:0.8rem;color:var(--red-600);display:block;margin-top:4px;"></span>
                 </div>
 
                 <div class="form-group">
                     <label for="password">Contraseña</label>
                     <input type="password" id="password" name="Password" placeholder="••••••••" autocomplete="current-password" required />
-                    <span asp-validation-for="@(new VitalBand.Models.LoginViewModel().Password)" class="text-danger" style="font-size:0.8rem;color:var(--red-600);display:block;margin-top:4px;"></span>
+                    <span asp-validation-for="Password" class="text-danger" style="font-size:0.8rem;color:var(--red-600);display:block;margin-top:4px;"></span>
                 </div>
 
                 <div class="form-options">

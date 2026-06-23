@@ -1,5 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using VitalBand.Data;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers
@@ -7,16 +11,31 @@ namespace VitalBand.Controllers
     [Authorize]
     public class HistorialAlertasController : Controller
     {
+        private readonly VitalBandContext _context;
+
+        public HistorialAlertasController(VitalBandContext context)
+        {
+            _context = context;
+        }
         public IActionResult Index(int usuarioId)
         {
-            var alertas = new List<AlertaHistorialViewModel>
+            var alertasBD = _context.Alertas
+                .Where(a => a.paciente_id == usuarioId)
+                .OrderByDescending(a => a.fecha_hora)
+                .ToList();
+
+            var modeloPlano = alertasBD.Select(a => new AlertaHistorial
             {
-                new() { Id = 101, FechaHora = new DateTime(2026, 5, 31, 14, 30, 0), Ubicacion = "Av. Reforma 123, CDMX", Respondida = true, DescripcionEvento = "Taquicardia de 120 BPM, paciente recostado." },
-                new() { Id = 102, FechaHora = new DateTime(2026, 5, 25, 8, 15, 0),  Ubicacion = "Calle 5 de Mayo 45, CDMX", Respondida = false, DescripcionEvento = "Bradicardia de 45 BPM, no responde." },
-                new() { Id = 103, FechaHora = new DateTime(2026, 5, 18, 22, 0, 0),  Ubicacion = "Insurgentes Sur 800, CDMX", Respondida = true, DescripcionEvento = "Arritmia leve, se estabilizó solo." }
-            };
+                Id = a.id,
+                FechaHora = a.fecha_hora ?? DateTime.Now,
+                Ubicacion = $"Lat: {a.latitud}, Long: {a.longitud}",
+                Respondida = a.mensaje_enviado ?? false,
+                DescripcionEvento = $"Alerta registrada con {a.fc_media} BPM. Estabilidad: SpO2 al {a.spo2_estabilidad}% y HRV de {a.hrv_rmssd}."
+            }).ToList();
+
             ViewBag.UsuarioId = usuarioId;
-            return View(alertas);
+
+            return View(modeloPlano);
         }
     }
 }

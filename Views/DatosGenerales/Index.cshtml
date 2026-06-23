@@ -1,8 +1,9 @@
 ﻿@using System.Linq
-@model VitalBand.Models.DatosGeneralesViewModel
+@model VitalBand.Models.DatosGenerales
 @{
     ViewData["Title"] = $"Datos de {Model.Nombre} - VitalBand";
-    var rangos = ViewBag.RangosPulso as List<VitalBand.Models.RangoPulsoConfig>;
+    // 🛠️ CORRECCIÓN: Ajustado al nuevo nombre del modelo plano RangoPulso
+    var rangos = ViewBag.RangosPulso as List<VitalBand.Models.RangoPulso>;
 }
 
 @functions {
@@ -24,9 +25,7 @@
             -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
             border: 1px solid rgba(255,255,255,0.5);
             border-radius: 24px;
-            box-shadow:
-                0 8px 40px rgba(8,145,178,0.15),
-                inset 0 1px 0 rgba(255,255,255,0.7);
+            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
         }
 
         /* ── Header ─────────────────────────────────────────── */
@@ -41,14 +40,25 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+
         .datos-header-icon {
-            width: 42px; height: 42px; flex-shrink: 0;
+            width: 42px;
+            height: 42px;
+            flex-shrink: 0;
             background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(16,185,129,0.12));
             border: 1px solid rgba(6,182,212,0.2);
             border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .datos-header-icon svg { width: 20px; height: 20px; stroke: #0a6775; }
+
+            .datos-header-icon svg {
+                width: 20px;
+                height: 20px;
+                stroke: #0a6775;
+            }
+
         .datos-header h2 {
             font-size: 1.4rem;
             font-weight: 700;
@@ -56,6 +66,7 @@
             color: var(--gray-900);
             letter-spacing: -0.4px;
         }
+
         .datos-header p {
             font-size: 0.825rem;
             color: var(--gray-400);
@@ -63,47 +74,56 @@
         }
 
         .info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: 0;
-    padding: 0;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 0;
+            padding: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
         }
 
-.info-item {
-    padding: 1.25rem 1.5rem;
-    border-right: 1px solid rgba(255,255,255,0.18);
-    transition: background 0.15s;
-}
-
-.info-item:hover { background: rgba(255,255,255,0.12); }
-.info-item:last-child { border-right: none; }
-        .info-item label {
-            font-size: 0.68rem;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--gray-400);
-            display: block;
-            margin-bottom: 3px;
+        .info-item {
+            padding: 1.25rem 1.5rem;
+            border-right: 1px solid rgba(255,255,255,0.18);
+            transition: background 0.15s;
         }
-        .info-item .value {
-            font-weight: 600;
-            font-size: 0.9375rem;
-            color: var(--gray-800);
-        }
-.chart-card {
-    padding: 1.75rem 2rem;
-    border-bottom: 1px solid rgba(255,255,255,0.2);
-}
 
-.chart-card h4 {
-    font-size: 0.72rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: rgba(8,145,178,0.8);
-    margin-bottom: 1rem;
-}
+            .info-item:hover {
+                background: rgba(255,255,255,0.12);
+            }
+
+            .info-item:last-child {
+                border-right: none;
+            }
+
+            .info-item label {
+                font-size: 0.68rem;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+                color: var(--gray-400);
+                display: block;
+                margin-bottom: 3px;
+            }
+
+            .info-item .value {
+                font-weight: 600;
+                font-size: 0.9375rem;
+                color: var(--gray-800);
+            }
+
+        .chart-card {
+            padding: 1.75rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+            .chart-card h4 {
+                font-size: 0.72rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                color: rgba(8,145,178,0.8);
+                margin-bottom: 1rem;
+            }
+
         canvas {
             width: 100%;
             max-height: 230px;
@@ -114,14 +134,15 @@
         .lecturas-lista {
             padding: 1.25rem 2rem 1.5rem;
         }
-        .lecturas-lista h4 {
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--gray-400);
-            margin: 0 0 0.875rem;
-        }
+
+            .lecturas-lista h4 {
+                font-size: 0.8rem;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+                color: var(--gray-400);
+                margin: 0 0 0.875rem;
+            }
 
         .lecturas-grid {
             display: grid;
@@ -139,27 +160,48 @@
             font-size: 0.875rem;
             transition: opacity 0.12s, box-shadow 0.12s;
         }
-        .lectura-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-        .lectura-item span { color: var(--gray-500, #64748b); font-size: 0.75rem; font-weight: 500; }
-        .lectura-item strong { font-weight: 700; font-size: 0.95rem; }
+
+            .lectura-item:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            }
+
+            .lectura-item span {
+                color: var(--gray-500, #64748b);
+                font-size: 0.75rem;
+                font-weight: 500;
+            }
+
+            .lectura-item strong {
+                font-weight: 700;
+                font-size: 0.95rem;
+            }
 
         .lectura-normal {
             background: rgba(16,185,129,0.09);
             border: 2px solid rgba(16,185,129,0.35);
         }
-        .lectura-normal strong { color: #065f46; }
+
+            .lectura-normal strong {
+                color: #065f46;
+            }
 
         .lectura-precaucion {
             background: rgba(245,158,11,0.09);
             border: 2px solid rgba(245,158,11,0.35);
         }
-        .lectura-precaucion strong { color: #92400e; }
+
+            .lectura-precaucion strong {
+                color: #92400e;
+            }
 
         .lectura-critica {
             background: rgba(220,38,38,0.09);
             border: 2px solid rgba(220,38,38,0.35);
         }
-        .lectura-critica strong { color: #991b1b; }
+
+            .lectura-critica strong {
+                color: #991b1b;
+            }
 
         /* ── Botones acción ──────────────────────────────────── */
         .btn-accion {
@@ -176,10 +218,11 @@
             margin: 0 4px 0 0;
             cursor: pointer;
         }
-        .btn-accion:hover {
-            background: rgba(6,182,212,0.16);
-            border-color: #06b6d4;
-        }
+
+            .btn-accion:hover {
+                background: rgba(6,182,212,0.16);
+                border-color: #06b6d4;
+            }
 
         /* ── Volver ──────────────────────────────────────────── */
         .footer-actions {
@@ -187,6 +230,7 @@
             display: flex;
             justify-content: flex-end;
         }
+
         .btn-volver {
             display: inline-flex;
             align-items: center;
@@ -202,7 +246,12 @@
             box-shadow: 0 3px 12px rgba(6,182,212,0.3);
             transition: opacity 0.15s, transform 0.12s;
         }
-        .btn-volver:hover { opacity: 0.9; transform: translateY(-1px); color: white; }
+
+            .btn-volver:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+                color: white;
+            }
 
         /* ── FAB alerta ──────────────────────────────────────── */
         .vb-fab-alerta {
@@ -223,13 +272,24 @@
             box-shadow: 0 4px 14px rgba(220,38,38,0.45);
             transition: transform 0.15s, box-shadow 0.15s;
         }
-        .vb-fab-alerta:hover {
-            transform: translateY(-2px) scale(1.05);
-            box-shadow: 0 8px 24px rgba(220,38,38,0.5);
+
+            .vb-fab-alerta:hover {
+                transform: translateY(-2px) scale(1.05);
+                box-shadow: 0 8px 24px rgba(220,38,38,0.5);
+            }
+
+            .vb-fab-alerta:active {
+                transform: scale(0.96);
+            }
+
+            .vb-fab-alerta svg {
+                width: 20px;
+                height: 20px;
+            }
+
+        .vb-fab-label {
+            display: none;
         }
-        .vb-fab-alerta:active { transform: scale(0.96); }
-        .vb-fab-alerta svg { width: 20px; height: 20px; }
-        .vb-fab-label { display: none; }
 
         .vb-fab-pulse {
             position: absolute;
@@ -240,9 +300,20 @@
             pointer-events: none;
         }
         @@keyframes vb-pulse {
-            0%   { transform: scale(1);    opacity: 0.65; }
-            70%  { transform: scale(1.18); opacity: 0; }
-            100% { transform: scale(1.18); opacity: 0; }
+            0% {
+                transform: scale(1);
+                opacity: 0.65;
+            }
+
+            70% {
+                transform: scale(1.18);
+                opacity: 0;
+            }
+
+            100% {
+                transform: scale(1.18);
+                opacity: 0;
+            }
         }
 
         /* ── Modal ───────────────────────────────────────────── */
@@ -256,6 +327,7 @@
             align-items: center;
             z-index: 1000;
         }
+
         .modal-content {
             background: rgba(255,255,255,0.92);
             backdrop-filter: blur(20px) saturate(160%);
@@ -268,13 +340,20 @@
             text-align: center;
             box-shadow: 0 24px 64px rgba(0,0,0,0.14);
         }
-        .modal-content p {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            margin-bottom: 1.5rem;
-            color: var(--gray-700);
+
+            .modal-content p {
+                font-size: 0.95rem;
+                line-height: 1.6;
+                margin-bottom: 1.5rem;
+                color: var(--gray-700);
+            }
+
+        .modal-buttons {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
         }
-        .modal-buttons { display: flex; gap: 0.75rem; justify-content: center; }
+
         .modal-btn {
             padding: 0.55rem 1.25rem;
             border-radius: 9px;
@@ -284,21 +363,35 @@
             cursor: pointer;
             transition: opacity 0.15s;
         }
-        .modal-btn:hover { opacity: 0.85; }
-        .modal-btn-confirm { background: linear-gradient(135deg, #b91c1c, #ef4444); color: white; }
-        .modal-btn-cancel  { background: var(--gray-100); color: var(--gray-700); }
 
-        .clearfix::after { content: ""; clear: both; display: table; }
+            .modal-btn:hover {
+                opacity: 0.85;
+            }
+
+        .modal-btn-confirm {
+            background: linear-gradient(135deg, #b91c1c, #ef4444);
+            color: white;
+        }
+
+        .modal-btn-cancel {
+            background: var(--gray-100);
+            color: var(--gray-700);
+        }
+
+        .clearfix::after {
+            content: "";
+            clear: both;
+            display: table;
+        }
     </style>
 }
 
 <div class="datos-container">
-    <!-- Header -->
     <div class="datos-header">
         <div class="datos-header-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
             </svg>
         </div>
         <div>
@@ -324,18 +417,17 @@
         <h4>Lecturas horarias</h4>
 
         <div class="lecturas-grid">
-        @foreach (var lectura in Model.LecturasHoy.OrderBy(l => l.Hora))
-        {
-            string clase = ObtenerClasePulso(lectura.Pulso);
-            <div class="lectura-item @clase">
-                <span>@lectura.Hora.ToString("HH:mm") hrs</span>
-                <strong>@lectura.Pulso BPM</strong>
-            </div>
-        }
+            @foreach (var lectura in Model.LecturasHoy.OrderBy(l => l.Hora))
+            {
+                string clase = ObtenerClasePulso(lectura.Pulso);
+                <div class="lectura-item @clase">
+                    <span>@lectura.Hora.ToString("HH:mm") hrs</span>
+                    <strong>@lectura.Pulso BPM</strong>
+                </div>
+            }
         </div>
 
-        <!-- Campos hidden para el modal (solo para médico) -->
-        @if (User.IsInRole("Medico"))
+        @if (User.IsInRole("Medico") && Model.LecturasHoy.Any())
         {
             <input type="hidden" id="hdnUsuarioId" value="@Model.UsuarioId" />
             <input type="hidden" id="hdnPulso" value="@Model.LecturasHoy.Last().Pulso" />
@@ -345,12 +437,11 @@
 
     <div class="footer-actions">
         <a asp-controller="Usuarios" asp-action="Index" class="btn-volver">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
             Volver a pacientes
         </a>
     </div>
 
-    <!-- Modal personalizado -->
     <div id="modalConfirmacion" class="modal-confirm">
         <div class="modal-content">
             <p>¿Estás seguro de activar una alerta manual para este paciente?</p>
@@ -362,15 +453,14 @@
     </div>
 </div>
 
-<!-- Botón flotante alerta (solo médico) — fuera del contenedor para que fixed funcione -->
 @if (User.IsInRole("Medico"))
 {
     <button type="button" class="vb-fab-alerta" id="btnAbrirModal" title="Activar alerta manual">
         <span class="vb-fab-pulse"></span>
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-            <line x1="12" y1="9" x2="12" y2="13"/>
-            <line x1="12" y1="17" x2="12.01" y2="17"/>
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+            <line x1="12" y1="9" x2="12" y2="13" />
+            <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
         <span class="vb-fab-label">Activar alerta manual</span>
     </button>
@@ -411,12 +501,10 @@
 
         if (btnAbrir) {
         btnAbrir.addEventListener('click', function() {
-        // Obtener valores de los hidden
         const usuarioId = document.getElementById('hdnUsuarioId').value;
         const pulso = document.getElementById('hdnPulso').value;
         const motivo = document.getElementById('hdnMotivo').value;
 
-        // Guardar temporalmente en data attributes del modal para usarlos al confirmar
         modal.setAttribute('data-usuarioId', usuarioId);
         modal.setAttribute('data-pulso', pulso);
         modal.setAttribute('data-motivo', motivo);
@@ -424,17 +512,18 @@
         });
         }
 
+        if (btnCancelar) {
         btnCancelar.addEventListener('click', function() {
         modal.style.display = 'none';
         });
+        }
 
+        if (btnConfirmar) {
         btnConfirmar.addEventListener('click', function() {
-        // Recuperar los datos guardados
         const usuarioId = modal.getAttribute('data-usuarioId');
         const pulso = modal.getAttribute('data-pulso');
         const motivo = modal.getAttribute('data-motivo');
 
-        // Crear formulario y enviar
         const form = document.createElement('form');
         form.method = 'post';
         form.action = '@Url.Action("ActivarAlertaManual", "DatosGenerales")';
@@ -460,8 +549,8 @@
         document.body.appendChild(form);
         form.submit();
         });
+        }
 
-        // Cerrar modal si se hace clic fuera
         window.addEventListener('click', function(e) {
         if (e.target === modal) {
         modal.style.display = 'none';

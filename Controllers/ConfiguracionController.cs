@@ -29,10 +29,10 @@ namespace VitalBand.Controllers
         {
             if (User.IsInRole("Medico") || User.IsInRole("medico"))
             {
-                var vm = new ConfiguracionViewModel
+                var vm = new ConfiguracionGlobal
                 {
-                    RangosPulso = _config.ObtenerRangosPulso() ?? new List<RangoPulsoConfig>(),
-                    TiposAlerta = _config.ObtenerTiposAlerta() ?? new List<TipoAlertaConfig>()
+                    RangosPulso = _config.ObtenerRangosPulso() ?? new List<RangoPulso>(),
+                    TiposAlerta = _config.ObtenerTiposAlerta() ?? new List<TipoAlerta>()
                 };
                 return View("Index", vm);
             }
@@ -43,30 +43,29 @@ namespace VitalBand.Controllers
 
                 int idPaciente = int.Parse(perfilIdStr);
 
-                // Buscamos al paciente incluyendo su relación con la tabla USUARIOS
                 var paciente = _context.Pacientes
                     .Include(p => p.Usuario)
                     .FirstOrDefault(p => p.id == idPaciente);
 
                 if (paciente == null) return NotFound();
 
-                // 🛠️ CÁLCULO DINÁMICO DE LA EDAD
                 int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
                 if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear)
                 {
-                    edadCalculada--; // Restamos un año si no ha cumplido años este año
+                    edadCalculada--;
                 }
 
-                var usuarioVM = new UsuarioResumenViewModel
+                // 🛠️ CORRECCIÓN: Cambiado de UsuarioResumenViewModel a la clase plana UsuarioResumen
+                var usuarioVM = new UsuarioResumen
                 {
                     Id = paciente.id,
                     Nombre = paciente.nombre,
                     Email = paciente.Usuario?.email ?? string.Empty,
                     Edad = edadCalculada,
-                    Sexo = paciente.genero, // Mapeado a tu columna alterada en la BD
-                    Peso = paciente.peso_inicial, // Carga real de MySQL
-                    Altura = paciente.altura_inicial, // Carga real de MySQL
-                    HistorialMedico = paciente.historial_medico_breve // Carga real de MySQL
+                    Sexo = paciente.genero,
+                    Peso = paciente.peso_inicial,
+                    Altura = paciente.altura_inicial,
+                    HistorialMedico = paciente.historial_medico_breve
                 };
 
                 return View("Perfil", usuarioVM);
@@ -78,7 +77,7 @@ namespace VitalBand.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
-        public IActionResult AgregarRango(RangoPulsoConfig nuevoRango)
+        public IActionResult AgregarRango(RangoPulso nuevoRango)
         {
             if (ModelState.IsValid)
             {
@@ -92,7 +91,7 @@ namespace VitalBand.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
-        public IActionResult AgregarTipoAlerta(TipoAlertaConfig nuevoTipo)
+        public IActionResult AgregarTipoAlerta(TipoAlerta nuevoTipo)
         {
             if (ModelState.IsValid)
             {
@@ -105,7 +104,8 @@ namespace VitalBand.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "paciente,Paciente")]
-        public IActionResult ActualizarPerfil(UsuarioResumenViewModel model)
+        // 🛠️ CORRECCIÓN: Cambiado de UsuarioResumenViewModel a UsuarioResumen
+        public IActionResult ActualizarPerfil(UsuarioResumen model)
         {
             if (!ModelState.IsValid)
             {
@@ -113,26 +113,22 @@ namespace VitalBand.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            // 1. Buscamos al paciente de forma aislada
             var pacienteBD = _context.Pacientes.FirstOrDefault(p => p.id == model.Id);
 
             if (pacienteBD != null)
             {
-                // 2. Modificamos directamente sus propiedades en la tabla PACIENTES (incluyendo tus campos clínicos)
                 pacienteBD.nombre = model.Nombre;
                 pacienteBD.genero = model.Sexo;
                 pacienteBD.peso_inicial = model.Peso;
                 pacienteBD.altura_inicial = model.Altura;
                 pacienteBD.historial_medico_breve = model.HistorialMedico;
 
-                // 3. Buscamos de forma aislada su cuenta de usuario vinculada
                 var usuarioBD = _context.Usuarios.FirstOrDefault(u => u.id == pacienteBD.usuario_id);
                 if (usuarioBD != null)
                 {
                     usuarioBD.email = model.Email;
                 }
 
-                // 4. Guardamos físicamente los cambios en MySQL
                 _context.SaveChanges();
 
                 TempData["Mensaje"] = "¡Perfil, género y expediente actualizados correctamente en MySQL! ❤️✨";

@@ -1,330 +1,402 @@
-@model VitalBand.Models.HistorialMensualViewModel
+@model VitalBand.Models.HistorialMensual
 @{
     ViewData["Title"] = "Historial Mensual - VitalBand";
-    var esMedico = User.IsInRole("Medico");
+    var esMedico = User.IsInRole("Medico") || User.IsInRole("medico");
 }
 
 @section Styles {
-<style>
-    :root {
-        --teal-700: #0a6775;
-        --teal-600: #0891b2;
-        --teal-500: #06b6d4;
-        --teal-400: #22d3ee;
-        --teal-100: #cffafe;
-        --teal-50:  #ecfeff;
-        --em-700:   #047857;
-        --em-600:   #059669;
-        --em-500:   #10b981;
-        --em-400:   #34d399;
-        --em-100:   #d1fae5;
-        --em-50:    #ecfdf5;
-        --blue-600: #0891b2;
-        --blue-500: #06b6d4;
-        --blue-100: #cffafe;
-        --blue-50:  #ecfeff;
-        --gray-900: #0f172a;
-        --gray-700: #334155;
-        --gray-600: #475569;
-        --gray-400: #94a3b8;
-        --gray-200: #e2e8f0;
-        --gray-100: #f1f5f9;
-        --gray-50:  #f8fafc;
-        --red-600:  #dc2626;
-        --red-50:   #fef2f2;
-        --red-100:  #fecaca;
-        --amber-600:#d97706;
-        --amber-50: #fffbeb;
-        --green-600:#059669;
-        --green-50: #ecfdf5;
-        --white:    #ffffff;
-        --page-bg:  #f0fdfe;
-    }
+    <style>
+        :root {
+            --teal-700: #0a6775;
+            --teal-600: #0891b2;
+            --teal-500: #06b6d4;
+            --teal-400: #22d3ee;
+            --teal-100: #cffafe;
+            --teal-50: #ecfeff;
+            --em-700: #047857;
+            --em-600: #059669;
+            --em-500: #10b981;
+            --em-400: #34d399;
+            --em-100: #d1fae5;
+            --em-50: #ecfdf5;
+            --blue-600: #0891b2;
+            --blue-500: #06b6d4;
+            --blue-100: #cffafe;
+            --blue-50: #ecfeff;
+            --gray-900: #0f172a;
+            --gray-700: #334155;
+            --gray-600: #475569;
+            --gray-400: #94a3b8;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --gray-50: #f8fafc;
+            --red-600: #dc2626;
+            --red-50: #fef2f2;
+            --red-100: #fecaca;
+            --amber-600: #d97706;
+            --amber-50: #fffbeb;
+            --green-600: #059669;
+            --green-50: #ecfdf5;
+            --white: #ffffff;
+            --page-bg: #f0fdfe;
+        }
 
-    body {
-        background: var(--page-bg);
-        font-family: 'Inter', 'DM Sans', sans-serif;
-        color: var(--gray-900);
-    }
+        body {
+            background: var(--page-bg);
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            color: var(--gray-900);
+        }
 
-    /* ── Page header ── */
-    .page-header {
-        padding: 2rem 0 1rem;
-        display: flex;
-        align-items: flex-end;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-    }
+        .page-header {
+            padding: 2rem 0 1rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
 
-    .page-header h1 {
-        font-size: 1.75rem;
-        font-weight: 600;
-        color: var(--gray-900);
-        margin-bottom: 0.25rem;
-    }
+            .page-header h1 {
+                font-size: 1.75rem;
+                font-weight: 600;
+                color: var(--gray-900);
+                margin-bottom: 0.25rem;
+            }
 
-    .page-header p {
-        font-size: 0.875rem;
-        color: var(--gray-600);
-    }
+            .page-header p {
+                font-size: 0.875rem;
+                color: var(--gray-600);
+            }
 
-    .period-badge {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        background: var(--white);
-        border: 1px solid var(--gray-100);
-        border-radius: 8px;
-        padding: 0.45rem 0.875rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--gray-600);
-    }
+        .period-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 0.6rem 1rem;
+            box-shadow: 0 4px 12px rgba(8,145,178,0.05);
+        }
 
-    .period-badge svg {
-        width: 16px;
-        height: 16px;
-        stroke: var(--blue-500);
-    }
+        /* Estilo moderno para los filtros select incorporados */
+        .filter-form {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
 
-    /* ── Calendar card ── */
-    .calendar-card {
-        background: rgba(255,255,255,0.22);
-        backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-        -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-        border: 1px solid rgba(255,255,255,0.5);
-        border-radius: 24px;
-        overflow: hidden;
-        margin-bottom: 1.5rem;
-        box-shadow:
-            0 8px 40px rgba(8,145,178,0.15),
-            inset 0 1px 0 rgba(255,255,255,0.7);
-    }
+        .filter-select {
+            padding: 0.4rem 0.8rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            background: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
 
-    .calendar-grid {
-        display: grid;
-        grid-template-columns: repeat(7, 1fr);
-    }
+            .filter-select:focus {
+                border-color: var(--teal-500);
+                box-shadow: 0 0 0 2px rgba(6,182,212,0.1);
+            }
 
-    .cal-header-cell {
-        padding: 0.7rem 0;
-        text-align: center;
-        font-size: 0.6875rem;
-        font-weight: 700;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-        color: var(--teal-700, #0a6775);
-        background: rgba(6,182,212,0.08);
-        border-bottom: 2px solid rgba(6,182,212,0.25);
-    }
+        .calendar-card {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 24px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+        }
 
-    .cal-cell {
-        min-height: 80px;
-        padding: 0.5rem;
-        border-right: 1px solid rgba(6,182,212,0.18);
-        border-bottom: 1px solid rgba(6,182,212,0.18);
-        position: relative;
-        background: rgba(255,255,255,0.7);
-        transition: background 0.1s;
-    }
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+        }
 
-    .cal-cell:hover {
-        background: rgba(6,182,212,0.06);
-    }
+        .cal-header-cell {
+            padding: 0.7rem 0;
+            text-align: center;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: var(--teal-700, #0a6775);
+            background: rgba(6,182,212,0.08);
+            border-bottom: 2px solid rgba(6,182,212,0.25);
+        }
 
-    .cal-cell:nth-child(7n) { border-right: none; }
-    .cal-cell.empty { background: rgba(241,253,254,0.5); }
-    .cal-cell.alert { background: rgba(254,242,242,0.85); border: 1.5px solid rgba(220,38,38,0.25); }
+        .cal-cell {
+            min-height: 80px;
+            padding: 0.5rem;
+            border-right: 1px solid rgba(6,182,212,0.18);
+            border-bottom: 1px solid rgba(6,182,212,0.18);
+            position: relative;
+            background: rgba(255,255,255,0.7);
+            transition: background 0.1s;
+        }
 
-    .cal-day-num {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: var(--gray-700, #334155);
-        margin-bottom: 0.4rem;
-    }
+            .cal-cell:hover {
+                background: rgba(6,182,212,0.06);
+            }
 
-    .cal-cell.alert .cal-day-num { color: var(--red-600); }
+            .cal-cell:nth-child(7n) {
+                border-right: none;
+            }
 
-    .cal-bpm {
-        font-size: 0.8125rem;
-        font-weight: 600;
-        color: var(--teal-600, #0891b2);
-    }
+            .cal-cell.empty {
+                background: rgba(241,253,254,0.5);
+            }
 
-    .cal-bpm-label {
-        font-size: 0.7rem;
-        color: var(--gray-400, #94a3b8);
-        margin-bottom: 1px;
-    }
+            .cal-cell.alert {
+                background: rgba(254,242,242,0.85);
+                border: 1.5px solid rgba(220,38,38,0.25);
+            }
 
-    .cal-alert-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        margin-top: 4px;
-        font-size: 0.6875rem;
-        font-weight: 600;
-        color: var(--red-600);
-    }
+        .cal-day-num {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--gray-700, #334155);
+            margin-bottom: 0.4rem;
+        }
 
-    .alert-icon {
-        width: 26px;
-        height: 26px;
-        position: absolute;
-        bottom: 6px;
-        right: 6px;
-        opacity: 0.85;
-    }
+        .cal-cell.alert .cal-day-num {
+            color: var(--red-600);
+        }
 
-    .ok-icon {
-        width: 20px;
-        height: 20px;
-        position: absolute;
-        bottom: 6px;
-        right: 6px;
-        opacity: 0.55;
-    }
+        .cal-bpm {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--teal-600, #0891b2);
+        }
 
-    /* ── Export button ── */
-    .export-bar {
-        display: flex;
-        justify-content: flex-end;
-        padding: 1rem 1rem 1rem;
-        border-top: 1px solid rgba(6,182,212,0.15);
-        background: rgba(6,182,212,0.04);
-    }
+        .cal-bpm-label {
+            font-size: 0.7rem;
+            color: var(--gray-400, #94a3b8);
+            margin-bottom: 1px;
+        }
 
-    .btn-export {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: linear-gradient(135deg, #0891b2, #06b6d4);
-        color: var(--white);
-        font-family: 'Inter', 'DM Sans', sans-serif;
-        font-size: 0.875rem;
-        font-weight: 600;
-        padding: 0.65rem 1.4rem;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        text-decoration: none;
-        box-shadow: 0 3px 12px rgba(6,182,212,0.35);
-        transition: opacity 0.15s, transform 0.15s;
-    }
+        .cal-alert-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 4px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--red-600);
+        }
 
-    .btn-export:hover { opacity: 0.9; transform: translateY(-1px); color: var(--white); }
+        .alert-icon {
+            width: 26px;
+            height: 26px;
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            opacity: 0.85;
+        }
 
-    .btn-export svg {
-        width: 16px;
-        height: 16px;
-    }
+        .ok-icon {
+            width: 20px;
+            height: 20px;
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            opacity: 0.55;
+        }
 
-    /* ── Summary cards ── */
-    .summary-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
+        .export-bar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 1rem 1rem 1rem;
+            border-top: 1px solid rgba(6,182,212,0.15);
+            background: rgba(6,182,212,0.04);
+        }
 
-    .summary-card {
-        background: rgba(255,255,255,0.22);
-        backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-        -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-        border: 1px solid rgba(255,255,255,0.5);
-        border-radius: 18px;
-        padding: 1rem 1.25rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        box-shadow:
-            0 4px 20px rgba(8,145,178,0.12),
-            inset 0 1px 0 rgba(255,255,255,0.6);
-    }
+        .btn-export {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: var(--white);
+            font-family: 'Inter', 'DM Sans', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.65rem 1.4rem;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 3px 12px rgba(6,182,212,0.35);
+            transition: opacity 0.15s, transform 0.15s;
+        }
 
-    .summary-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-    }
+            .btn-export:hover {
+                opacity: 0.9;
+                transform: translateY(-1px);
+                color: var(--white);
+            }
 
-    .summary-icon.blue { background: var(--blue-50); }
-    .summary-icon.red  { background: var(--red-50); }
-    .summary-icon.green { background: rgba(16,185,129,0.12); }
+            .btn-export svg {
+                width: 16px;
+                height: 16px;
+            }
 
-    .summary-icon svg {
-        width: 20px;
-        height: 20px;
-    }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
 
-    .summary-icon.blue svg { stroke: var(--blue-500); }
-    .summary-icon.red svg  { stroke: var(--red-600); }
-    .summary-icon.green svg { stroke: #059669; }
+        .summary-card {
+            background: rgba(255,255,255,0.22);
+            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
+            border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 18px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 4px 20px rgba(8,145,178,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+        }
 
-    .summary-label {
-        font-size: 0.8rem;
-        color: var(--gray-600);
-        margin-bottom: 2px;
-    }
+        .summary-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
 
-    .summary-value {
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: var(--gray-900);
-    }
+            .summary-icon.blue {
+                background: var(--blue-50);
+            }
 
-    .summary-value.alert-val { color: var(--red-600); }
+            .summary-icon.red {
+                background: var(--red-50);
+            }
 
-    @@media (max-width: 640px) {
-        .summary-grid { grid-template-columns: 1fr; }
-        .cal-cell { min-height: 60px; }
-        .cal-bpm-label { display: none; }
-    }
-</style>
+            .summary-icon.green {
+                background: rgba(16,185,129,0.12);
+            }
+
+            .summary-icon svg {
+                width: 20px;
+                height: 20px;
+            }
+
+            .summary-icon.blue svg {
+                stroke: var(--blue-500);
+            }
+
+            .summary-icon.red svg {
+                stroke: var(--red-600);
+            }
+
+            .summary-icon.green svg {
+                stroke: #059669;
+            }
+
+        .summary-label {
+            font-size: 0.8rem;
+            color: var(--gray-600);
+            margin-bottom: 2px;
+        }
+
+        .summary-value {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+
+            .summary-value.alert-val {
+                color: var(--red-600);
+            }
+
+        @@media (max-width: 640px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cal-cell {
+                min-height: 60px;
+            }
+
+            .cal-bpm-label {
+                display: none;
+            }
+        }
+    </style>
 }
 
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
 
 <div class="container" style="max-width:1100px; margin:0 auto; padding:0 1.5rem;">
 
-    <!-- Encabezado -->
     <div class="page-header">
         <div>
             <h1>Historial Cardíaco - @Model.UsuarioNombre</h1>
             <p>Monitoreo detallado de frecuencia cardíaca promedio diaria.</p>
         </div>
+
         <div class="period-badge">
-            @if (esMedico)
-            {
-                <form method="get" asp-action="Index">
-                    <select name="usuarioId" onchange="this.form.submit()">
-                        @foreach (var usuario in ViewBag.Usuarios as List<VitalBand.Models.UsuarioResumenViewModel>)
+            <form method="get" asp-action="@(esMedico ? "Index" : "MiHistorial")" asp-controller="Historial" class="filter-form">
+
+                @if (esMedico)
+                {
+                    <select name="usuarioId" class="filter-select" onchange="this.form.submit()">
+                        @foreach (var usuario in ViewBag.Usuarios as List<VitalBand.Models.UsuarioResumen>)
                         {
                             <option value="@usuario.Id" selected="@(usuario.Id == Model.UsuarioId)">@usuario.Nombre</option>
                         }
                     </select>
-                    <input type="hidden" name="año" value="@Model.Año" />
-                    <input type="hidden" name="mes" value="@Model.Mes" />
-                </form>
-            }
-            else
-            {
-                <span>📅 @Model.PeriodoNombre</span>
-            }
+                }
+                else
+                {
+                    <input type="hidden" name="usuarioId" value="@Model.UsuarioId" />
+                }
+
+                <select name="mes" class="filter-select" onchange="this.form.submit()">
+                    <option value="1" selected="@(Model.Mes == 1)">Enero</option>
+                    <option value="2" selected="@(Model.Mes == 2)">Febrero</option>
+                    <option value="3" selected="@(Model.Mes == 3)">Marzo</option>
+                    <option value="4" selected="@(Model.Mes == 4)">Abril</option>
+                    <option value="5" selected="@(Model.Mes == 5)">Mayo</option>
+                    <option value="6" selected="@(Model.Mes == 6)">Junio</option>
+                    <option value="7" selected="@(Model.Mes == 7)">Julio</option>
+                    <option value="8" selected="@(Model.Mes == 8)">Agosto</option>
+                    <option value="9" selected="@(Model.Mes == 9)">Septiembre</option>
+                    <option value="10" selected="@(Model.Mes == 10)">Octubre</option>
+                    <option value="11" selected="@(Model.Mes == 11)">Noviembre</option>
+                    <option value="12" selected="@(Model.Mes == 12)">Diciembre</option>
+                </select>
+
+                <select name="año" class="filter-select" onchange="this.form.submit()">
+                    <option value="2024" selected="@(Model.Año == 2024)">2024</option>
+                    <option value="2025" selected="@(Model.Año == 2025)">2025</option>
+                    <option value="2026" selected="@(Model.Año == 2026)">2026</option>
+                    <option value="2027" selected="@(Model.Año == 2027)">2027</option>
+                </select>
+            </form>
         </div>
     </div>
 
-    <!-- Tarjetas resumen -->
     <div class="summary-grid">
         <div class="summary-card">
             <div class="summary-icon blue">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/>
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
             </div>
             <div>
@@ -335,18 +407,20 @@
         <div class="summary-card">
             <div class="summary-icon red">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
             </div>
             <div>
                 <div class="summary-label">Incidentes Críticos</div>
-                <div class="summary-value alert-val">@(Model?.TotalIncidentes ?? 1) Evento@(Model?.TotalIncidentes != 1 ? "s" : "")</div>
+                <div class="summary-value alert-val">@(Model?.TotalIncidentes ?? 0) Evento@(Model?.TotalIncidentes != 1 ? "s" : "")</div>
             </div>
         </div>
         <div class="summary-card">
             <div class="summary-icon green">
                 <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
                 </svg>
             </div>
             <div>
@@ -356,7 +430,6 @@
         </div>
     </div>
 
-    <!-- Calendario -->
     <div class="calendar-card">
         <div class="calendar-grid">
             @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" })
@@ -365,47 +438,13 @@
             }
 
             @{
-                /* Días vacíos al inicio del mes (Mayo 2026 empieza en viernes = 4 celdas vacías si lunes es el inicio) */
-                var diasVacios = Model?.DiasVaciosInicio ?? 4;
+                var diasVacios = Model?.DiasVaciosInicio ?? 0;
                 for (int i = 0; i < diasVacios; i++)
                 {
                     <div class="cal-cell empty"></div>
                 }
 
-                var dias = Model?.DiasDelMes ?? new List<VitalBand.Models.DiaHistorial>
-                {
-                    new() { Numero = 1,  BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 2,  BpmPromedio = 76, TieneAlerta = false },
-                    new() { Numero = 3,  BpmPromedio = 73, TieneAlerta = false },
-                    new() { Numero = 4,  BpmPromedio = 77, TieneAlerta = false },
-                    new() { Numero = 5,  BpmPromedio = 71, TieneAlerta = false },
-                    new() { Numero = 6,  BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 7,  BpmPromedio = 70, TieneAlerta = false },
-                    new() { Numero = 8,  BpmPromedio = 72, TieneAlerta = false },
-                    new() { Numero = 9,  BpmPromedio = 73, TieneAlerta = false },
-                    new() { Numero = 10, BpmPromedio = 70, TieneAlerta = false },
-                    new() { Numero = 11, BpmPromedio = 70, TieneAlerta = false },
-                    new() { Numero = 12, BpmPromedio = 72, TieneAlerta = false },
-                    new() { Numero = 13, BpmPromedio = 77, TieneAlerta = false },
-                    new() { Numero = 14, BpmPromedio = 70, TieneAlerta = false },
-                    new() { Numero = 15, BpmPromedio = 76, TieneAlerta = false },
-                    new() { Numero = 16, BpmPromedio = 75, TieneAlerta = false },
-                    new() { Numero = 17, BpmPromedio = 76, TieneAlerta = false },
-                    new() { Numero = 18, BpmPromedio = 76, TieneAlerta = false },
-                    new() { Numero = 19, BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 20, BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 21, BpmPromedio = 77, TieneAlerta = false },
-                    new() { Numero = 22, BpmPromedio = 70, TieneAlerta = false },
-                    new() { Numero = 23, BpmPromedio = 71, TieneAlerta = false },
-                    new() { Numero = 24, BpmPromedio = 75, TieneAlerta = false },
-                    new() { Numero = 25, BpmPromedio = 75, TieneAlerta = false },
-                    new() { Numero = 26, BpmPromedio = 76, TieneAlerta = false },
-                    new() { Numero = 27, BpmPromedio = 71, TieneAlerta = false },
-                    new() { Numero = 28, BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 29, BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 30, BpmPromedio = 74, TieneAlerta = false },
-                    new() { Numero = 31, BpmPromedio = 88, TieneAlerta = true, MensajeAlerta = "¡Alerta Registrada!" },
-                };
+                var dias = Model?.DiasDelMes ?? new List<VitalBand.Models.DiaHistorial>();
 
                 foreach (var dia in dias)
                 {
@@ -413,14 +452,15 @@
                         @if (dia.TieneAlerta)
                         {
                             <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                                <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                <line x1="12" y1="9" x2="12" y2="13" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
                             </svg>
                         }
                         else
                         {
                             <svg class="ok-icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12"/>
+                                <polyline points="20 6 9 17 4 12" />
                             </svg>
                         }
                         <div class="cal-day-num">@dia.Numero</div>
@@ -435,7 +475,6 @@
             }
         </div>
 
-        <!-- Botón exportar -->
         <div class="export-bar">
             <a asp-action="ExportarPdf" asp-controller="Historial"
                asp-route-año="@Model.Año"
@@ -443,11 +482,11 @@
                asp-route-usuarioId="@Model.UsuarioId"
                class="btn-export">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"/><rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <polyline points="6 9 12 15 18 9" />
+                    <rect x="3" y="3" width="18" height="18" rx="2" />
                 </svg>
                 Exportar en PDF
             </a>
         </div>
     </div>
-
 </div>

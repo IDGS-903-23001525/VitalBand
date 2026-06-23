@@ -1,29 +1,48 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using VitalBand.Data;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers
 {
-    [Authorize(Roles = "Medico")] // Solo médico puede acceder
+    [Authorize(Roles = "Medico,medico")]
     public class DatosGeneralesController : Controller
     {
+        private readonly VitalBandContext _context;
+
+        public DatosGeneralesController(VitalBandContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index(int id)
         {
-            var usuarios = UsuariosController.ObtenerUsuarios();
-            var usuario = usuarios.FirstOrDefault(u => u.Id == id);
-            if (usuario == null) return NotFound();
+            var paciente = _context.Pacientes
+                .Include(p => p.Usuario)
+                .FirstOrDefault(p => p.id == id);
 
-            var lecturas = GenerarLecturas(usuario);
+            if (paciente == null) return NotFound();
 
-            var modelo = new DatosGeneralesViewModel
+            int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
+            if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) edadCalculada--;
+
+            int conteoAlertas = _context.Alertas.Count(a => a.paciente_id == paciente.id);
+
+            var lecturas = GenerarLecturas(paciente.id);
+
+            var modelo = new DatosGenerales
             {
-                UsuarioId = usuario.Id,
-                Nombre = usuario.Nombre,
-                Edad = usuario.Edad,
-                Genero = usuario.Sexo,
-                DescripcionMedica = "Paciente con hipertensión controlada. Sin otros antecedentes.",
-                FechaRegistro = new DateTime(2025, 1, 15),
-                TotalAlertas = usuario.TieneAlertaHoy ? 1 : 0,
+                UsuarioId = paciente.id,
+                Nombre = paciente.nombre,
+                Edad = edadCalculada,
+                Genero = paciente.genero ?? "No especificado",
+                DescripcionMedica = paciente.historial_medico_breve ?? "Sin antecedentes registrados en el expediente.",
+                FechaRegistro = paciente.Usuario?.fecha_registro ?? DateTime.Now,
+                TotalAlertas = conteoAlertas,
                 LecturasHoy = lecturas
             };
 
@@ -33,30 +52,44 @@ namespace VitalBand.Controllers
             return View(modelo);
         }
 
-        private List<LecturaDiariaViewModel> GenerarLecturas(UsuarioResumenViewModel usuario)
+        private List<LecturaDiaria> GenerarLecturas(int pacienteId)
         {
-            var random = new Random(usuario.Id);
+            var random = new Random(pacienteId);
             var ahora = DateTime.Now;
-            var lecturas = new List<LecturaDiariaViewModel>();
+            var lecturas = new List<LecturaDiaria>();
 
             for (int i = 0; i < 24; i++)
             {
-                int variacion = random.Next(-8, 9);
-                int pulso = usuario.PulsoPromedioHoy + variacion;
-                lecturas.Add(new LecturaDiariaViewModel
+                int pulsoBase = random.Next(65, 85);
+                lecturas.Add(new LecturaDiaria
                 {
                     Hora = ahora.Date.AddHours(i),
-                    Pulso = pulso
+                    Pulso = pulsoBase
                 });
             }
             return lecturas;
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public IActionResult ActivarAlertaManual(int usuarioId, int pulso, string motivo)
         {
-            // Aquí guardarías en BD. Simulación:
-            TempData["Mensaje"] = $"Alerta manual activada para usuario {usuarioId} con pulso {pulso}. Motivo: {motivo}";
+            var nuevaAlerta = new Alerta
+            {
+                paciente_id = usuarioId,
+                fecha_hora = DateTime.Now,
+                fc_media = pulso,
+                hrv_rmssd = 25.0f,
+                spo2_estabilidad = 95.0f,
+                latitud = 21.1219f,
+                longitud = -101.6825f,
+                mensaje_enviado = false
+            };
+
+            _context.Alertas.Add(nuevaAlerta);
+            _context.SaveChanges();
+
+            TempData["Mensaje"] = $"⚠️ ¡Alerta médica manual guardada en MySQL para el paciente! Motivo: {motivo}";
             return RedirectToAction("Index", new { id = usuarioId });
         }
     }

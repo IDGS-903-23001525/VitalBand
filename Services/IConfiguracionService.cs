@@ -5,15 +5,13 @@ namespace VitalBand.Services
 {
     public interface IConfiguracionService
     {
-        // 👇 Cambiado de ObtenerRangos() a ObtenerRangosPulso() para coincidir con la vista y el controlador
-        List<RangoPulsoConfig> ObtenerRangosPulso();
+        List<RangoPulso> ObtenerRangosPulso();
+        List<TipoAlerta> ObtenerTiposAlerta();
 
-        List<TipoAlertaConfig> ObtenerTiposAlerta();
+        void AgregarRango(RangoPulso rango);
+        void AgregarTipoAlerta(TipoAlerta tipo);
 
-        void AgregarRango(RangoPulsoConfig rango);
-        void AgregarTipoAlerta(TipoAlertaConfig tipo);
-
-        void ActualizarRango(RangoPulsoConfig rango);
-        void ActualizarTipoAlerta(TipoAlertaConfig tipo);
+        void ActualizarRango(RangoPulso rango);
+        void ActualizarTipoAlerta(TipoAlerta tipo);
     }
 }

@@ -1,4 +1,4 @@
-﻿@model List<VitalBand.Models.UsuarioResumenViewModel>
+﻿@model IEnumerable<VitalBand.Models.UsuarioResumen>
 @{
     ViewData["Title"] = "Pacientes - VitalBand";
 }
@@ -14,9 +14,7 @@
             border: 1px solid rgba(255,255,255,0.5);
             border-radius: 24px;
             padding: 1.75rem;
-            box-shadow:
-                0 8px 40px rgba(8,145,178,0.15),
-                inset 0 1px 0 rgba(255,255,255,0.7);
+            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
         }
 
         .users-header {
@@ -61,7 +59,7 @@
             vertical-align: middle;
             background: inherit;
         }
-            /* Anchos de columna para mejor distribución */
+
             th:nth-child(1), td:nth-child(1) {
                 width: 28%;
             }
@@ -82,19 +80,16 @@
                 width: 35%;
             }
 
-        /* Reemplaza o añade después de las variables existentes */
         tr.alerta-activa,
         tr.alerta-activa td {
-            background-color: #FCEBEB !important; /* ya es rojo claro, pero puedes cambiarlo a #FFE5E5 */
+            background-color: #FCEBEB !important;
         }
 
-        /* Ajusta el ancho de la columna de acciones para que los tres botones quepan */
         th:nth-child(5), td:nth-child(5) {
-            width: 40%; /* o un valor que permita 3 botones en línea */
+            width: 40%;
             white-space: nowrap;
         }
 
-        /* Botón de alerta más grande y con efecto de sombra */
         .btn-alerta {
             background: #D32F2F;
             border: none;
@@ -116,7 +111,6 @@
             font-weight: bold;
         }
 
-        /* Botones */
         .btn-accion {
             display: inline-block;
             background: rgba(6,182,212,0.1);
@@ -172,14 +166,13 @@
             pointer-events: none;
         }
 
-        /* Fila de acciones expandible */
         tr.row-paciente {
             cursor: pointer;
         }
 
-        tr.row-paciente:hover td {
-            background: rgba(6,182,212,0.04);
-        }
+            tr.row-paciente:hover td {
+                background: rgba(6,182,212,0.04);
+            }
 
         tr.alerta-activa.row-paciente:hover td {
             background: rgba(220,38,38,0.06);
@@ -189,15 +182,15 @@
             display: none;
         }
 
-        .tr-acciones.visible {
-            display: table-row;
-        }
+            .tr-acciones.visible {
+                display: table-row;
+            }
 
-        .tr-acciones td {
-            padding: 0.55rem 0.75rem 0.75rem 1.5rem;
-            background: rgba(6,182,212,0.04);
-            border-bottom: 1px solid rgba(6,182,212,0.12);
-        }
+            .tr-acciones td {
+                padding: 0.55rem 0.75rem 0.75rem 1.5rem;
+                background: rgba(6,182,212,0.04);
+                border-bottom: 1px solid rgba(6,182,212,0.12);
+            }
     </style>
 }
 
@@ -228,7 +221,7 @@
                     <td>
                         @if (user.TieneAlertaHoy)
                         {
-                            <a asp-controller="AtenderAlerta" asp-action="Index" asp-route-alertaId="@(user.Id * 10)"
+                            <a asp-controller="AtenderAlerta" asp-action="Index" asp-route-alertaId="@user.Id"
                                class="btn-accion btn-alerta" style="position:relative; background:#D32F2F; color:white; font-weight:bold;"
                                onclick="event.stopPropagation()">
                                 Atender alerta
@@ -256,7 +249,9 @@
     <script>
         function toggleAcciones(id) {
             const tr = document.getElementById('acciones-' + id);
-            tr.classList.toggle('visible');
+            if(tr) {
+                tr.classList.toggle('visible');
+            }
         }
     </script>
 }
