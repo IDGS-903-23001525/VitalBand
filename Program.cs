@@ -43,6 +43,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.UseMiddleware<VitalBand.Middleware.SessionTimeoutMiddleware>();
+
 // ¡Importante! Deben ir en este orden
 app.UseAuthentication();  // Primero autenticación
 app.UseAuthorization();   // Luego autorización

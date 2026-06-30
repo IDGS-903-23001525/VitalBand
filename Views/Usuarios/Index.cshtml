@@ -221,16 +221,15 @@
                     <td>
                         @if (user.TieneAlertaHoy)
                         {
-                            <a asp-controller="AtenderAlerta" asp-action="Index" asp-route-alertaId="@user.Id"
-                               class="btn-accion btn-alerta" style="position:relative; background:#D32F2F; color:white; font-weight:bold;"
-                               onclick="event.stopPropagation()">
+                            <!-- 🛠️ CORRECCIÓN: Cambiamos asp-route-alertaId="@user.Id" por el ID de la Alerta real -->
+                            <a asp-controller="AtenderAlerta" asp-action="Index" asp-route-alertaId="@user.AlertaIdPendiente" class="btn btn-danger position-relative">
                                 Atender alerta
-                                <span class="notif-badge">1</span>
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">1</span>
                             </a>
                         }
                         else
                         {
-                            <span class="btn-accion btn-inactivo">Sin alertas</span>
+                            <span class="badge bg-light text-muted">Sin alertas</span>
                         }
                     </td>
                 </tr>

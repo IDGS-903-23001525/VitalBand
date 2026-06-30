@@ -19,45 +19,30 @@ namespace VitalBand.Controllers
             _clientFactory = clientFactory;
         }
 
+        // 🛠️ Cambiamos 'int id' por 'int alertaId' para atrapar la QueryString '?alertaId=2' de la imagen
         public async Task<IActionResult> Index(int alertaId)
         {
             var client = _clientFactory.CreateClient();
+            string url = $"https://localhost:7116/api/AlertasApi";
+            var response = await client.GetFromJsonAsync<List<Alerta>>(url);
 
-            // ⚠️ Recuerda verificar el puerto exacto de tu localhost local
-            // Consumimos todas las alertas desde la API (puedes crear un endpoint específico api/AlertasApi/{id} si prefieres, 
-            // pero para no mover tu API actual, buscaremos la alerta de la lista completa)
-            string urlApi = "https://localhost:7116/api/AlertasApi";
-            var response = await client.GetAsync(urlApi);
+            // 🛠️ Buscamos la alerta exacta usando la variable corregida
+            var alertaEspecifica = response?.FirstOrDefault(a => a.id == alertaId);
 
-            if (!response.IsSuccessStatusCode)
+            if (alertaEspecifica == null) return NotFound();
+
+            var model = new AtenderAlerta
             {
-                TempData["Error"] = "No se pudo conectar con el servicio de alertas.";
-                return RedirectToAction("Index", "Usuarios");
-            }
-
-            var alertas = await response.Content.ReadFromJsonAsync<System.Collections.Generic.List<Alerta>>();
-            var alertaBD = alertas?.FirstOrDefault(a => a.id == alertaId);
-
-            if (alertaBD == null)
-            {
-                TempData["Error"] = "No se encontró el registro de la alerta biométrica.";
-                return RedirectToAction("Index", "Usuarios");
-            }
-
-            // Armamos el modelo temporal exactamente con los mismos campos
-            var modelo = new AtenderAlerta
-            {
-                AlertaId = alertaBD.id,
-                Latitud = alertaBD.latitud,
-                Longitud = alertaBD.longitud,
-                PulsoRegistrado = (int)alertaBD.fc_media,
-                DuracionSegundos = 45,
-                Atendida = alertaBD.mensaje_enviado,
-                RespuestaUsuario = "Alerta crítica disparada por el dispositivo móvil.",
-                FechaHoraAlerta = alertaBD.fecha_hora
+                AlertaId = alertaEspecifica.id,
+                PulsoRegistrado = (int)alertaEspecifica.fc_media,
+                Latitud = alertaEspecifica.latitud,
+                Longitud = alertaEspecifica.longitud,
+                FechaHoraAlerta = alertaEspecifica.fecha_hora,
+                Atendida = alertaEspecifica.mensaje_enviado == true,
+                RespuestaUsuario = "Sin respuesta o activación de pánico"
             };
 
-            return View(modelo);
+            return View(model);
         }
 
         [HttpPost]

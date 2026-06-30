@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using VitalBand.Models;
 
@@ -14,50 +15,56 @@ namespace VitalBand.Controllers
     public class UsuariosController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string BaseUrlConfig = "https://localhost:7116/api/ConfiguracionApi"; // ⚠️ Verifica tu puerto local
+        private const string BaseUrlAlertas = "https://localhost:7116/api/AlertasApi";
 
         public UsuariosController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
         }
 
+        // GET: /Usuarios o /Usuarios/Index
         public async Task<IActionResult> Index()
         {
-            DateTime hoy = DateTime.Today;
-
+            // 1. Extraemos el PerfilId del médico (ID de la tabla MEDICOS) directamente desde los Claims
             var medicoIdStr = User.FindFirst("PerfilId")?.Value;
-            if (string.IsNullOrEmpty(medicoIdStr)) return Challenge();
-            int idMedicoLogueado = int.Parse(medicoIdStr);
 
+            if (string.IsNullOrEmpty(medicoIdStr) || !int.TryParse(medicoIdStr, out int idMedicoLogueado))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            DateTime hoy = DateTime.Today;
             var client = _clientFactory.CreateClient();
 
-            // 1. SOLUCIÓN: Traemos TODOS los pacientes reales desde la API de pacientes
-            string urlPacientes = "https://localhost:7116/api/ConfiguracionApi/pacientes";
-            var responsePacientes = await client.GetAsync(urlPacientes);
+            // 2. Traemos TODOS los pacientes reales desde la API de pacientes
+            var responsePacientes = await client.GetAsync($"{BaseUrlConfig}/pacientes");
             if (!responsePacientes.IsSuccessStatusCode) return View(new List<UsuarioResumen>());
 
             var todosLosPacientes = await responsePacientes.Content.ReadFromJsonAsync<List<Paciente>>() ?? new List<Paciente>();
 
-            // 2. FILTRO POR MÉDICO: Aquí filtramos de forma segura solo los asignados a este médico
+            // 3. FILTRO POR MÉDICO: Filtramos en memoria solo los pacientes asignados al ID de este médico
             var susPacientes = todosLosPacientes
-                .Where(p => p.medico_asignado_id == idMedicoLogueado || p.medico_asignado_id == idMedicoLogueado)
+                .Where(p => p.medico_asignado_id == idMedicoLogueado)
                 .ToList();
 
-            // 3. Traemos las alertas de hoy para saber quién tiene criticidad
-            string urlAlertas = "https://localhost:7116/api/AlertasApi";
-            var responseAlertas = await client.GetAsync(urlAlertas);
+            // 4. Traemos las alertas globales desde la API para mapear el estado de HOY
+            var responseAlertas = await client.GetAsync(BaseUrlAlertas);
             var todasLasAlertas = responseAlertas.IsSuccessStatusCode
                 ? await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>()
                 : new List<Alerta>();
 
-            // 4. Armamos el resumen (ahora sí incluirá a Luis Torres con 0 alertas)
+            // 5. Armamos el resumen en memoria pura
             var usuariosResumen = susPacientes.Select(p =>
             {
-                var alertasHoy = todasLasAlertas
-                    .Where(a => a.paciente_id == p.id && a.fecha_hora >= hoy)
+                // Filtramos las alertas pendientes de hoy
+                var alertasPacienteHoy = todasLasAlertas
+                    .Where(a => a.paciente_id == p.id && a.fecha_hora >= hoy && (a.mensaje_enviado == false || a.mensaje_enviado == null))
+                    .OrderByDescending(a => a.fecha_hora) // 🔥 La más reciente primero
                     .ToList();
 
                 int edadCalculada = DateTime.Today.Year - p.fecha_nacimiento.Year;
-                if (DateTime.Today.DayOfYear < p.fecha_nacimiento.DayOfYear) edadCalculada--;
+                if (DateTime.Today.DayOfYear < p.fecha_nacimiento.DayOfYear) { edadCalculada--; }
 
                 return new UsuarioResumen
                 {
@@ -66,13 +73,47 @@ namespace VitalBand.Controllers
                     Email = p.Usuario?.email ?? string.Empty,
                     Edad = edadCalculada,
                     Sexo = p.genero ?? "No Especificado",
-                    TieneAlertaHoy = alertasHoy.Any(),
-                    PulsoPromedioHoy = alertasHoy.Any() ? (int)alertasHoy.Average(a => a.fc_media) : 70
+                    TieneAlertaHoy = alertasPacienteHoy.Any(),
+                    PulsoPromedioHoy = alertasPacienteHoy.Any() ? (int)alertasPacienteHoy.Average(a => a.fc_media) : 70,
+
+                    // 🛠️ CORRECCIÓN CLAVE: Guardamos el ID de la alerta que realmente está fallando hoy
+                    AlertaIdPendiente = alertasPacienteHoy.FirstOrDefault()?.id ?? 0
                 };
             }).ToList();
 
+            // 6. Ordenamos: Casos críticos de HOY primero en el tablero
             var usuariosOrdenados = usuariosResumen.OrderByDescending(u => u.TieneAlertaHoy).ToList();
+
             return View(usuariosOrdenados);
+        }
+
+        // =========================================================================
+        // 🛠️ ACCIÓN UNIFICADA: ATENDER ALERTA DESDE EL TABLERO
+        // =========================================================================
+        // Forzamos la ruta exacta que tu vista HTML ya está buscando (/AtenderAlerta/MarcarAtendida)
+        // para que no tengas que modificar tu HTML ni renombrar el controlador.
+        [HttpPost]
+        [Route("AtenderAlerta/MarcarAtendida")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarcarAtendida(int id)
+        {
+            var client = _clientFactory.CreateClient();
+
+            // 1. Mandamos la petición PUT hacia el endpoint correspondiente en tu AlertasApiController
+            string urlApi = $"{BaseUrlAlertas}/atender/{id}";
+            var response = await client.PutAsync(urlApi, null); // Pasamos null porque el ID va en la URL
+
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Mensaje"] = "✅ La alerta médica ha sido marcada como atendida de forma correcta.";
+            }
+            else
+            {
+                TempData["Error"] = "No se pudo actualizar el estado de la alerta en el servicio de la API. ❌";
+            }
+
+            // 2. Redirige de vuelta a la pantalla principal del médico para refrescar el tablero
+            return RedirectToAction(nameof(Index));
         }
     }
 }

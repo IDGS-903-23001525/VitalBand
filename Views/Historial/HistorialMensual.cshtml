@@ -3,7 +3,6 @@
     ViewData["Title"] = "Historial Mensual - VitalBand";
     var esMedico = User.IsInRole("Medico") || User.IsInRole("medico");
 }
-
 @section Styles {
     <style>
         :root {
@@ -48,64 +47,105 @@
         }
 
         .page-header {
-            padding: 2rem 0 1rem;
+            padding: 2.5rem 0 1.5rem;
             display: flex;
-            align-items: flex-end;
+            align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
             .page-header h1 {
-                font-size: 1.75rem;
+                font-size: 1.85rem;
                 font-weight: 600;
                 color: var(--gray-900);
-                margin-bottom: 0.25rem;
+                letter-spacing: -0.5px;
+                margin-bottom: 0.35rem;
             }
 
             .page-header p {
-                font-size: 0.875rem;
+                font-size: 0.9rem;
                 color: var(--gray-600);
             }
 
+        /* ── SECCIÓN DE FILTROS LINDA (Soft Capsule) ── */
         .period-badge {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(6, 182, 212, 0.15);
+            border-radius: 20px;
+            padding: 0.65rem 1.25rem;
+            box-shadow: 0 10px 25px rgba(8, 145, 178, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: var(--white);
-            border: 1px solid var(--gray-200);
-            border-radius: 12px;
-            padding: 0.6rem 1rem;
-            box-shadow: 0 4px 12px rgba(8,145,178,0.05);
         }
 
-        /* Estilo moderno para los filtros select incorporados */
         .filter-form {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 1.25rem;
             flex-wrap: wrap;
         }
 
-        .filter-select {
-            padding: 0.4rem 0.8rem;
-            font-family: inherit;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: var(--gray-700);
-            background: var(--gray-50);
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.15s, box-shadow 0.15s;
+        /* Contenedor del select con su etiqueta interna */
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
 
-            .filter-select:focus {
-                border-color: var(--teal-500);
-                box-shadow: 0 0 0 2px rgba(6,182,212,0.1);
+            .filter-group label {
+                font-size: 0.68rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: var(--teal-700);
+                margin-bottom: 3px;
+                padding-left: 2px;
             }
 
+        /* Estilo personalizado y estilizado para los select */
+        .filter-select {
+            padding: 0.5rem 2.2rem 0.5rem 0.85rem;
+            font-family: inherit;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+            background: var(--white);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 10px;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-width: 130px;
+            appearance: none; /* Quitamos la flecha fea nativa */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 14px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        /* Ancho dinámico para el select de pacientes */
+        .filter-group select[name="usuarioId"] {
+            min-width: 200px;
+        }
+
+        .filter-select:hover {
+            border-color: var(--teal-400);
+            background-color: var(--gray-50);
+        }
+
+        .filter-select:focus {
+            border-color: var(--teal-500);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
+            background-color: var(--white);
+        }
+
+        /* ── RESTO DE LOS ESTILOS (Mantenidos intactos) ── */
         .calendar-card {
             background: rgba(255,255,255,0.22);
             backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
@@ -129,7 +169,7 @@
             font-weight: 700;
             letter-spacing: 0.8px;
             text-transform: uppercase;
-            color: var(--teal-700, #0a6775);
+            color: var(--teal-700);
             background: rgba(6,182,212,0.08);
             border-bottom: 2px solid rgba(6,182,212,0.25);
         }
@@ -164,7 +204,7 @@
         .cal-day-num {
             font-size: 0.8125rem;
             font-weight: 600;
-            color: var(--gray-700, #334155);
+            color: var(--gray-700);
             margin-bottom: 0.4rem;
         }
 
@@ -175,12 +215,12 @@
         .cal-bpm {
             font-size: 0.8125rem;
             font-weight: 600;
-            color: var(--teal-600, #0891b2);
+            color: var(--teal-600);
         }
 
         .cal-bpm-label {
             font-size: 0.7rem;
-            color: var(--gray-400, #94a3b8);
+            color: var(--gray-400);
             margin-bottom: 1px;
         }
 
@@ -324,6 +364,16 @@
                 color: var(--red-600);
             }
 
+        @@media (max-width: 768px) {
+            .filter-form {
+                gap: 0.75rem;
+            }
+
+            .filter-select {
+                min-width: 100%;
+            }
+        }
+
         @@media (max-width: 640px) {
             .summary-grid {
                 grid-template-columns: 1fr;
@@ -355,39 +405,53 @@
 
                 @if (esMedico)
                 {
-                    <select name="usuarioId" class="filter-select" onchange="this.form.submit()">
-                        @foreach (var usuario in ViewBag.Usuarios as List<VitalBand.Models.UsuarioResumen>)
-                        {
-                            <option value="@usuario.Id" selected="@(usuario.Id == Model.UsuarioId)">@usuario.Nombre</option>
-                        }
-                    </select>
+                    <div class="filter-group">
+                        <label>Paciente</label>
+                        <select name="usuarioId" class="filter-select" onchange="this.form.submit()">
+                            @foreach (var usuario in ViewBag.Usuarios as List<VitalBand.Models.UsuarioResumen>)
+                            {
+                                <option value="@usuario.Id" selected="@(usuario.Id == Model.UsuarioId)">@usuario.Nombre</option>
+                            }
+                        </select>
+                    </div>
                 }
                 else
                 {
                     <input type="hidden" name="usuarioId" value="@Model.UsuarioId" />
                 }
 
-                <select name="mes" class="filter-select" onchange="this.form.submit()">
-                    <option value="1" selected="@(Model.Mes == 1)">Enero</option>
-                    <option value="2" selected="@(Model.Mes == 2)">Febrero</option>
-                    <option value="3" selected="@(Model.Mes == 3)">Marzo</option>
-                    <option value="4" selected="@(Model.Mes == 4)">Abril</option>
-                    <option value="5" selected="@(Model.Mes == 5)">Mayo</option>
-                    <option value="6" selected="@(Model.Mes == 6)">Junio</option>
-                    <option value="7" selected="@(Model.Mes == 7)">Julio</option>
-                    <option value="8" selected="@(Model.Mes == 8)">Agosto</option>
-                    <option value="9" selected="@(Model.Mes == 9)">Septiembre</option>
-                    <option value="10" selected="@(Model.Mes == 10)">Octubre</option>
-                    <option value="11" selected="@(Model.Mes == 11)">Noviembre</option>
-                    <option value="12" selected="@(Model.Mes == 12)">Diciembre</option>
-                </select>
+                <div class="filter-group">
+                    <label>Mes</label>
+                    <select name="mes" class="filter-select" onchange="this.form.submit()">
+                        <option value="1" selected="@(Model.Mes == 1)">Enero</option>
+                        <option value="2" selected="@(Model.Mes == 2)">Febrero</option>
+                        <option value="3" selected="@(Model.Mes == 3)">Marzo</option>
+                        <option value="4" selected="@(Model.Mes == 4)">Abril</option>
+                        <option value="5" selected="@(Model.Mes == 5)">Mayo</option>
+                        <option value="6" selected="@(Model.Mes == 6)">Junio</option>
+                        <option value="7" selected="@(Model.Mes == 7)">Julio</option>
+                        <option value="8" selected="@(Model.Mes == 8)">Agosto</option>
+                        <option value="9" selected="@(Model.Mes == 9)">Septiembre</option>
+                        <option value="10" selected="@(Model.Mes == 10)">Octubre</option>
+                        <option value="11" selected="@(Model.Mes == 11)">Noviembre</option>
+                        <option value="12" selected="@(Model.Mes == 12)">Diciembre</option>
+                    </select>
+                </div>
 
-                <select name="año" class="filter-select" onchange="this.form.submit()">
-                    <option value="2024" selected="@(Model.Año == 2024)">2024</option>
-                    <option value="2025" selected="@(Model.Año == 2025)">2025</option>
-                    <option value="2026" selected="@(Model.Año == 2026)">2026</option>
-                    <option value="2027" selected="@(Model.Año == 2027)">2027</option>
-                </select>
+                <div class="filter-group">
+                    <label>Año</label>
+                    <select name="año" class="filter-select" onchange="this.form.submit()">
+                        @{
+                            int anioActual = DateTime.Today.Year;
+                            int anioInicio = 2000; // El año en que arrancó tu sistema o base de datos
+
+                            for (int i = anioActual; i >= anioInicio; i--)
+                            {
+                                <option value="@i" selected="@(Model.Año == i)">@i</option>
+                            }
+                        }
+                    </select>
+                </div>
             </form>
         </div>
     </div>

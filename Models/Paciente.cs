@@ -18,19 +18,18 @@ namespace VitalBand.Models
 
         [Required(ErrorMessage = "El nombre del paciente es obligatorio.")]
         public string nombre { get; set; }
-        [Required(ErrorMessage = "El género es obligatorio.")]
-        public string genero { get; set; }
+        public string? genero { get; set; }
         [Required(ErrorMessage = "La fecha de nacimiento es obligatoria.")]
         [DataType(DataType.Date)]
         public DateTime fecha_nacimiento { get; set; }
 
-        public string tipo_sangre { get; set; }
+        public string? tipo_sangre { get; set; }
 
         public float? peso_inicial { get; set; }
 
         public float? altura_inicial { get; set; }
 
-        public string historial_medico_breve { get; set; }
+        public string? historial_medico_breve { get; set; }
 
         
 

@@ -18,51 +18,63 @@ namespace VitalBand.Controllers.Api
         }
 
         // GET: api/ConfiguracionApi/paciente/5
-        // Trae la configuración/datos médicos de un paciente específico
-        [HttpGet("paciente/{id}")] // Cambié el nombre del parámetro a 'id' para que sea más claro
+        [HttpGet("paciente/{id}")]
         public async Task<IActionResult> GetConfiguracionPaciente(int id)
         {
-            // 🛠️ CORRECCIÓN: Buscamos por el 'id' del paciente e incluimos la relación con su Usuario base
             var paciente = await _context.Pacientes
-                .Include(p => p.Usuario) // 👈 Indispensable para que no llegue el correo vacío a la web
+                .Include(p => p.Usuario)
                 .FirstOrDefaultAsync(p => p.id == id);
 
-            if (paciente == null)
+            if (paciente == null) return NotFound();
+
+            // Si tiene un médico asignado, podemos inyectarle la Cédula al vuelo en una propiedad dinámica o DTO si lo prefieres,
+            // pero para mantener tu Paciente plano, la web se encargará de pedirla o la API la incluye si creas un objeto anónimo:
+            string? cedulaActual = null;
+            if (paciente.medico_asignado_id.HasValue || paciente.medico_asignado_id.HasValue)
             {
-                return NotFound(new { mensaje = "Configuración de paciente no encontrada." });
+                var mId = paciente.medico_asignado_id ?? paciente.medico_asignado_id;
+                cedulaActual = await _context.Medicos
+                    .Where(m => m.id == mId)
+                    .Select(m => m.cedula_profesional)
+                    .FirstOrDefaultAsync();
             }
 
-            return Ok(paciente);
+            return Ok(new { paciente, cedulaActual });
+        }
+
+        // GET: api/ConfiguracionApi/verificar-cedula?cedula=XYZ
+        [HttpGet("verificar-cedula")]
+        public async Task<IActionResult> VerificarCedula(string cedula)
+        {
+            if (string.IsNullOrEmpty(cedula)) return BadRequest();
+
+            var medico = await _context.Medicos.FirstOrDefaultAsync(m => m.cedula_profesional == cedula.Trim());
+            if (medico != null)
+            {
+                return Ok(new { existe = true, id = medico.id, nombre = medico.nombre });
+            }
+            return Ok(new { existe = false, mensaje = "Médico no encontrado en VitalBand ❌" });
         }
 
         // PUT: api/ConfiguracionApi/paciente/5
         [HttpPut("paciente/{id}")]
         public async Task<IActionResult> UpdateConfiguracion(int id, [FromBody] UsuarioResumen model)
         {
-            if (id != model.Id) return BadRequest(new { mensaje = "El ID no coincide." });
-
-            // 1. Buscamos al paciente en la base de datos
             var paciente = await _context.Pacientes.FindAsync(id);
-            if (paciente == null) return NotFound(new { mensaje = "Paciente no encontrado." });
+            if (paciente == null) return NotFound();
 
-            // 2. Actualizamos sus datos médicos crudos
             paciente.nombre = model.Nombre;
             paciente.genero = model.Sexo;
             paciente.peso_inicial = model.Peso;
             paciente.altura_inicial = model.Altura;
             paciente.historial_medico_breve = model.HistorialMedico;
+            paciente.medico_asignado_id = model.MedicoAsignadoId; // Vinculación unificada del médico
 
-            // 3. También actualizamos su correo en la tabla USUARIOS relacionada
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.id == paciente.usuario_id);
-            if (usuario != null)
-            {
-                usuario.email = model.Email;
-            }
+            if (usuario != null) usuario.email = model.Email;
 
-            _context.Entry(paciente).State = EntityState.Modified;
             await _context.SaveChangesAsync();
-
-            return Ok(new { mensaje = "Configuración y usuario actualizados correctamente." });
+            return Ok();
         }
         // GET: api/ConfiguracionApi/pacientes
         // Trae la lista completa de todos los pacientes en el sistema

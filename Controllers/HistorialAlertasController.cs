@@ -1,44 +1,56 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using VitalBand.Models; // Para que reconozca tus modelos de C#
+using VitalBand.Models;
 
 namespace VitalBand.Controllers
 {
     public class HistorialAlertasController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
+        private const string UrlApi = "https://localhost:7116/api/AlertasApi"; // ⚠️ Verifica tu puerto local
 
-        // Inyectamos el cliente HTTP en lugar del DbContext
         public HistorialAlertasController(IHttpClientFactory clientFactory)
         {
             _clientFactory = clientFactory;
         }
 
         // GET: HistorialAlertas
-        // Este método carga tu vista Razor de siempre (ej. Index.cshtml)
         public async Task<IActionResult> Index()
         {
             var client = _clientFactory.CreateClient();
-
-            // ⚠️ IMPORTANTE: Cambia el puerto (7116) por el que use tu proyecto localmente
-            string urlApi = "https://localhost:7116/api/AlertasApi";
-
-            var response = await client.GetAsync(urlApi);
+            var response = await client.GetAsync(UrlApi);
 
             if (response.IsSuccessStatusCode)
             {
-                // La API nos devuelve una lista de Alertas (con Paciente incluido)
-                var listaAlertas = await response.Content.ReadFromJsonAsync<List<Alerta>>();
+                // 1. Recibimos la lista de alertas base desde la API
+                var listaAlertas = await response.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>();
 
-                // Le pasamos la lista de alertas a tu vista Razor exactamente como antes
-                return View(listaAlertas);
+                // 2. Mapeamos cada 'Alerta' al modelo 'AlertaHistorial' que exige tu vista Razor
+                var listaHistorial = listaAlertas.Select(a => new AlertaHistorial
+                {
+                    Id = a.id,
+                    FechaHora = a.fecha_hora ?? DateTime.Now,
+
+                    // Concatenamos latitud y longitud para armar la cadena de ubicación
+                    Ubicacion = $"Lat: {a.latitud}, Lon: {a.longitud}",
+
+                    // El campo mensaje_enviado mapea si ya fue respondida/atendida o notificada
+                    Respondida = a.mensaje_enviado ?? false,
+                    // Estructuramos la descripción con los datos de los sensores de la API
+                    DescripcionEvento = $"Frecuencia Cardíaca: {a.fc_media} BPM | SpO2: {a.spo2_estabilidad}% | HRV: {a.hrv_rmssd} ms"
+                }).ToList();
+
+                // 3. Enviamos la lista con el tipo de dato correcto
+                return View(listaHistorial);
             }
 
-            // Si falla la API, mandamos una lista vacía para que no truene la página
-            return View(new List<Alerta>());
+            // Si falla la comunicación, mandamos la lista vacía del tipo correcto para que no rompa la tabla
+            return View(new List<AlertaHistorial>());
         }
     }
 }

@@ -429,6 +429,7 @@
 
         @if (User.IsInRole("Medico") && Model.LecturasHoy.Any())
         {
+            <!-- 🛠️ Dejamos Model.UsuarioId para que compile, ya que así se llama en tu modelo DatosGenerales -->
             <input type="hidden" id="hdnUsuarioId" value="@Model.UsuarioId" />
             <input type="hidden" id="hdnPulso" value="@Model.LecturasHoy.Last().Pulso" />
             <input type="hidden" id="hdnMotivo" value="Activación manual por médico (lectura anormal)" />
@@ -444,6 +445,7 @@
 
     <div id="modalConfirmacion" class="modal-confirm">
         <div class="modal-content">
+            @Html.AntiForgeryToken()
             <p>¿Estás seguro de activar una alerta manual para este paciente?</p>
             <div class="modal-buttons">
                 <button class="modal-btn modal-btn-cancel" id="btnCancelar">Cancelar</button>
@@ -524,9 +526,21 @@
         const pulso = modal.getAttribute('data-pulso');
         const motivo = modal.getAttribute('data-motivo');
 
+        // 🛠️ Buscamos el valor del token anti-falsificación generado en el modal
+        const tokenInput = document.querySelector('#modalConfirmacion input[name="__RequestVerificationToken"]');
+
         const form = document.createElement('form');
         form.method = 'post';
         form.action = '@Url.Action("ActivarAlertaManual", "DatosGenerales")';
+
+        // 🛠️ Creamos el input hidden para el token de seguridad
+        if (tokenInput) {
+        const inputToken = document.createElement('input');
+        inputToken.type = 'hidden';
+        inputToken.name = '__RequestVerificationToken';
+        inputToken.value = tokenInput.value;
+        form.appendChild(inputToken);
+        }
 
         const inputUsuario = document.createElement('input');
         inputUsuario.type = 'hidden';

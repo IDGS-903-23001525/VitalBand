@@ -162,7 +162,10 @@
         {
             <form asp-action="MarcarAtendida" asp-controller="AtenderAlerta" method="post" style="margin:0;">
                 @Html.AntiForgeryToken()
-                <input type="hidden" name="alertaId" value="@Model.AlertaId" />
+
+                <!-- 🛠️ CORRECCIÓN: Cambia name="alertaId" por name="id" -->
+                <input type="hidden" name="id" value="@Model.AlertaId" />
+
                 <button type="submit" class="btn btn-peligro">Marcar como atendida</button>
             </form>
         }

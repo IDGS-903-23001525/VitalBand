@@ -108,6 +108,35 @@
                 opacity: 0.95;
                 transform: translateY(-1px);
             }
+
+        .cedula-container {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-verificar {
+            background: #0f172a;
+            color: white;
+            border: none;
+            padding: 0 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+
+            .btn-verificar:hover {
+                background: #1e293b;
+            }
+
+        .status-resultado {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 0.3rem;
+            display: block;
+        }
     </style>
 }
 
@@ -164,6 +193,17 @@
             </div>
         </div>
 
+        <input type="hidden" asp-for="MedicoAsignadoId" id="hfMedicoId" />
+
+        <div class="form-group">
+            <label asp-for="CedulaMedico">Cédula Profesional del Médico</label>
+            <div class="cedula-container">
+                <input asp-for="CedulaMedico" id="txtCedula" placeholder="Ej. 12345678" />
+                <button type="button" class="btn-verificar" id="btnVerificarCedula">Verificar</button>
+            </div>
+            <span id="lblResultadoCedula" class="status-resultado"></span>
+        </div>
+
         <div class="form-group">
             <label asp-for="HistorialMedico">Historial clínico breve</label>
             <textarea asp-for="HistorialMedico" placeholder="Indica padecimientos crónicos, cirugías previas, tipo de sangre o alergias bajo control médico..."></textarea>
@@ -172,3 +212,46 @@
         <button type="submit" class="btn-guardar">💾 Guardar cambios clínicos</button>
     </form>
 </div>
+@section Scripts {
+    <script>
+        document.getElementById("btnVerificarCedula").addEventListener("click", function () {
+            var cedulaInput = document.getElementById("txtCedula").value.trim();
+            var lblResultado = document.getElementById("lblResultadoCedula");
+            var hfMedicoId = document.getElementById("hfMedicoId");
+
+            if (cedulaInput === "") {
+                lblResultado.style.color = "#b91c1c";
+                lblResultado.innerHTML = "Por favor, escribe una cédula primero.";
+                return;
+            }
+
+            lblResultado.style.color = "#475569";
+            lblResultado.innerHTML = "Buscando en VitalBand...";
+
+            // Realizamos la consulta asíncrona al controlador
+            fetch('/Configuracion/VerificarCedula?cedula=' + encodeURIComponent(cedulaInput))
+                .then(response => response.json())
+                .then(data => {
+                    if (data.existe) {
+                        lblResultado.style.color = "#15803d";
+                        lblResultado.innerHTML = "✔ Médico verificado: " + data.nombre;
+                        hfMedicoId.value = data.id; // Asignamos el ID encontrado al campo oculto
+                    } else {
+                        lblResultado.style.color = "#b91c1c";
+                        lblResultado.innerHTML = data.mensaje;
+                        hfMedicoId.value = ""; // Limpiamos el ID si no existe
+                    }
+                })
+                .catch(error => {
+                    lblResultado.style.color = "#b91c1c";
+                    lblResultado.innerHTML = "Error al conectar con el servidor.";
+                });
+        });
+
+        // Si el usuario cambia el texto de la cédula después de verificar, borramos el ID oculto para obligar a verificar de nuevo
+        document.getElementById("txtCedula").addEventListener("input", function() {
+            document.getElementById("hfMedicoId").value = "";
+            document.getElementById("lblResultadoCedula").innerHTML = "";
+        });
+    </script>
+}

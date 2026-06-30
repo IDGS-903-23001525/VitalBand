@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Text.Json;
 using VitalBand.Models;
 using VitalBand.Services;
 
@@ -17,8 +17,8 @@ namespace VitalBand.Controllers
     {
         private readonly IConfiguracionService _config;
         private readonly IHttpClientFactory _clientFactory;
+        private const string BaseUrl = "https://localhost:7116/api/ConfiguracionApi"; // ⚠️ Verifica tu puerto local
 
-        // Reemplazamos VitalBandContext por el creador de clientes HTTP
         public ConfiguracionController(IConfiguracionService config, IHttpClientFactory clientFactory)
         {
             _config = config;
@@ -30,7 +30,6 @@ namespace VitalBand.Controllers
         {
             if (User.IsInRole("Medico") || User.IsInRole("medico"))
             {
-                // La lógica del médico se queda exactamente igual usando su servicio local
                 var vm = new ConfiguracionGlobal
                 {
                     RangosPulso = _config.ObtenerRangosPulso() ?? new List<RangoPulso>(),
@@ -44,28 +43,22 @@ namespace VitalBand.Controllers
                 if (string.IsNullOrEmpty(perfilIdStr)) return NotFound();
 
                 int idPaciente = int.Parse(perfilIdStr);
-
-                // 1. Preparamos el cliente HTTP para consultar la API
                 var client = _clientFactory.CreateClient();
 
-                // ⚠️ Ajusta al puerto que use tu localhost
-                string urlApi = $"https://localhost:7116/api/ConfiguracionApi/paciente/{idPaciente}";
-                var response = await client.GetAsync(urlApi);
-
+                var response = await client.GetAsync($"{BaseUrl}/paciente/{idPaciente}");
                 if (!response.IsSuccessStatusCode) return NotFound();
 
-                // 2. La API nos devuelve el objeto Paciente (con su relación Usuario gracias a EF de la API)
-                var paciente = await response.Content.ReadFromJsonAsync<Paciente>();
+                // Leemos la respuesta unificada que trae el paciente y la cédula del médico
+                var jsonDoc = await response.Content.ReadFromJsonAsync<JsonElement>();
+                var paciente = JsonSerializer.Deserialize<Paciente>(jsonDoc.GetProperty("paciente").GetRawText());
+                string? cedulaActual = jsonDoc.GetProperty("cedulaActual").GetString();
+
                 if (paciente == null) return NotFound();
 
-                // Calculamos la edad exactamente igual
+                // Calculamos la edad de manera segura
                 int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
-                if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear)
-                {
-                    edadCalculada--;
-                }
+                if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) { edadCalculada--; }
 
-                // Armamos el ViewModel "UsuarioResumen" que tu vista "Perfil.cshtml" espera recibir
                 var usuarioVM = new UsuarioResumen
                 {
                     Id = paciente.id,
@@ -75,7 +68,9 @@ namespace VitalBand.Controllers
                     Sexo = paciente.genero,
                     Peso = paciente.peso_inicial,
                     Altura = paciente.altura_inicial,
-                    HistorialMedico = paciente.historial_medico_breve
+                    HistorialMedico = paciente.historial_medico_breve,
+                    CedulaMedico = cedulaActual,
+                    MedicoAsignadoId = paciente.medico_asignado_id
                 };
 
                 return View("Perfil", usuarioVM);
@@ -83,7 +78,7 @@ namespace VitalBand.Controllers
             return Forbid();
         }
 
-        // POST: Configuracion/AgregarRango (Solo Médicos - Se queda igual)
+        // POST: Configuracion/AgregarRango (Solo Médicos)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
@@ -94,10 +89,10 @@ namespace VitalBand.Controllers
                 if (nuevoRango.Maximo == 0) nuevoRango.Maximo = 200;
                 _config.AgregarRango(nuevoRango);
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
-        // POST: Configuracion/AgregarTipoAlerta (Solo Médicos - Se queda igual)
+        // POST: Configuracion/AgregarTipoAlerta (Solo Médicos)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
@@ -107,7 +102,28 @@ namespace VitalBand.Controllers
             {
                 _config.AgregarTipoAlerta(nuevoTipo);
             }
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
+        }
+
+        // GET: Configuracion/VerificarCedula
+        [HttpGet]
+        [Authorize(Roles = "paciente,Paciente")]
+        public async Task<IActionResult> VerificarCedula(string cedula)
+        {
+            if (string.IsNullOrEmpty(cedula))
+            {
+                return Json(new { existe = false, mensaje = "Por favor, ingresa una cédula." });
+            }
+
+            var client = _clientFactory.CreateClient();
+            var response = await client.GetAsync($"{BaseUrl}/verificar-cedula?cedula={Uri.EscapeDataString(cedula)}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                return Json(await response.Content.ReadFromJsonAsync<object>());
+            }
+
+            return Json(new { existe = false, mensaje = "Error al conectar con el servicio de verificación. ❌" });
         }
 
         // POST: Configuracion/ActualizarPerfil (Solo Pacientes)
@@ -119,16 +135,11 @@ namespace VitalBand.Controllers
             if (!ModelState.IsValid)
             {
                 TempData["Error"] = "Error en los datos ingresados, revisa el formato";
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
             var client = _clientFactory.CreateClient();
-
-            // ⚠️ Ajusta al puerto que use tu localhost
-            string urlApi = $"https://localhost:7116/api/ConfiguracionApi/paciente/{model.Id}";
-
-            // Enviamos el modelo "UsuarioResumen" modificado en la vista a través de un PUT
-            var response = await client.PutAsJsonAsync(urlApi, model);
+            var response = await client.PutAsJsonAsync($"{BaseUrl}/paciente/{model.Id}", model);
 
             if (response.IsSuccessStatusCode)
             {
@@ -139,7 +150,7 @@ namespace VitalBand.Controllers
                 TempData["Error"] = "No se pudo actualizar el expediente del paciente a través del servicio.";
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
     }
 }
