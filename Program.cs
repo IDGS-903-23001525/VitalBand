@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore; // ¡Añadido para MySQL!
-using VitalBand.Data;               // ¡Añadido para jalar tu VitalBandContext!
+using Microsoft.EntityFrameworkCore; 
+using VitalBand.Data;               
 using VitalBand.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,12 +21,14 @@ builder.Services.AddDbContext<VitalBandContext>(options =>
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Account/Login";      // Redirige aquí si no está autenticado
+        options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Home/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });
+
+builder.Services.AddHttpClient();
 
 var app = builder.Build();
 

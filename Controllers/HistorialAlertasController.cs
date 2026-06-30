@@ -1,41 +1,44 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using System.Collections.Generic;
-using System.Linq;
-using VitalBand.Data;
-using VitalBand.Models;
+using VitalBand.Models; // Para que reconozca tus modelos de C#
 
 namespace VitalBand.Controllers
 {
-    [Authorize]
     public class HistorialAlertasController : Controller
     {
-        private readonly VitalBandContext _context;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public HistorialAlertasController(VitalBandContext context)
+        // Inyectamos el cliente HTTP en lugar del DbContext
+        public HistorialAlertasController(IHttpClientFactory clientFactory)
         {
-            _context = context;
+            _clientFactory = clientFactory;
         }
-        public IActionResult Index(int usuarioId)
+
+        // GET: HistorialAlertas
+        // Este método carga tu vista Razor de siempre (ej. Index.cshtml)
+        public async Task<IActionResult> Index()
         {
-            var alertasBD = _context.Alertas
-                .Where(a => a.paciente_id == usuarioId)
-                .OrderByDescending(a => a.fecha_hora)
-                .ToList();
+            var client = _clientFactory.CreateClient();
 
-            var modeloPlano = alertasBD.Select(a => new AlertaHistorial
+            // ⚠️ IMPORTANTE: Cambia el puerto (7116) por el que use tu proyecto localmente
+            string urlApi = "https://localhost:7116/api/AlertasApi";
+
+            var response = await client.GetAsync(urlApi);
+
+            if (response.IsSuccessStatusCode)
             {
-                Id = a.id,
-                FechaHora = a.fecha_hora ?? DateTime.Now,
-                Ubicacion = $"Lat: {a.latitud}, Long: {a.longitud}",
-                Respondida = a.mensaje_enviado ?? false,
-                DescripcionEvento = $"Alerta registrada con {a.fc_media} BPM. Estabilidad: SpO2 al {a.spo2_estabilidad}% y HRV de {a.hrv_rmssd}."
-            }).ToList();
+                // La API nos devuelve una lista de Alertas (con Paciente incluido)
+                var listaAlertas = await response.Content.ReadFromJsonAsync<List<Alerta>>();
 
-            ViewBag.UsuarioId = usuarioId;
+                // Le pasamos la lista de alertas a tu vista Razor exactamente como antes
+                return View(listaAlertas);
+            }
 
-            return View(modeloPlano);
+            // Si falla la API, mandamos una lista vacía para que no truene la página
+            return View(new List<Alerta>());
         }
     }
 }

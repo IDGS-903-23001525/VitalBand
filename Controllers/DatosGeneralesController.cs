@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VitalBand.Data;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers
@@ -12,28 +13,47 @@ namespace VitalBand.Controllers
     [Authorize(Roles = "Medico,medico")]
     public class DatosGeneralesController : Controller
     {
-        private readonly VitalBandContext _context;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public DatosGeneralesController(VitalBandContext context)
+        // Inyectamos el HttpClient factory
+        public DatosGeneralesController(IHttpClientFactory clientFactory)
         {
-            _context = context;
+            _clientFactory = clientFactory;
         }
 
-        public IActionResult Index(int id)
+        public async Task<IActionResult> Index(int id)
         {
-            var paciente = _context.Pacientes
-                .Include(p => p.Usuario)
-                .FirstOrDefault(p => p.id == id);
+            var client = _clientFactory.CreateClient();
 
+            // 1. Solicitamos el expediente del paciente a través de la API de Configuración
+            // ⚠️ Ajusta al puerto que use tu localhost
+            string urlPaciente = $"https://localhost:7116/api/ConfiguracionApi/paciente/{id}";
+            var responsePaciente = await client.GetAsync(urlPaciente);
+
+            if (!responsePaciente.IsSuccessStatusCode) return NotFound();
+
+            var paciente = await responsePaciente.Content.ReadFromJsonAsync<Paciente>();
             if (paciente == null) return NotFound();
 
+            // Calculamos la edad de la misma forma
             int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
             if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) edadCalculada--;
 
-            int conteoAlertas = _context.Alertas.Count(a => a.paciente_id == paciente.id);
+            // 2. Solicitamos la lista de alertas global para calcular cuántas pertenecen a este paciente
+            string urlAlertas = "https://localhost:7116/api/AlertasApi";
+            var responseAlertas = await client.GetAsync(urlAlertas);
 
+            int conteoAlertas = 0;
+            if (responseAlertas.IsSuccessStatusCode)
+            {
+                var alertas = await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>();
+                conteoAlertas = alertas?.Count(a => a.paciente_id == paciente.id) ?? 0;
+            }
+
+            // Mantenemos tu simulador interno de datos por el momento
             var lecturas = GenerarLecturas(paciente.id);
 
+            // Armamos el modelo original "DatosGenerales" intacto para la vista
             var modelo = new DatosGenerales
             {
                 UsuarioId = paciente.id,
@@ -46,12 +66,14 @@ namespace VitalBand.Controllers
                 LecturasHoy = lecturas
             };
 
+            // Conservamos exactamente los mismos ViewBags que alimentan tu gráfico Chart.js
             ViewBag.HorasJson = System.Text.Json.JsonSerializer.Serialize(lecturas.Select(l => l.Hora.ToString("HH:mm")));
             ViewBag.PulsosJson = System.Text.Json.JsonSerializer.Serialize(lecturas.Select(l => l.Pulso));
 
             return View(modelo);
         }
 
+        // Método auxiliar del simulador de sensores (se queda igual)
         private List<LecturaDiaria> GenerarLecturas(int pacienteId)
         {
             var random = new Random(pacienteId);
@@ -72,8 +94,11 @@ namespace VitalBand.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ActivarAlertaManual(int usuarioId, int pulso, string motivo)
+        public async Task<IActionResult> ActivarAlertaManual(int usuarioId, int pulso, string motivo)
         {
+            var client = _clientFactory.CreateClient();
+
+            // Armamos el objeto Alerta crudo
             var nuevaAlerta = new Alerta
             {
                 paciente_id = usuarioId,
@@ -86,10 +111,19 @@ namespace VitalBand.Controllers
                 mensaje_enviado = false
             };
 
-            _context.Alertas.Add(nuevaAlerta);
-            _context.SaveChanges();
+            // Enviamos un POST seguro a nuestra API
+            string urlApi = "https://localhost:7116/api/AlertasApi/manual";
+            var response = await client.PostAsJsonAsync(urlApi, nuevaAlerta);
 
-            TempData["Mensaje"] = $"⚠️ ¡Alerta médica manual guardada en MySQL para el paciente! Motivo: {motivo}";
+            if (response.IsSuccessStatusCode)
+            {
+                TempData["Mensaje"] = $"⚠️ ¡Alerta médica manual guardada en MySQL mediante la API! Motivo: {motivo}";
+            }
+            else
+            {
+                TempData["Error"] = "No se pudo registrar la alerta manual en el sistema.";
+            }
+
             return RedirectToAction("Index", new { id = usuarioId });
         }
     }

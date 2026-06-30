@@ -1,12 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq;
-using VitalBand.Data;
 using VitalBand.Models;
 using VitalBand.Services;
 
@@ -16,19 +16,21 @@ namespace VitalBand.Controllers
     public class ConfiguracionController : Controller
     {
         private readonly IConfiguracionService _config;
-        private readonly VitalBandContext _context;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public ConfiguracionController(IConfiguracionService config, VitalBandContext context)
+        // Reemplazamos VitalBandContext por el creador de clientes HTTP
+        public ConfiguracionController(IConfiguracionService config, IHttpClientFactory clientFactory)
         {
             _config = config;
-            _context = context;
+            _clientFactory = clientFactory;
         }
 
         // GET: Configuracion
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             if (User.IsInRole("Medico") || User.IsInRole("medico"))
             {
+                // La lógica del médico se queda exactamente igual usando su servicio local
                 var vm = new ConfiguracionGlobal
                 {
                     RangosPulso = _config.ObtenerRangosPulso() ?? new List<RangoPulso>(),
@@ -43,19 +45,27 @@ namespace VitalBand.Controllers
 
                 int idPaciente = int.Parse(perfilIdStr);
 
-                var paciente = _context.Pacientes
-                    .Include(p => p.Usuario)
-                    .FirstOrDefault(p => p.id == idPaciente);
+                // 1. Preparamos el cliente HTTP para consultar la API
+                var client = _clientFactory.CreateClient();
 
+                // ⚠️ Ajusta al puerto que use tu localhost
+                string urlApi = $"https://localhost:7116/api/ConfiguracionApi/paciente/{idPaciente}";
+                var response = await client.GetAsync(urlApi);
+
+                if (!response.IsSuccessStatusCode) return NotFound();
+
+                // 2. La API nos devuelve el objeto Paciente (con su relación Usuario gracias a EF de la API)
+                var paciente = await response.Content.ReadFromJsonAsync<Paciente>();
                 if (paciente == null) return NotFound();
 
+                // Calculamos la edad exactamente igual
                 int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
                 if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear)
                 {
                     edadCalculada--;
                 }
 
-                // 🛠️ CORRECCIÓN: Cambiado de UsuarioResumenViewModel a la clase plana UsuarioResumen
+                // Armamos el ViewModel "UsuarioResumen" que tu vista "Perfil.cshtml" espera recibir
                 var usuarioVM = new UsuarioResumen
                 {
                     Id = paciente.id,
@@ -73,7 +83,7 @@ namespace VitalBand.Controllers
             return Forbid();
         }
 
-        // POST: Configuracion/AgregarRango (Solo Médicos)
+        // POST: Configuracion/AgregarRango (Solo Médicos - Se queda igual)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
@@ -87,7 +97,7 @@ namespace VitalBand.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Configuracion/AgregarTipoAlerta (Solo Médicos)
+        // POST: Configuracion/AgregarTipoAlerta (Solo Médicos - Se queda igual)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
@@ -104,8 +114,7 @@ namespace VitalBand.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "paciente,Paciente")]
-        // 🛠️ CORRECCIÓN: Cambiado de UsuarioResumenViewModel a UsuarioResumen
-        public IActionResult ActualizarPerfil(UsuarioResumen model)
+        public async Task<IActionResult> ActualizarPerfil(UsuarioResumen model)
         {
             if (!ModelState.IsValid)
             {
@@ -113,29 +122,21 @@ namespace VitalBand.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var pacienteBD = _context.Pacientes.FirstOrDefault(p => p.id == model.Id);
+            var client = _clientFactory.CreateClient();
 
-            if (pacienteBD != null)
+            // ⚠️ Ajusta al puerto que use tu localhost
+            string urlApi = $"https://localhost:7116/api/ConfiguracionApi/paciente/{model.Id}";
+
+            // Enviamos el modelo "UsuarioResumen" modificado en la vista a través de un PUT
+            var response = await client.PutAsJsonAsync(urlApi, model);
+
+            if (response.IsSuccessStatusCode)
             {
-                pacienteBD.nombre = model.Nombre;
-                pacienteBD.genero = model.Sexo;
-                pacienteBD.peso_inicial = model.Peso;
-                pacienteBD.altura_inicial = model.Altura;
-                pacienteBD.historial_medico_breve = model.HistorialMedico;
-
-                var usuarioBD = _context.Usuarios.FirstOrDefault(u => u.id == pacienteBD.usuario_id);
-                if (usuarioBD != null)
-                {
-                    usuarioBD.email = model.Email;
-                }
-
-                _context.SaveChanges();
-
-                TempData["Mensaje"] = "¡Perfil, género y expediente actualizados correctamente en MySQL! ❤️✨";
+                TempData["Mensaje"] = "¡Perfil, género y expediente actualizados correctamente a través de la API! ❤️✨";
             }
             else
             {
-                TempData["Error"] = "No se encontró el expediente del paciente";
+                TempData["Error"] = "No se pudo actualizar el expediente del paciente a través del servicio.";
             }
 
             return RedirectToAction(nameof(Index));

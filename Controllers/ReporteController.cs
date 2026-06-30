@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using VitalBand.Data;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers
@@ -11,15 +13,17 @@ namespace VitalBand.Controllers
     [Authorize]
     public class ReporteController : Controller
     {
-        private readonly VitalBandContext _context;
+        private readonly IHttpClientFactory _clientFactory;
 
-        public ReporteController(VitalBandContext context)
+        // Reemplazamos VitalBandContext por el HttpClient factory
+        public ReporteController(IHttpClientFactory clientFactory)
         {
-            _context = context;
+            _clientFactory = clientFactory;
         }
 
-        public IActionResult Index(int año = 2026, int mes = 5, int usuarioId = 1)
+        public async Task<IActionResult> Index(int año = 2026, int mes = 5, int usuarioId = 1)
         {
+            // Validamos la seguridad del rol exactamente igual
             if (User.IsInRole("Paciente") || User.IsInRole("paciente"))
             {
                 var claimId = User.FindFirst("PerfilId")?.Value;
@@ -34,13 +38,34 @@ namespace VitalBand.Controllers
                 }
             }
 
-            var pacienteBD = _context.Pacientes.FirstOrDefault(p => p.id == usuarioId);
-            if (pacienteBD == null) return NotFound("No se encontró el expediente del paciente.");
+            var client = _clientFactory.CreateClient();
 
+            // 1. Solicitamos el expediente del paciente a la API de Configuración
+            // ⚠️ Ajusta al puerto que use tu localhost local
+            string urlPaciente = $"https://localhost:7116/api/ConfiguracionApi/paciente/{usuarioId}";
+            var responsePaciente = await client.GetAsync(urlPaciente);
+
+            if (!responsePaciente.IsSuccessStatusCode)
+                return NotFound("No se encontró el expediente del paciente.");
+
+            var pacienteBD = await responsePaciente.Content.ReadFromJsonAsync<Paciente>();
+            if (pacienteBD == null) return NotFound("No se pudo leer la información del expediente.");
+
+            // Calculamos la edad de forma idéntica
             int edadCalculada = DateTime.Today.Year - pacienteBD.fecha_nacimiento.Year;
             if (DateTime.Today.DayOfYear < pacienteBD.fecha_nacimiento.DayOfYear) edadCalculada--;
 
-            var alertasMesBD = _context.Alertas
+            // 2. Solicitamos el listado de alertas global a la API
+            string urlAlertas = "https://localhost:7116/api/AlertasApi";
+            var responseAlertas = await client.GetAsync(urlAlertas);
+
+            if (!responseAlertas.IsSuccessStatusCode)
+                return NotFound("Error al conectar con el servicio de alertas.");
+
+            var todasLasAlertas = await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>();
+
+            // 3. Filtramos en memoria local las alertas del mes correspondientes al paciente solicitado
+            var alertasMesBD = todasLasAlertas
                 .Where(a => a.paciente_id == usuarioId &&
                             a.fecha_hora.HasValue &&
                             a.fecha_hora.Value.Year == año &&
@@ -48,6 +73,7 @@ namespace VitalBand.Controllers
                 .OrderBy(a => a.fecha_hora)
                 .ToList();
 
+            // Mapeamos a tu submodelo plano de incidentes
             var incidentesReporte = alertasMesBD.Select(a => new IncidenteCritico
             {
                 FechaHora = a.fecha_hora ?? DateTime.Now,
@@ -55,11 +81,12 @@ namespace VitalBand.Controllers
                 Tipo = a.fc_media >= 100 ? "high" : (a.fc_media <= 55 ? "low" : "irregular")
             }).ToList();
 
+            // Armamos el ViewModel final con la cultura en español para el nombre del mes
             var modelo = new ReporteSalud
             {
                 NombrePaciente = pacienteBD.nombre,
                 EdadPaciente = edadCalculada,
-                Periodo = new DateTime(año, mes, 1).ToString("MMMM yyyy"),
+                Periodo = new DateTime(año, mes, 1).ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-MX")),
                 Identificador = $"VB-{año}-{mes:00}-{usuarioId}",
                 Incidentes = incidentesReporte
             };

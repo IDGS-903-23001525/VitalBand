@@ -3,20 +3,21 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Linq;
 using System.Collections.Generic;
-using VitalBand.Data;
+using System.Net.Http;
+using System.Net.Http.Json;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly VitalBandContext _context;
+        // Cambiamos el contexto de BD por el cliente HTTP
+        private readonly IHttpClientFactory _clientFactory;
 
-        public AccountController(VitalBandContext context)
+        public AccountController(IHttpClientFactory clientFactory)
         {
-            _context = context;
+            _clientFactory = clientFactory;
         }
 
         [HttpGet]
@@ -41,47 +42,42 @@ namespace VitalBand.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (!ModelState.IsValid) return View(model);
 
-            var usuario = _context.Usuarios
-                .FirstOrDefault(u => u.email == model.Email && u.password_hash == model.Password);
+            // 1. Preparamos el cliente HTTP para llamar a nuestra API
+            var client = _clientFactory.CreateClient();
 
-            if (usuario == null)
+            // ⚠️ Recuerda verificar el puerto exacto de tu localhost local
+            string urlApi = "https://localhost:7116/api/UsuariosApi/login";
+
+            // 2. Enviamos los datos del formulario en formato JSON hacia la API
+            var response = await client.PostAsJsonAsync(urlApi, model);
+
+            // 3. Si las credenciales son incorrectas (HTTP 401 Unauthorized u otros errores)
+            if (!response.IsSuccessStatusCode)
             {
                 ModelState.AddModelError(string.Empty, "Correo electrónico o contraseña incorrectos 🔒❤️");
                 return View(model);
             }
 
-            string nombreMostrar = "Usuario VitalBand";
-            int perfilId = 0;
+            // 4. Si salió bien, leemos la respuesta con los datos procesados por la API
+            var datosLogin = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
 
-            if (usuario.rol == "medico")
+            if (datosLogin == null)
             {
-                var medico = _context.Medicos.FirstOrDefault(m => m.usuario_id == usuario.id);
-                if (medico != null)
-                {
-                    nombreMostrar = medico.nombre;
-                    perfilId = medico.id;
-                }
-            }
-            else if (usuario.rol == "paciente")
-            {
-                var paciente = _context.Pacientes.FirstOrDefault(p => p.usuario_id == usuario.id);
-                if (paciente != null)
-                {
-                    nombreMostrar = paciente.nombre;
-                    perfilId = paciente.id;
-                }
+                ModelState.AddModelError(string.Empty, "Hubo un problema al procesar el inicio de sesión.");
+                return View(model);
             }
 
+            // 5. Armamos los Claims usando lo que nos dio la API
             var claims = new List<Claim>
             {
-                new(ClaimTypes.Name, nombreMostrar),
-                new(ClaimTypes.Email, usuario.email),
-                
-                new(ClaimTypes.Role, usuario.rol),                                 
-                new(ClaimTypes.Role, char.ToUpper(usuario.rol[0]) + usuario.rol.Substring(1)),
-                
-                new("UsuarioBaseId", usuario.id.ToString()),
-                new("PerfilId", perfilId.ToString())
+                new(ClaimTypes.Name, datosLogin.NombreCompleto),
+                new(ClaimTypes.Email, datosLogin.Email),
+
+                new(ClaimTypes.Role, datosLogin.Rol),
+                new(ClaimTypes.Role, char.ToUpper(datosLogin.Rol[0]) + datosLogin.Rol.Substring(1)),
+
+                new("UsuarioBaseId", datosLogin.Id.ToString()),
+                new("PerfilId", datosLogin.PerfilId.ToString())
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -96,7 +92,7 @@ namespace VitalBand.Controllers
             if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
-            if (usuario.rol == "medico")
+            if (datosLogin.Rol == "medico")
                 return RedirectToAction("Index", "Usuarios");
             else
                 return RedirectToAction("MiHistorial", "Historial");
@@ -109,5 +105,15 @@ namespace VitalBand.Controllers
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
         }
+    }
+
+    // Objeto temporal (DTO) para mapear lo que devuelve la API de Login de forma segura
+    public class LoginResponseDTO
+    {
+        public int Id { get; set; }
+        public string Email { get; set; }
+        public string Rol { get; set; }
+        public string NombreCompleto { get; set; }
+        public int PerfilId { get; set; }
     }
 }
