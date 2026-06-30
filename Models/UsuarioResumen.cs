@@ -16,5 +16,7 @@ namespace VitalBand.Models
         public string? HistorialMedico { get; set; }
         public bool TieneAlertaHoy { get; set; }
         public int PulsoPromedioHoy { get; set; }
+        public string? CedulaMedico { get; set; }
+        public int? MedicoAsignadoId { get; set; }
     }
 }

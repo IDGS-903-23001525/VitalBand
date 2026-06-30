@@ -28,6 +28,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.SlidingExpiration = true;
     });
 
+
 var app = builder.Build();
 
 // Middleware pipeline
@@ -40,6 +41,8 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+
+app.UseMiddleware<VitalBand.Middleware.SessionTimeoutMiddleware>();
 
 // ¡Importante! Deben ir en este orden
 app.UseAuthentication();  // Primero autenticación

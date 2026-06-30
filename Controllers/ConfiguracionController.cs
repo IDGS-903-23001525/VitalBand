@@ -49,13 +49,18 @@ namespace VitalBand.Controllers
 
                 if (paciente == null) return NotFound();
 
-                int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
-                if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear)
+                string? cedulaActual = null;
+                if (paciente.medico_asignado_id.HasValue)
                 {
-                    edadCalculada--;
+                    cedulaActual = _context.Medicos
+                        .Where(m => m.id == paciente.medico_asignado_id)
+                        .Select(m => m.cedula_profesional)
+                        .FirstOrDefault();
                 }
 
-                // 🛠️ CORRECCIÓN: Cambiado de UsuarioResumenViewModel a la clase plana UsuarioResumen
+                int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
+                if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) { edadCalculada--; }
+
                 var usuarioVM = new UsuarioResumen
                 {
                     Id = paciente.id,
@@ -65,7 +70,10 @@ namespace VitalBand.Controllers
                     Sexo = paciente.genero,
                     Peso = paciente.peso_inicial,
                     Altura = paciente.altura_inicial,
-                    HistorialMedico = paciente.historial_medico_breve
+                    HistorialMedico = paciente.historial_medico_breve,
+                    // Asignamos los nuevos campos
+                    CedulaMedico = cedulaActual,
+                    MedicoAsignadoId = paciente.medico_asignado_id
                 };
 
                 return View("Perfil", usuarioVM);
@@ -100,6 +108,27 @@ namespace VitalBand.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+
+        [HttpGet]
+        [Authorize(Roles = "paciente,Paciente")]
+        public IActionResult VerificarCedula(string cedula)
+        {
+            if (string.IsNullOrEmpty(cedula))
+            {
+                return Json(new { existe = false, mensaje = "Por favor, ingresa una cédula." });
+            }
+
+            var medico = _context.Medicos.FirstOrDefault(m => m.cedula_profesional == cedula.Trim());
+
+            if (medico != null)
+            {
+                return Json(new { existe = true, id = medico.id, nombre = medico.nombre });
+            }
+
+            return Json(new { existe = false, mensaje = "Médico no encontrado en VitalBand ❌" });
+        }
+
+
         // POST: Configuracion/ActualizarPerfil (Solo Pacientes)
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -122,6 +151,7 @@ namespace VitalBand.Controllers
                 pacienteBD.peso_inicial = model.Peso;
                 pacienteBD.altura_inicial = model.Altura;
                 pacienteBD.historial_medico_breve = model.HistorialMedico;
+                pacienteBD.medico_asignado_id = model.MedicoAsignadoId;
 
                 var usuarioBD = _context.Usuarios.FirstOrDefault(u => u.id == pacienteBD.usuario_id);
                 if (usuarioBD != null)
