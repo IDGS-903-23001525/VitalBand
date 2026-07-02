@@ -30,16 +30,16 @@ namespace VitalBand.Controllers.Api
             // Si tiene un médico asignado, podemos inyectarle la Cédula al vuelo en una propiedad dinámica o DTO si lo prefieres,
             // pero para mantener tu Paciente plano, la web se encargará de pedirla o la API la incluye si creas un objeto anónimo:
             string? cedulaActual = null;
-            if (paciente.medico_asignado_id.HasValue || paciente.medico_asignado_id.HasValue)
+            if (paciente.medico_asignado_id.HasValue)
             {
-                var mId = paciente.medico_asignado_id ?? paciente.medico_asignado_id;
+                var mId = paciente.medico_asignado_id.Value;
                 cedulaActual = await _context.Medicos
                     .Where(m => m.id == mId)
                     .Select(m => m.cedula_profesional)
                     .FirstOrDefaultAsync();
             }
 
-            return Ok(new { paciente, cedulaActual });
+            return Ok(new { paciente, cedulaActual, usuarioEmail = paciente.Usuario?.email });
         }
 
         // GET: api/ConfiguracionApi/verificar-cedula?cedula=XYZ

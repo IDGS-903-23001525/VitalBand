@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -207,6 +210,36 @@ namespace VitalBand.Controllers
             return RedirectToAction(nameof(Login));
         }
 
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> UploadAvatar(IFormFile avatar)
+        {
+            var claimId = User.FindFirst("UsuarioBaseId")?.Value;
+            if (!int.TryParse(claimId, out int userId)) return Unauthorized();
+
+            if (avatar == null || avatar.Length == 0)
+            {
+                return BadRequest("No file uploaded.");
+            }
+
+            var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+            Directory.CreateDirectory(uploads);
+
+            var ext = Path.GetExtension(avatar.FileName);
+            if (string.IsNullOrEmpty(ext)) ext = ".png";
+
+            var fileName = userId + ext;
+            var filePath = Path.Combine(uploads, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await avatar.CopyToAsync(stream);
+            }
+
+            var url = $"/uploads/avatars/{fileName}";
+            return Ok(new { url });
+        }
+
         private void EnviarCorreo(string destinatario, string asunto, string cuerpoHtml)
         {
             try
@@ -233,20 +266,20 @@ namespace VitalBand.Controllers
     public class LoginResponseDTO
     {
         public int Id { get; set; }
-        public string Email { get; set; }
-        public string Rol { get; set; }
-        public string NombreCompleto { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string Rol { get; set; } = string.Empty;
+        public string NombreCompleto { get; set; } = string.Empty;
         public int PerfilId { get; set; }
-        public string TokenSesionActual { get; set; }
+        public string TokenSesionActual { get; set; } = string.Empty;
     }
 
-    public class TokenResponseDTO { public string Token { get; set; } }
+    public class TokenResponseDTO { public string Token { get; set; } = string.Empty; }
     public class RegistroMedicoDTO
     {
-        public string Nombre { get; set; }
-        public string Specialty { get; set; }
-        public string Cedula { get; set; }
-        public string Email { get; set; }
-        public string Password { get; set; }
+        public string Nombre { get; set; } = string.Empty;
+        public string Specialty { get; set; } = string.Empty;
+        public string Cedula { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
     }
 }

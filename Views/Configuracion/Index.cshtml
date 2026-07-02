@@ -1,6 +1,21 @@
 ﻿@model VitalBand.Models.ConfiguracionGlobal
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
     ViewData["Title"] = "Configuración - VitalBand";
+    var claimId = User.FindFirst("UsuarioBaseId")?.Value;
+    string doctorAvatarUrl = "/images/avatar-placeholder.png";
+    if (!string.IsNullOrEmpty(claimId))
+    {
+        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "uploads", "avatars");
+        if (System.IO.Directory.Exists(uploadsDir))
+        {
+            var files = System.IO.Directory.GetFiles(uploadsDir, claimId + ".*");
+            if (files.Length > 0)
+            {
+                doctorAvatarUrl = "/uploads/avatars/" + System.IO.Path.GetFileName(files[0]);
+            }
+        }
+    }
 }
 
 @section Styles {
@@ -142,6 +157,71 @@
                 transform: scale(1.15);
             }
 
+        .doctor-avatar-card {
+            background: rgba(255,255,255,0.22);
+            border: 1px solid rgba(6,182,212,0.18);
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.35rem;
+            box-shadow: 0 8px 24px rgba(8,145,178,0.12);
+            margin-bottom: 1.5rem;
+        }
+
+        .doctor-avatar-photo {
+            width: 92px;
+            height: 92px;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.6);
+            background: linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0.35));
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .doctor-avatar-photo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .doctor-avatar-actions {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .doctor-avatar-actions button {
+            background: rgba(15,23,42,0.08);
+            color: #0f172a;
+            border: 1px solid rgba(15,23,42,0.08);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .doctor-avatar-actions button:hover {
+            background: rgba(15,23,42,0.14);
+        }
+
+        .doctor-avatar-actions .upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .doctor-avatar-actions .upload-label input {
+            display: none;
+        }
+
+        .doctor-avatar-actions .hint {
+            font-size: 0.82rem;
+            color: #475569;
+        }
+
         .color-hex-preview {
             display: flex;
             align-items: center;
@@ -177,6 +257,18 @@
 
 <div class="config-container">
     <div class="config-card">
+        <div class="doctor-avatar-card">
+            <div class="doctor-avatar-photo">
+                <img src="@doctorAvatarUrl" alt="Avatar médico" />
+            </div>
+            <div class="doctor-avatar-actions">
+                <label class="upload-label" for="doctorAvatarInput">
+                    <span>Cambiar foto de perfil</span>
+                    <input id="doctorAvatarInput" type="file" accept="image/*" />
+                </label>
+                <span class="hint">Sube tu foto para que los pacientes te reconozcan.</span>
+            </div>
+        </div>
         <h2>Colores de pulsaciones</h2>
         <table class="tabla-config">
             <thead>
@@ -300,5 +392,34 @@
 
         buildPalette('paletteRango',  'colorRango',  'dotRango',  'hexRango',  '#2E7D32');
         buildPalette('paletteAlerta', 'colorAlerta', 'dotAlerta', 'hexAlerta', '#D32F2F');
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var fileInput = document.getElementById('doctorAvatarInput');
+            if (!fileInput) return;
+
+            fileInput.addEventListener('change', function(e) {
+                var f = e.target.files && e.target.files[0];
+                if (!f) return;
+
+                var form = new FormData();
+                form.append('avatar', f);
+
+                fetch('/Account/UploadAvatar', {
+                    method: 'POST',
+                    body: form
+                })
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (data && data.url) {
+                        document.querySelector('.doctor-avatar-photo img').src = data.url;
+                    } else {
+                        alert('No se pudo subir la foto.');
+                    }
+                })
+                .catch(function() {
+                    alert('Error al subir la foto.');
+                });
+            });
+        });
     </script>
 }

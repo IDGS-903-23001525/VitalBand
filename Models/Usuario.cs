@@ -12,12 +12,12 @@ namespace VitalBand.Models
 
         [Required(ErrorMessage = "El correo electrónico es obligatorio.")]
         [EmailAddress(ErrorMessage = "Ingresa un formato de correo válido.")]
-        public string email { get; set; }
+        public string email { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La contraseña es obligatoria.")]
-        public string password_hash { get; set; }
+        public string password_hash { get; set; } = string.Empty;
 
-        public string rol { get; set; } // 'paciente' o 'medico'
+        public string rol { get; set; } = string.Empty; // 'paciente' o 'medico'
         public DateTime? fecha_registro { get; set; } = DateTime.Now;
         public string? token_sesion { get; set; }
         public DateTime? sesion_expiracion { get; set; }

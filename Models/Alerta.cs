@@ -21,6 +21,6 @@ namespace VitalBand.Models
 
         [ValidateNever]
         [ForeignKey("paciente_id")]
-        public virtual Paciente Paciente { get; set; }
+        public virtual Paciente Paciente { get; set; } = null!;
     }
 }

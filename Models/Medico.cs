@@ -14,17 +14,17 @@ namespace VitalBand.Models
         public int usuario_id { get; set; }
 
         [Required(ErrorMessage = "El nombre del médico es obligatorio.")]
-        public string nombre { get; set; }
+        public string nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La especialidad es obligatoria.")]
-        public string especialidad { get; set; }
+        public string especialidad { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La cédula profesional es obligatoria.")]
-        public string cedula_profesional { get; set; }
+        public string cedula_profesional { get; set; } = string.Empty;
 
         // Propiedad de navegación hacia la cuenta de usuario base (Relación 1:1)
         [ValidateNever]
         [ForeignKey("usuario_id")]
-        public virtual Usuario Usuario { get; set; }
+        public virtual Usuario Usuario { get; set; } = null!;
     }
 }

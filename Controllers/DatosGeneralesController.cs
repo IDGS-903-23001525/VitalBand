@@ -23,7 +23,7 @@ namespace VitalBand.Controllers
             _clientFactory = clientFactory;
         }
 
-        public async Task<IActionResult> Index(int id)
+        public async Task<IActionResult> Index(int id, string fecha)
         {
             var client = _clientFactory.CreateClient();
 
@@ -53,8 +53,19 @@ namespace VitalBand.Controllers
                 conteoAlertas = alertas?.Count(a => a.paciente_id == paciente.id) ?? 0;
             }
 
-            // Simulador interno de datos
-            var lecturas = GenerarLecturas(paciente.id);
+            // Fecha seleccionada (por query string) — por defecto hoy
+            DateTime fechaSeleccionada;
+            if (!string.IsNullOrEmpty(fecha) && DateTime.TryParseExact(fecha, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaParsed))
+            {
+                fechaSeleccionada = fechaParsed;
+            }
+            else
+            {
+                fechaSeleccionada = DateTime.Today;
+            }
+
+            // Simulador interno de datos para la fecha solicitada
+            var lecturas = GenerarLecturas(paciente.id, fechaSeleccionada);
 
             // Armamos el modelo original "DatosGenerales" intacto para la vista
             var modelo = new DatosGenerales
@@ -71,16 +82,18 @@ namespace VitalBand.Controllers
 
             // ViewBags para Chart.js
             ViewBag.HorasJson = JsonSerializer.Serialize(lecturas.Select(l => l.Hora.ToString("HH:mm")));
+            ViewBag.FechaSeleccionada = fechaSeleccionada.ToString("yyyy-MM-dd");
             ViewBag.PulsosJson = JsonSerializer.Serialize(lecturas.Select(l => l.Pulso));
 
             return View(modelo);
         }
 
         // Método auxiliar del simulador de sensores
-        private List<LecturaDiaria> GenerarLecturas(int pacienteId)
+        private List<LecturaDiaria> GenerarLecturas(int pacienteId, DateTime fecha)
         {
             var random = new Random(pacienteId);
-            var ahora = DateTime.Now;
+            // Usamos la fecha proporcionada para generar horas del día
+            var ahora = fecha.Date;
             var lecturas = new List<LecturaDiaria>();
 
             for (int i = 0; i < 24; i++)
@@ -88,7 +101,7 @@ namespace VitalBand.Controllers
                 int pulsoBase = random.Next(65, 85);
                 lecturas.Add(new LecturaDiaria
                 {
-                    Hora = ahora.Date.AddHours(i),
+                    Hora = ahora.AddHours(i),
                     Pulso = pulsoBase
                 });
             }

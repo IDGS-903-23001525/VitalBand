@@ -41,6 +41,23 @@
             gap: 1rem;
         }
 
+        .datos-avatar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .datos-avatar .avatar {
+            width: 56px;
+            height: 56px;
+            border-radius: 999px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 6px 18px rgba(6,182,212,0.06);
+        }
+
+        .datos-avatar .avatar img { width:100%; height:100%; object-fit:cover; }
+
         .datos-header-icon {
             width: 42px;
             height: 42px;
@@ -224,6 +241,15 @@
                 border-color: #06b6d4;
             }
 
+        .btn-accion:disabled,
+        #selectedDate:disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+            background: rgba(148,163,184,0.12);
+            border-color: rgba(148,163,184,0.25);
+            color: rgba(15,23,42,0.6);
+        }
+
         /* ── Volver ──────────────────────────────────────────── */
         .footer-actions {
             padding: 1rem 2rem 1.5rem;
@@ -388,15 +414,34 @@
 
 <div class="datos-container">
     <div class="datos-header">
-        <div class="datos-header-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-            </svg>
+        <div style="display:flex; align-items:center; gap:1rem;">
+            <div class="datos-header-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                </svg>
+            </div>
+
+            <!-- Avatar UI-only -->
+            <div class="datos-avatar">
+                <div class="avatar" id="pacienteAvatar">
+                    <img src="/images/avatar-placeholder.png" id="imgPacienteAvatar" alt="Paciente" />
+                </div>
+            </div>
         </div>
-        <div>
-            <h2>@Model.Nombre</h2>
-            <p>Perfil clínico · lecturas del día</p>
+
+        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+            @{ var esMedico = User.IsInRole("Medico") || User.IsInRole("medico"); }
+            <div style="display:flex; gap:0.6rem; align-items:center;">
+                <button type="button" id="btnPrevDay" class="btn-accion" title="Día anterior" @(esMedico ? "" : "disabled")>◀</button>
+                <input type="date" id="selectedDate" value="@(ViewBag.FechaSeleccionada ?? DateTime.Today.ToString("yyyy-MM-dd"))" style="padding:6px 10px; border-radius:8px; border:1px solid rgba(148,163,184,0.25);" @(esMedico ? "" : "disabled") />
+                <button type="button" id="btnNextDay" class="btn-accion" title="Siguiente día" @(esMedico ? "" : "disabled")>▶</button>
+            </div>
+            <input type="hidden" id="hdnEsMedico" value="@(User.IsInRole("Medico") || User.IsInRole("medico") ? "true" : "false")" />
+            <div>
+                <h2>@Model.Nombre</h2>
+                <p>Perfil clínico · lecturas del día</p>
+            </div>
         </div>
     </div>
 
@@ -412,6 +457,72 @@
         <h4>Frecuencia cardíaca — últimas 24h</h4>
         <canvas id="pulseChart"></canvas>
     </div>
+
+<script>
+    // Date navigation for daily records
+    document.addEventListener('DOMContentLoaded', function() {
+        var esMedicoStr = document.getElementById('hdnEsMedico') ? document.getElementById('hdnEsMedico').value : "false";
+        var esMedico = esMedicoStr === "true";
+
+        var input = document.getElementById('selectedDate');
+        var btnPrev = document.getElementById('btnPrevDay');
+        var btnNext = document.getElementById('btnNextDay');
+        var usuarioId = '@Model.UsuarioId';
+        console.log('[DatosGenerales] esMedico=', esMedico, 'usuarioId=', usuarioId, 'initialDate=', input ? input.value : null);
+        var _navigating = false;
+
+        function navigateToDate(d) {
+            if (_navigating) {
+                console.log('[DatosGenerales] navigateToDate ignored, already navigating');
+                return;
+            }
+            _navigating = true;
+            // Redirige a la misma acción con parámetro fecha
+            var y = d.getFullYear();
+            var m = String(d.getMonth()+1).padStart(2, '0');
+            var day = String(d.getDate()).padStart(2, '0');
+            var fechaStr = y + '-' + m + '-' + day;
+            // Actualizamos el input para reflejar el cambio inmediatamente
+            if (input) input.value = fechaStr;
+            var qs = '?id=' + usuarioId + '&fecha=' + fechaStr;
+            var url = '/DatosGenerales/Index' + qs;
+            console.log('[DatosGenerales] navigateToDate -> fechaStr=', fechaStr, 'url=', url);
+            // disable buttons while navigating to prevent double clicks
+            if (btnPrev) btnPrev.disabled = true;
+            if (btnNext) btnNext.disabled = true;
+            window.location.href = url;
+        }
+
+        if (btnPrev) btnPrev.addEventListener('click', function() {
+            if (!esMedico) return;
+            var cur = input.valueAsDate;
+            if (!cur) {
+                cur = new Date();
+            }
+            cur.setDate(cur.getDate() - 1);
+            navigateToDate(cur);
+        });
+
+        if (btnNext) btnNext.addEventListener('click', function() {
+            if (!esMedico) return;
+            var cur = input.valueAsDate;
+            if (!cur) {
+                cur = new Date();
+            }
+            cur.setDate(cur.getDate() + 1);
+            navigateToDate(cur);
+        });
+
+        if (input) input.addEventListener('change', function() {
+            if (!esMedico) return;
+            var cur = input.valueAsDate;
+            if (!cur) {
+                cur = new Date();
+            }
+            navigateToDate(cur);
+        });
+    });
+</script>
 
     <div class="lecturas-lista">
         <h4>Lecturas horarias</h4>
@@ -442,15 +553,15 @@
             Volver a pacientes
         </a>
     </div>
+</div>
 
-    <div id="modalConfirmacion" class="modal-confirm">
-        <div class="modal-content">
-            @Html.AntiForgeryToken()
-            <p>¿Estás seguro de activar una alerta manual para este paciente?</p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-cancel" id="btnCancelar">Cancelar</button>
-                <button class="modal-btn modal-btn-confirm" id="btnConfirmar">Sí, activar</button>
-            </div>
+<div id="modalConfirmacion" class="modal-confirm" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-content">
+        @Html.AntiForgeryToken()
+        <p>¿Estás seguro de activar una alerta manual para este paciente?</p>
+        <div class="modal-buttons">
+            <button type="button" class="modal-btn modal-btn-cancel" id="btnCancelar">Cancelar</button>
+            <button type="button" class="modal-btn modal-btn-confirm" id="btnConfirmar">Sí, activar</button>
         </div>
     </div>
 </div>

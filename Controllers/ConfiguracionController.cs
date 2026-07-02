@@ -52,6 +52,7 @@ namespace VitalBand.Controllers
                 var jsonDoc = await response.Content.ReadFromJsonAsync<JsonElement>();
                 var paciente = JsonSerializer.Deserialize<Paciente>(jsonDoc.GetProperty("paciente").GetRawText());
                 string? cedulaActual = jsonDoc.GetProperty("cedulaActual").GetString();
+                string? usuarioEmail = jsonDoc.TryGetProperty("usuarioEmail", out var emailProp) ? emailProp.GetString() : null;
 
                 if (paciente == null) return NotFound();
 
@@ -63,7 +64,7 @@ namespace VitalBand.Controllers
                 {
                     Id = paciente.id,
                     Nombre = paciente.nombre,
-                    Email = paciente.Usuario?.email ?? string.Empty,
+                    Email = usuarioEmail ?? paciente.Usuario?.email ?? string.Empty,
                     Edad = edadCalculada,
                     Sexo = paciente.genero,
                     Peso = paciente.peso_inicial,

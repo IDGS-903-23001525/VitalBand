@@ -1,4 +1,5 @@
-﻿<!DOCTYPE html>
+﻿@using System.IO
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -371,6 +372,7 @@
 </head>
 <body>
 
+    @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
     <header>
         <nav class="vb-navbar">
 
@@ -449,18 +451,41 @@
                     </svg>
                 </button>
 
-                <a asp-controller="Configuracion" asp-action="Index" class="vb-avatar-link">
-                    <div class="vb-avatar" title="Mi cuenta / Configuración">
-                        @if (User.Identity?.IsAuthenticated == true)
+                @{
+                    string? avatarUrl = null;
+                    var claimId = User.FindFirst("UsuarioBaseId")?.Value;
+                    var isDoctor = User.IsInRole("Medico") || User.IsInRole("medico");
+                    if (!string.IsNullOrEmpty(claimId))
+                    {
+                        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "uploads", "avatars");
+                        if (Directory.Exists(uploadsDir))
                         {
-                            @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                            var files = Directory.GetFiles(uploadsDir, claimId + ".*");
+                            if (files.Length > 0)
+                            {
+                                avatarUrl = "/uploads/avatars/" + System.IO.Path.GetFileName(files[0]);
+                            }
+                        }
+                    }
+                }
+
+                <a class="vb-avatar-link" href="/Configuracion/Index" title="Mi cuenta / Configuración">
+                    <div class="vb-avatar" id="headerAvatar" title="Mi cuenta / Configuración">
+                        @if (!string.IsNullOrEmpty(avatarUrl))
+                        {
+                            <img src="@avatarUrl" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
                         }
                         else
                         {
-                            <text>U</text>
+                            @((User.Identity?.Name?.Substring(0,1).ToUpper()) ?? "U")
                         }
                     </div>
                 </a>
+
+                @if (isDoctor)
+                {
+                    <input type="file" id="headerAvatarInput" accept="image/*" style="display:none;" />
+                }
 
                 @if (User.Identity?.IsAuthenticated == true)
                 {
@@ -529,6 +554,30 @@
         nav.style.gap = '4px';
         });
         }
+        // Avatar upload from header (medico can change own photo)
+        (function(){
+            var avatarDiv = document.getElementById('headerAvatar');
+            var fileInput = document.getElementById('headerAvatarInput');
+            if (!avatarDiv || !fileInput) return;
+
+            avatarDiv.style.cursor = 'pointer';
+            avatarDiv.addEventListener('click', function(e){
+
+                var form = new FormData();
+                form.append('avatar', f);
+
+                fetch('/Account/UploadAvatar', { method: 'POST', body: form })
+                    .then(function(res){ return res.json(); })
+                    .then(function(data){
+                        if (data && data.url) {
+                            // update header image
+                            avatarDiv.innerHTML = '<img src="' + data.url + '" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
+                        } else {
+                            alert('No se pudo subir la imagen.');
+                        }
+                    }).catch(function(){ alert('Error al subir la imagen.'); });
+            });
+        })();
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

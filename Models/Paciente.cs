@@ -17,7 +17,7 @@ namespace VitalBand.Models
         public int? medico_asignado_id { get; set; }
 
         [Required(ErrorMessage = "El nombre del paciente es obligatorio.")]
-        public string nombre { get; set; }
+        public string nombre { get; set; } = string.Empty;
         public string? genero { get; set; }
         [Required(ErrorMessage = "La fecha de nacimiento es obligatoria.")]
         [DataType(DataType.Date)]
@@ -36,11 +36,11 @@ namespace VitalBand.Models
         // Relación 1:1 con la tabla de Usuarios base
         [ValidateNever]
         [ForeignKey("usuario_id")]
-        public virtual Usuario Usuario { get; set; }
+        public virtual Usuario Usuario { get; set; } = null!;
 
         // Relación 1:N opcional con Médicos (un paciente pertenece a un médico)
         [ValidateNever]
         [ForeignKey("medico_asignado_id")]
-        public virtual Medico Medico { get; set; }
+        public virtual Medico Medico { get; set; } = null!;
     }
 }

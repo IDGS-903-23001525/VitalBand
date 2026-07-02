@@ -1,6 +1,21 @@
 ﻿@model VitalBand.Models.UsuarioResumen
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @{
-    ViewData["Title"] = "Mi Perfil Médico - VitalBand";
+    ViewData["Title"] = "Mi Cuenta - VitalBand";
+    var claimId = User.FindFirst("UsuarioBaseId")?.Value;
+    string userAvatarUrl = "/images/avatar-placeholder.png";
+    if (!string.IsNullOrEmpty(claimId))
+    {
+        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "uploads", "avatars");
+        if (System.IO.Directory.Exists(uploadsDir))
+        {
+            var files = System.IO.Directory.GetFiles(uploadsDir, claimId + ".*");
+            if (files.Length > 0)
+            {
+                userAvatarUrl = "/uploads/avatars/" + System.IO.Path.GetFileName(files[0]);
+            }
+        }
+    }
 }
 
 @section Styles {
@@ -137,8 +152,116 @@
             margin-top: 0.3rem;
             display: block;
         }
+
+        .profile-avatar-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .profile-avatar {
+            width: 96px;
+            height: 96px;
+            border-radius: 999px;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.45));
+            border: 1px solid rgba(6,182,212,0.2);
+            box-shadow: 0 10px 24px rgba(6,182,212,0.12), inset 0 1px 0 rgba(255,255,255,0.75);
+        }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .avatar-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            min-width: 180px;
+        }
+
+        .avatar-edit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.78rem 1.2rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            color: white;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 10px 22px rgba(6,182,212,0.18);
+            transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+        }
+
+        .avatar-edit-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 26px rgba(6,182,212,0.22);
+            background: linear-gradient(135deg, #06b6d4, #0891b2);
+        }
+
+        .avatar-input {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
     </style>
 }
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var fileInput = document.getElementById('fileAvatar');
+        var img = document.getElementById('imgAvatar');
+        if (!fileInput) return;
+
+        fileInput.addEventListener('change', function (e) {
+            var f = e.target.files && e.target.files[0];
+            if (!f) return;
+
+            var reader = new FileReader();
+            reader.onload = function(ev) { img.src = ev.target.result; };
+            reader.readAsDataURL(f);
+
+            var form = new FormData();
+            form.append('avatar', f);
+
+            fetch('/Account/UploadAvatar', {
+                method: 'POST',
+                body: form
+            })
+            .then(function(res) {
+                if (!res.ok) throw new Error('Upload failed');
+                return res.json();
+            })
+            .then(function(data) {
+                if (data && data.url) {
+                    img.src = data.url;
+                } else {
+                    alert('No se pudo subir la imagen.');
+                }
+            })
+            .catch(function() {
+                alert('Error al subir la imagen.');
+            });
+        });
+    });
+</script>
 
 <div class="perfil-container">
     <h2>Editar mi perfil y expediente de salud</h2>
@@ -156,6 +279,17 @@
         @Html.AntiForgeryToken()
 
         <input type="hidden" asp-for="Id" />
+
+        <div class="profile-avatar-wrapper">
+            <div class="profile-avatar" id="perfilAvatar">
+                <img src="@userAvatarUrl" alt="Avatar" id="imgAvatar" />
+            </div>
+            <div class="avatar-actions">
+                <label class="avatar-edit-btn" for="fileAvatar">Cambiar imagen</label>
+                <input id="fileAvatar" class="avatar-input" type="file" accept="image/*" />
+                <div style="font-size:0.85rem; color:var(--gray-500);">Sube una foto de perfil para tu cuenta.</div>
+            </div>
+        </div>
 
         <div class="form-group">
             <label asp-for="Nombre">Nombre completo</label>
