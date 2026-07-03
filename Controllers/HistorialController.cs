@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
 
 namespace VitalBand.Controllers
 {
@@ -15,11 +16,13 @@ namespace VitalBand.Controllers
     public class HistorialController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IApiUrlProvider _apiUrlProvider;
 
         // Reemplazamos VitalBandContext por IHttpClientFactory
-        public HistorialController(IHttpClientFactory clientFactory)
+        public HistorialController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         [Authorize(Roles = "Medico,medico")]
@@ -32,7 +35,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // 1. Pedimos los pacientes reales del sistema
-            string urlPacientes = "https://localhost:7116/api/ConfiguracionApi/pacientes";
+            string urlPacientes = _apiUrlProvider.GetApiUrl("/api/ConfiguracionApi/pacientes");
             var responsePacientes = await client.GetAsync(urlPacientes);
             if (!responsePacientes.IsSuccessStatusCode) return NotFound("Error en el servicio de pacientes.");
             var todosLosPacientes = await responsePacientes.Content.ReadFromJsonAsync<List<Paciente>>() ?? new List<Paciente>();
@@ -49,7 +52,7 @@ namespace VitalBand.Controllers
             if (pacienteSeleccionado == null) return NotFound("No tiene pacientes asignados bajo su perfil.");
 
             // 3. Traemos las alertas para armar los días del calendario
-            string urlAlertas = "https://localhost:7116/api/AlertasApi";
+            string urlAlertas = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
             var responseAlertas = await client.GetAsync(urlAlertas);
             var todasLasAlertas = responseAlertas.IsSuccessStatusCode
                 ? await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>()
@@ -74,7 +77,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // 1. Obtenemos el perfil físico del paciente por medio de la API de Configuración
-            string urlPaciente = $"https://localhost:7116/api/ConfiguracionApi/paciente/{idPaciente}";
+            string urlPaciente = _apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{idPaciente}");
             var responsePaciente = await client.GetAsync(urlPaciente);
 
             if (!responsePaciente.IsSuccessStatusCode) return NotFound("No se encontró el perfil del paciente.");
@@ -82,7 +85,7 @@ namespace VitalBand.Controllers
             if (paciente == null) return NotFound();
 
             // 2. Obtenemos las alertas de la API
-            string urlAlertas = "https://localhost:7116/api/AlertasApi";
+            string urlAlertas = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
             var responseAlertas = await client.GetAsync(urlAlertas);
             var todasLasAlertas = await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>();
 

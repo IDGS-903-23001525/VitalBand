@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
 
 namespace VitalBand.Controllers
 {
@@ -15,12 +16,12 @@ namespace VitalBand.Controllers
     public class UsuariosController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
-        private const string BaseUrlConfig = "https://localhost:7116/api/ConfiguracionApi"; // ⚠️ Verifica tu puerto local
-        private const string BaseUrlAlertas = "https://localhost:7116/api/AlertasApi";
+        private readonly IApiUrlProvider _apiUrlProvider;
 
-        public UsuariosController(IHttpClientFactory clientFactory)
+        public UsuariosController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         // GET: /Usuarios o /Usuarios/Index
@@ -38,7 +39,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // 2. Traemos TODOS los pacientes reales desde la API de pacientes
-            var responsePacientes = await client.GetAsync($"{BaseUrlConfig}/pacientes");
+            var responsePacientes = await client.GetAsync(_apiUrlProvider.GetApiUrl("/api/ConfiguracionApi/pacientes"));
             if (!responsePacientes.IsSuccessStatusCode) return View(new List<UsuarioResumen>());
 
             var todosLosPacientes = await responsePacientes.Content.ReadFromJsonAsync<List<Paciente>>() ?? new List<Paciente>();
@@ -49,7 +50,7 @@ namespace VitalBand.Controllers
                 .ToList();
 
             // 4. Traemos las alertas globales desde la API para mapear el estado de HOY
-            var responseAlertas = await client.GetAsync(BaseUrlAlertas);
+            var responseAlertas = await client.GetAsync(_apiUrlProvider.GetApiUrl("/api/AlertasApi"));
             var todasLasAlertas = responseAlertas.IsSuccessStatusCode
                 ? await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>()
                 : new List<Alerta>();
@@ -100,7 +101,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // 1. Mandamos la petición PUT hacia el endpoint correspondiente en tu AlertasApiController
-            string urlApi = $"{BaseUrlAlertas}/atender/{id}";
+            string urlApi = _apiUrlProvider.GetApiUrl($"/api/AlertasApi/atender/{id}");
             var response = await client.PutAsync(urlApi, null); // Pasamos null porque el ID va en la URL
 
             if (response.IsSuccessStatusCode)

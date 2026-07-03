@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
 
 namespace VitalBand.Controllers
 {
@@ -15,12 +16,12 @@ namespace VitalBand.Controllers
     public class DatosGeneralesController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
-        private const string BaseUrlConfig = "https://localhost:7116/api/ConfiguracionApi"; // ⚠️ Verifica tu puerto local
-        private const string BaseUrlAlertas = "https://localhost:7116/api/AlertasApi";
+        private readonly IApiUrlProvider _apiUrlProvider;
 
-        public DatosGeneralesController(IHttpClientFactory clientFactory)
+        public DatosGeneralesController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         public async Task<IActionResult> Index(int id, string fecha)
@@ -28,7 +29,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // 1. Solicitamos el expediente a la API de Configuración
-            string urlPaciente = $"{BaseUrlConfig}/paciente/{id}";
+            string urlPaciente = _apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{id}");
             var responsePaciente = await client.GetAsync(urlPaciente);
 
             if (!responsePaciente.IsSuccessStatusCode) return NotFound();
@@ -44,7 +45,7 @@ namespace VitalBand.Controllers
             if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) edadCalculada--;
 
             // 2. Solicitamos la lista de alertas global para el conteo
-            var responseAlertas = await client.GetAsync(BaseUrlAlertas);
+            var responseAlertas = await client.GetAsync(_apiUrlProvider.GetApiUrl("/api/AlertasApi"));
 
             int conteoAlertas = 0;
             if (responseAlertas.IsSuccessStatusCode)
@@ -128,7 +129,7 @@ namespace VitalBand.Controllers
             };
 
             // Enviamos el POST seguro a nuestra API
-            string urlApi = $"{BaseUrlAlertas}/manual";
+            string urlApi = _apiUrlProvider.GetApiUrl("/api/AlertasApi/manual");
             var response = await client.PostAsJsonAsync(urlApi, nuevaAlerta);
 
             if (response.IsSuccessStatusCode)

@@ -11,19 +11,24 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Net.Mail;
 using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
+using VitalBand.DTOs;
 
 namespace VitalBand.Controllers
 {
     public class AccountController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
-        private const string BaseUrl = "https://localhost:7116/api/UsuariosApi"; // ⚠️ Verifica tu puerto local
+        private readonly IApiUrlProvider _apiUrlProvider;
 
-        public AccountController(IHttpClientFactory clientFactory)
+        public AccountController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         [HttpGet]
@@ -49,7 +54,7 @@ namespace VitalBand.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var client = _clientFactory.CreateClient();
-            var response = await client.PostAsJsonAsync($"{BaseUrl}/login", model);
+            var response = await client.PostAsJsonAsync(_apiUrlProvider.GetApiUrl("/api/UsuariosApi/login"), model);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -111,7 +116,7 @@ namespace VitalBand.Controllers
             }
 
             var client = _clientFactory.CreateClient();
-            var response = await client.PostAsJsonAsync($"{BaseUrl}/forgot-password", email);
+            var response = await client.PostAsJsonAsync(_apiUrlProvider.GetApiUrl("/api/UsuariosApi/forgot-password"), email);
 
             if (response.IsSuccessStatusCode)
             {
@@ -152,7 +157,7 @@ namespace VitalBand.Controllers
             if (!ModelState.IsValid) return View(model);
 
             var client = _clientFactory.CreateClient();
-            var response = await client.PostAsJsonAsync($"{BaseUrl}/reset-password", model);
+            var response = await client.PostAsJsonAsync(_apiUrlProvider.GetApiUrl("/api/UsuariosApi/reset-password"), model);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -180,7 +185,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
             var dto = new RegistroMedicoDTO { Nombre = nombre, Specialty = specialty, Cedula = cedula, Email = email, Password = password };
 
-            var response = await client.PostAsJsonAsync($"{BaseUrl}/registro-medico", dto);
+            var response = await client.PostAsJsonAsync(_apiUrlProvider.GetApiUrl("/api/UsuariosApi/registro-medico"), dto);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -189,6 +194,38 @@ namespace VitalBand.Controllers
             }
 
             TempData["SuccessRegister"] = $"¡Registro exitoso, Dr. {nombre}! Ya puede iniciar sesión. 🩺✨";
+            return RedirectToAction(nameof(Login));
+        }
+
+        [HttpGet]
+        public IActionResult RegistroPaciente()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RegistroPaciente(RegistroPacienteDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ViewBag.Error = "Por favor, verifica que los datos ingresados sean correctos.";
+                return View(model);
+            }
+
+            var client = _clientFactory.CreateClient();
+            var jsonString = JsonSerializer.Serialize(model);
+            var content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+
+            var response = await client.PostAsync(_apiUrlProvider.GetApiUrl("/api/ConfiguracionApi/registro-paciente"), content);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                ViewBag.Error = await response.Content.ReadAsStringAsync() ?? "Error interno al procesar el Onboarding clinico.";
+                return View(model);
+            }
+
+            TempData["SuccessRegister"] = "¡Tu Onboarding clinico se ha completado con exito! Ya puedes iniciar sesion.";
             return RedirectToAction(nameof(Login));
         }
 
@@ -202,7 +239,7 @@ namespace VitalBand.Controllers
                 if (int.TryParse(claimId, out int userId))
                 {
                     var client = _clientFactory.CreateClient();
-                    await client.PostAsync($"{BaseUrl}/logout/{userId}", null); // Borra tokens en BD mediante API
+                    await client.PostAsync(_apiUrlProvider.GetApiUrl($"/api/UsuariosApi/logout/{userId}"), null); // Borra tokens en BD mediante API
                 }
             }
 

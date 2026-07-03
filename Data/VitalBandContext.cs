@@ -17,5 +17,8 @@ namespace VitalBand.Data
         public DbSet<Medico> Medicos { get; set; }
         public DbSet<Paciente> Pacientes { get; set; }
         public DbSet<Alerta> Alertas { get; set; }
+        public DbSet<ContactoEmergencia> ContactosEmergencia { get; set; }
+        public DbSet<PacientePatologia> PacientesPatologias { get; set; }
+        public DbSet<PatologiaCatalogo> PatologiasCatalogo { get; set; }
     }
 }

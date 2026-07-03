@@ -8,12 +8,17 @@ var builder = WebApplication.CreateBuilder(args);
 // 1. Agregar servicios de MVC
 builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IConfiguracionService, ConfiguracionService>();
+builder.Services.AddSingleton<IApiUrlProvider, ApiUrlProvider>();
 
-// 2. 👇 FUSIÓN AQUÍ: Agregamos la conexión real a MySQL usando tu Contexto
+// 2. Configuración de base de datos MySQL por entorno
+var connectionString = builder.Environment.IsProduction()
+    ? builder.Configuration["ConnectionStrings:ProductionMySqlConnection"]
+    : builder.Configuration.GetConnectionString("MySqlConnection");
+
 builder.Services.AddDbContext<VitalBandContext>(options =>
     options.UseMySql(
-        builder.Configuration.GetConnectionString("MySqlConnection"),
-        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("MySqlConnection"))
+        connectionString,
+        ServerVersion.AutoDetect(connectionString)
     )
 );
 

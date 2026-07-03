@@ -17,12 +17,13 @@ namespace VitalBand.Controllers
     {
         private readonly IConfiguracionService _config;
         private readonly IHttpClientFactory _clientFactory;
-        private const string BaseUrl = "https://localhost:7116/api/ConfiguracionApi"; // ⚠️ Verifica tu puerto local
+        private readonly IApiUrlProvider _apiUrlProvider;
 
-        public ConfiguracionController(IConfiguracionService config, IHttpClientFactory clientFactory)
+        public ConfiguracionController(IConfiguracionService config, IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _config = config;
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         // GET: Configuracion
@@ -45,7 +46,7 @@ namespace VitalBand.Controllers
                 int idPaciente = int.Parse(perfilIdStr);
                 var client = _clientFactory.CreateClient();
 
-                var response = await client.GetAsync($"{BaseUrl}/paciente/{idPaciente}");
+                var response = await client.GetAsync(_apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{idPaciente}"));
                 if (!response.IsSuccessStatusCode) return NotFound();
 
                 // Leemos la respuesta unificada que trae el paciente y la cédula del médico
@@ -117,7 +118,7 @@ namespace VitalBand.Controllers
             }
 
             var client = _clientFactory.CreateClient();
-            var response = await client.GetAsync($"{BaseUrl}/verificar-cedula?cedula={Uri.EscapeDataString(cedula)}");
+            var response = await client.GetAsync(_apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/verificar-cedula?cedula={Uri.EscapeDataString(cedula)}"));
 
             if (response.IsSuccessStatusCode)
             {
@@ -140,7 +141,7 @@ namespace VitalBand.Controllers
             }
 
             var client = _clientFactory.CreateClient();
-            var response = await client.PutAsJsonAsync($"{BaseUrl}/paciente/{model.Id}", model);
+            var response = await client.PutAsJsonAsync(_apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{model.Id}"), model);
 
             if (response.IsSuccessStatusCode)
             {

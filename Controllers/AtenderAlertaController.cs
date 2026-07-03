@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
 
 namespace VitalBand.Controllers
 {
@@ -12,18 +13,20 @@ namespace VitalBand.Controllers
     public class AtenderAlertaController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IApiUrlProvider _apiUrlProvider;
 
         // Cambiamos el contexto de BD por el cliente HTTP factory
-        public AtenderAlertaController(IHttpClientFactory clientFactory)
+        public AtenderAlertaController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         // 🛠️ Cambiamos 'int id' por 'int alertaId' para atrapar la QueryString '?alertaId=2' de la imagen
         public async Task<IActionResult> Index(int alertaId)
         {
             var client = _clientFactory.CreateClient();
-            string url = $"https://localhost:7116/api/AlertasApi";
+            string url = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
             var response = await client.GetFromJsonAsync<List<Alerta>>(url);
 
             // 🛠️ Buscamos la alerta exacta usando la variable corregida
@@ -53,7 +56,7 @@ namespace VitalBand.Controllers
 
             // Llamamos al método PUT que ya creamos en tu API para marcar la alerta como atendida
             // La ruta es: api/AlertasApi/atender/{id}
-            string urlApi = $"https://localhost:7116/api/AlertasApi/atender/{model.AlertaId}";
+            string urlApi = _apiUrlProvider.GetApiUrl($"/api/AlertasApi/atender/{model.AlertaId}");
 
             // Como es un método PUT sin un cuerpo complejo (la API solo necesita el ID en la URL), 
             // mandamos un contenido vacío (StringContent) o un Json vacío

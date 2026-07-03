@@ -6,24 +6,26 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
 
 namespace VitalBand.Controllers
 {
     public class HistorialAlertasController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
-        private const string UrlApi = "https://localhost:7116/api/AlertasApi"; // ⚠️ Verifica tu puerto local
+        private readonly IApiUrlProvider _apiUrlProvider;
 
-        public HistorialAlertasController(IHttpClientFactory clientFactory)
+        public HistorialAlertasController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         // GET: HistorialAlertas
         public async Task<IActionResult> Index()
         {
             var client = _clientFactory.CreateClient();
-            var response = await client.GetAsync(UrlApi);
+            var response = await client.GetAsync(_apiUrlProvider.GetApiUrl("/api/AlertasApi"));
 
             if (response.IsSuccessStatusCode)
             {

@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using VitalBand.Models;
+using VitalBand.Services;
 
 namespace VitalBand.Controllers
 {
@@ -14,11 +15,13 @@ namespace VitalBand.Controllers
     public class ReporteController : Controller
     {
         private readonly IHttpClientFactory _clientFactory;
+        private readonly IApiUrlProvider _apiUrlProvider;
 
         // Reemplazamos VitalBandContext por el HttpClient factory
-        public ReporteController(IHttpClientFactory clientFactory)
+        public ReporteController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
+            _apiUrlProvider = apiUrlProvider;
         }
 
         public async Task<IActionResult> Index(int año = 2026, int mes = 5, int usuarioId = 1)
@@ -41,8 +44,7 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // 1. Solicitamos el expediente del paciente a la API de Configuración
-            // ⚠️ Ajusta al puerto que use tu localhost local
-            string urlPaciente = $"https://localhost:7116/api/ConfiguracionApi/paciente/{usuarioId}";
+            string urlPaciente = _apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{usuarioId}");
             var responsePaciente = await client.GetAsync(urlPaciente);
 
             if (!responsePaciente.IsSuccessStatusCode)
@@ -56,7 +58,7 @@ namespace VitalBand.Controllers
             if (DateTime.Today.DayOfYear < pacienteBD.fecha_nacimiento.DayOfYear) edadCalculada--;
 
             // 2. Solicitamos el listado de alertas global a la API
-            string urlAlertas = "https://localhost:7116/api/AlertasApi";
+            string urlAlertas = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
             var responseAlertas = await client.GetAsync(urlAlertas);
 
             if (!responseAlertas.IsSuccessStatusCode)
