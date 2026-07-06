@@ -50,6 +50,12 @@ app.UseRouting();
 
 app.UseMiddleware<VitalBand.Middleware.SessionTimeoutMiddleware>();
 
+app.UseWebSockets(new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromMinutes(2)
+});
+app.UseMiddleware<VitalBand.Middleware.WebSocketAlertMiddleware>();
+
 // ¡Importante! Deben ir en este orden
 app.UseAuthentication();  // Primero autenticación
 app.UseAuthorization();   // Luego autorización
