@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 using VitalBand.Data;
+using VitalBand.DTOs;
 using VitalBand.Models;
 
 namespace VitalBand.Controllers.Api
@@ -17,58 +19,55 @@ namespace VitalBand.Controllers.Api
             _context = context;
         }
 
-        // GET: api/AlertasApi
-        // Trae todas las alertas con los datos del paciente incluidos para tu vista de historial
         [HttpGet]
         public async Task<IActionResult> GetAlertas()
         {
-            var alertas = await _context.Alertas
-                .Include(a => a.Paciente) // Carga los datos de la relación 
-                .OrderByDescending(a => a.id) // Ordena por tu llave primaria 'id' en minúscula
+            var alerts = await _context.Alertas
+                .Include(alert => alert.Paciente)
+                .OrderByDescending(alert => alert.id)
                 .ToListAsync();
 
-            return Ok(alertas);
+            return Ok(alerts);
         }
 
-        // PUT: api/AlertasApi/atender/5
-        // Actualiza el estado del mensaje/alerta usando tu propiedad 'id'
         [HttpPut("atender/{id}")]
-        public async Task<IActionResult> AtenderAlerta(int id)
+        public async Task<IActionResult> AttendAlert(int id)
         {
-            var alerta = await _context.Alertas.FindAsync(id);
-            if (alerta == null)
+            var alert = await _context.Alertas.FindAsync(id);
+            if (alert == null)
             {
-                return NotFound(new { mensaje = "La alerta no existe." });
+                return NotFound(new { message = "The alert does not exist." });
             }
 
-            // Cambiamos el estado del flujo usando tu propiedad 'mensaje_enviado'
-            alerta.mensaje_enviado = true;
-
-            _context.Entry(alerta).State = EntityState.Modified;
+            alert.mensaje_enviado = true;
             await _context.SaveChangesAsync();
 
-            await Middleware.WebSocketConnectionManager.SendMessageAsync(alerta.paciente_id, "DISMISS");
+            await Middleware.WebSocketConnectionManager.SendMessageAsync(alert.paciente_id, "DISMISS");
 
-            return Ok(new { mensaje = "Alerta procesada correctamente y apagado remoto enviado.", alertaId = id });
+            return Ok(new { message = "Alert processed successfully.", alertId = id });
         }
 
-        // POST: api/AlertasApi/manual
         [HttpPost("manual")]
-        public async Task<IActionResult> RegistrarAlertaManual([FromBody] Alerta nuevaAlerta)
+        public async Task<IActionResult> RegisterManualAlert([FromBody] ManualAlertRequest request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            if (nuevaAlerta.Paciente != null)
+            if (request == null || request.PatientId <= 0)
             {
-                _context.Entry(nuevaAlerta.Paciente).State = EntityState.Unchanged;
+                return BadRequest(new { message = "A valid patient id is required." });
             }
 
-            _context.Alertas.Add(nuevaAlerta);
+            var alert = new Alerta
+            {
+                paciente_id = request.PatientId,
+                fecha_hora = DateTime.UtcNow,
+                mensaje_enviado = false
+            };
+
+            _context.Alertas.Add(alert);
             await _context.SaveChangesAsync();
 
-            await Middleware.WebSocketConnectionManager.SendMessageAsync(nuevaAlerta.paciente_id, "ALERT");
+            await Middleware.WebSocketConnectionManager.SendMessageAsync(alert.paciente_id, "ALERT");
 
-            return Ok(new { mensaje = "Alerta manual registrada exitosamente y distribuida por WebSocket.", id = nuevaAlerta.id });
+            return Ok(new { message = "Manual alert registered successfully.", alertId = alert.id });
         }
     }
 }

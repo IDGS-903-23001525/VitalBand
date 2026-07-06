@@ -99,8 +99,8 @@ namespace VitalBand.Controllers
             var incidentesReporte = alertasMesBD.Select(a => new IncidenteCritico
             {
                 FechaHora = a.fecha_hora ?? DateTime.Now,
-                Descripcion = $"Frecuencia cardíaca anómala: {a.fc_media} BPM. SpO2: {a.spo2_estabilidad}% y HRV: {a.hrv_rmssd}.",
-                Tipo = a.fc_media >= 100 ? "high" : (a.fc_media <= 55 ? "low" : "irregular")
+                Descripcion = $"Frecuencia cardíaca anómala: {a.fc_media.GetValueOrDefault()} BPM. SpO2: {a.spo2_estabilidad.GetValueOrDefault()}% y HRV: {a.hrv_rmssd.GetValueOrDefault()}.",
+                Tipo = a.fc_media.GetValueOrDefault() >= 100 ? "high" : (a.fc_media.GetValueOrDefault() <= 55 ? "low" : "irregular")
             }).ToList();
 
             // ─── CONSUMIR LA TELEMETRÍA MENSUAL COMPLETAMENTE DINÁMICA ───
@@ -152,7 +152,7 @@ namespace VitalBand.Controllers
 
                 if (alertasDelDia.Any())
                 {
-                    double promedioDia = alertasDelDia.Average(a => a.fc_media);
+                    double promedioDia = alertasDelDia.Average(a => a.fc_media.GetValueOrDefault());
                     datosGrafica.Add(Math.Round(promedioDia, 1));
                 }
                 else

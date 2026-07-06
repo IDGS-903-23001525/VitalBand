@@ -37,7 +37,7 @@ namespace VitalBand.Controllers
             var model = new AtenderAlerta
             {
                 AlertaId = alertaEspecifica.id,
-                PulsoRegistrado = (int)alertaEspecifica.fc_media,
+                PulsoRegistrado = (int)alertaEspecifica.fc_media.GetValueOrDefault(),
                 Latitud = alertaEspecifica.latitud,
                 Longitud = alertaEspecifica.longitud,
                 FechaHoraAlerta = alertaEspecifica.fecha_hora,
@@ -55,7 +55,6 @@ namespace VitalBand.Controllers
             var client = _clientFactory.CreateClient();
 
             // Llamamos al método PUT que ya creamos en tu API para marcar la alerta como atendida
-            // La ruta es: api/AlertasApi/atender/{id}
             string urlApi = _apiUrlProvider.GetApiUrl($"/api/AlertasApi/atender/{model.AlertaId}");
 
             // Como es un método PUT sin un cuerpo complejo (la API solo necesita el ID en la URL), 
