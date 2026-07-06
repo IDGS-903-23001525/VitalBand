@@ -47,7 +47,9 @@ namespace VitalBand.Controllers.Api
             _context.Entry(alerta).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Alerta procesada correctamente.", alertaId = id });
+            await Middleware.WebSocketConnectionManager.SendMessageAsync(alerta.paciente_id, "DISMISS");
+
+            return Ok(new { mensaje = "Alerta procesada correctamente y apagado remoto enviado.", alertaId = id });
         }
 
         // POST: api/AlertasApi/manual
