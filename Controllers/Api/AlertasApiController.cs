@@ -47,27 +47,28 @@ namespace VitalBand.Controllers.Api
             _context.Entry(alerta).State = EntityState.Modified;
             await _context.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Alerta procesada correctamente.", alertaId = id });
+            await Middleware.WebSocketConnectionManager.SendMessageAsync(alerta.paciente_id, "DISMISS");
+
+            return Ok(new { mensaje = "Alerta procesada correctamente y apagado remoto enviado.", alertaId = id });
         }
 
-        // POST: api/AlertasApi/manual
         // POST: api/AlertasApi/manual
         [HttpPost("manual")]
         public async Task<IActionResult> RegistrarAlertaManual([FromBody] Alerta nuevaAlerta)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // 🛠️ TRUCO CLAVE: Aseguramos que EF no intente insertar o modificar un paciente existente
             if (nuevaAlerta.Paciente != null)
             {
-                // Le decimos a EF que ignore el objeto Paciente adjunto y solo use el paciente_id
                 _context.Entry(nuevaAlerta.Paciente).State = EntityState.Unchanged;
             }
 
             _context.Alertas.Add(nuevaAlerta);
             await _context.SaveChangesAsync();
 
-            return Ok(new { mensaje = "Alerta manual registrada exitosamente.", id = nuevaAlerta.id });
+            await Middleware.WebSocketConnectionManager.SendMessageAsync(nuevaAlerta.paciente_id, "ALERT");
+
+            return Ok(new { mensaje = "Alerta manual registrada exitosamente y distribuida por WebSocket.", id = nuevaAlerta.id });
         }
     }
 }
