@@ -38,13 +38,9 @@ namespace VitalBand.Controllers
                     Id = a.id,
                     FechaHora = a.fecha_hora ?? DateTime.Now,
 
-                    // Concatenamos latitud y longitud para armar la cadena de ubicación
                     Ubicacion = $"Lat: {a.latitud}, Lon: {a.longitud}",
-
-                    // El campo mensaje_enviado mapea si ya fue respondida/atendida o notificada
                     Respondida = a.mensaje_enviado ?? false,
-                    // Estructuramos la descripción con los datos de los sensores de la API
-                    DescripcionEvento = $"Frecuencia Cardíaca: {a.fc_media} BPM | SpO2: {a.spo2_estabilidad}% | HRV: {a.hrv_rmssd} ms"
+                    DescripcionEvento = $"Frecuencia Cardíaca: {a.fc_media.GetValueOrDefault()} BPM | SpO2: {a.spo2_estabilidad.GetValueOrDefault()}% | HRV: {a.hrv_rmssd.GetValueOrDefault()} ms"
                 }).ToList();
 
                 // 3. Enviamos la lista con el tipo de dato correcto

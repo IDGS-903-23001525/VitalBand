@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using VitalBand.DTOs;
 using VitalBand.Models;
 using VitalBand.Services;
 
@@ -113,37 +114,24 @@ namespace VitalBand.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivarAlertaManual(int usuarioId, int pulso, string motivo)
+        public async Task<IActionResult> ActivateManualAlert(int patientId)
         {
+            if (patientId <= 0)
+            {
+                TempData["Error"] = "A valid patient id is required.";
+                return RedirectToAction("Index");
+            }
+
             var client = _clientFactory.CreateClient();
+            var request = new ManualAlertRequest { PatientId = patientId };
+            var urlApi = _apiUrlProvider.GetApiUrl("/api/AlertasApi/manual");
+            var response = await client.PostAsJsonAsync(urlApi, request);
 
-            // Armamos el objeto Alerta crudo con float explícitos para tu API
-            var nuevaAlerta = new Alerta
-            {
-                paciente_id = usuarioId, // Aquí ya recibe el id de Paciente gracias al ajuste en el HTML
-                fecha_hora = DateTime.Now,
-                fc_media = pulso,
-                hrv_rmssd = 25.0f,
-                spo2_estabilidad = 95.0f,
-                latitud = 21.1219f,
-                longitud = -101.6825f,
-                mensaje_enviado = false
-            };
+            TempData[response.IsSuccessStatusCode ? "Mensaje" : "Error"] = response.IsSuccessStatusCode
+                ? "Manual alert created successfully."
+                : "The manual alert could not be registered.";
 
-            // Enviamos el POST seguro a nuestra API
-            string urlApi = _apiUrlProvider.GetApiUrl("/api/AlertasApi/manual");
-            var response = await client.PostAsJsonAsync(urlApi, nuevaAlerta);
-
-            if (response.IsSuccessStatusCode)
-            {
-                TempData["Mensaje"] = $"⚠️ ¡Alerta médica manual guardada en MySQL mediante la API! Motivo: {motivo}";
-            }
-            else
-            {
-                TempData["Error"] = "No se pudo registrar la alerta manual en el sistema.";
-            }
-
-            return RedirectToAction("Index", new { id = usuarioId });
+            return RedirectToAction("Index", new { id = patientId });
         }
     }
 }

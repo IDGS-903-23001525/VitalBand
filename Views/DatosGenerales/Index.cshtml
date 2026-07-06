@@ -519,12 +519,9 @@ document.addEventListener('DOMContentLoaded', function() {
             <p style="grid-column: span 3; text-align: center; color: var(--gray-400);">Cargando signos vitales en tiempo real...</p>
         </div>
 
-        @if (User.IsInRole("Medico") && Model.LecturasHoy.Any())
+        @if (User.IsInRole("Medico"))
         {
-            <!-- 🛠️ Dejamos Model.UsuarioId para que compile, ya que así se llama en tu modelo DatosGenerales -->
-            <input type="hidden" id="hdnUsuarioId" value="@Model.UsuarioId" />
-            <input type="hidden" id="hdnPulso" value="@Model.LecturasHoy.Last().Pulso" />
-            <input type="hidden" id="hdnMotivo" value="Activación manual por médico (lectura anormal)" />
+            <input type="hidden" id="hdnPatientId" value="@Model.UsuarioId" />
         }
     </div>
 
@@ -669,13 +666,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (btnAbrir) {
         btnAbrir.addEventListener('click', function() {
-        const usuarioId = document.getElementById('hdnUsuarioId').value;
-        const pulso = document.getElementById('hdnPulso').value;
-        const motivo = document.getElementById('hdnMotivo').value;
+        const patientId = document.getElementById('hdnPatientId').value;
 
-        modal.setAttribute('data-usuarioId', usuarioId);
-        modal.setAttribute('data-pulso', pulso);
-        modal.setAttribute('data-motivo', motivo);
+        modal.setAttribute('data-patientId', patientId);
         modal.style.display = 'flex';
         });
         }
@@ -688,18 +681,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (btnConfirmar) {
         btnConfirmar.addEventListener('click', function() {
-        const usuarioId = modal.getAttribute('data-usuarioId');
-        const pulso = modal.getAttribute('data-pulso');
-        const motivo = modal.getAttribute('data-motivo');
-
-        // 🛠️ Buscamos el valor del token anti-falsificación generado en el modal
+        const patientId = modal.getAttribute('data-patientId');
         const tokenInput = document.querySelector('#modalConfirmacion input[name="__RequestVerificationToken"]');
 
         const form = document.createElement('form');
         form.method = 'post';
-        form.action = '@Url.Action("ActivarAlertaManual", "DatosGenerales")';
+        form.action = '@Url.Action("ActivateManualAlert", "DatosGenerales")';
 
-        // 🛠️ Creamos el input hidden para el token de seguridad
         if (tokenInput) {
         const inputToken = document.createElement('input');
         inputToken.type = 'hidden';
@@ -708,24 +696,12 @@ document.addEventListener('DOMContentLoaded', function() {
         form.appendChild(inputToken);
         }
 
-        const inputUsuario = document.createElement('input');
-        inputUsuario.type = 'hidden';
-        inputUsuario.name = 'usuarioId';
-        inputUsuario.value = usuarioId;
+        const inputPatientId = document.createElement('input');
+        inputPatientId.type = 'hidden';
+        inputPatientId.name = 'patientId';
+        inputPatientId.value = patientId;
 
-        const inputPulso = document.createElement('input');
-        inputPulso.type = 'hidden';
-        inputPulso.name = 'pulso';
-        inputPulso.value = pulso;
-
-        const inputMotivo = document.createElement('input');
-        inputMotivo.type = 'hidden';
-        inputMotivo.name = 'motivo';
-        inputMotivo.value = motivo;
-
-        form.appendChild(inputUsuario);
-        form.appendChild(inputPulso);
-        form.appendChild(inputMotivo);
+        form.appendChild(inputPatientId);
         document.body.appendChild(form);
         form.submit();
         });

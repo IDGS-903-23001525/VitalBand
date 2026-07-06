@@ -167,7 +167,7 @@ namespace VitalBand.Controllers
                 }
                 else if (tieneAlertaEseDia)
                 {
-                    promedioPulso = (int)alertasDeEsteDia.Average(a => a.fc_media);
+                    promedioPulso = (int)alertasDeEsteDia.Average(a => a.fc_media.GetValueOrDefault());
                 }
 
                 string mensaje = tieneAlertaEseDia

@@ -12,9 +12,9 @@ namespace VitalBand.Models
         public int id { get; set; }
         public int paciente_id { get; set; }
         public DateTime? fecha_hora { get; set; } = DateTime.Now;
-        public float fc_media { get; set; }
-        public float hrv_rmssd { get; set; }
-        public float spo2_estabilidad { get; set; }
+        public float? fc_media { get; set; }
+        public float? hrv_rmssd { get; set; }
+        public float? spo2_estabilidad { get; set; }
         public float? latitud { get; set; }
         public float? longitud { get; set; }
         public bool? mensaje_enviado { get; set; } = false;
