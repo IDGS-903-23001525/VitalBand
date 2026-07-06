@@ -55,19 +55,67 @@ namespace VitalBand.Controllers
                 ? await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>()
                 : new List<Alerta>();
 
-            // 5. Armamos el resumen en memoria pura
-            var usuariosResumen = susPacientes.Select(p =>
+            // ─── REEMPLAZAR EL PASO 5 POR ESTO (SIN CLASES ADICIONALES) ───
+            var usuariosResumen = new List<UsuarioResumen>();
+
+            foreach (var p in susPacientes)
             {
-                // Filtramos las alertas pendientes de hoy
+                // Mantenemos intacta tu lógica de alertas de hoy
                 var alertasPacienteHoy = todasLasAlertas
                     .Where(a => a.paciente_id == p.id && a.fecha_hora >= hoy && (a.mensaje_enviado == false || a.mensaje_enviado == null))
-                    .OrderByDescending(a => a.fecha_hora) // 🔥 La más reciente primero
+                    .OrderByDescending(a => a.fecha_hora)
                     .ToList();
 
+                // Mantenemos intacto tu cálculo de edad
                 int edadCalculada = DateTime.Today.Year - p.fecha_nacimiento.Year;
                 if (DateTime.Today.DayOfYear < p.fecha_nacimiento.DayOfYear) { edadCalculada--; }
 
-                return new UsuarioResumen
+                int pulsoPromedioCalculado = 0;
+                if (p.usuario_id > 0)
+                {
+                    try
+                    {
+                        string urlTelemetria = _apiUrlProvider.GetApiUrl($"/api/VitalSign/hoy/{p.usuario_id}");
+                        var responseTelemetria = await client.GetAsync(urlTelemetria);
+
+                        if (responseTelemetria.IsSuccessStatusCode)
+                        {
+                            // 💡 LEEMOS EL JSON COMO UN DICCIONARIO DINÁMICO
+                            var lecturasHoy = await responseTelemetria.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>();
+
+                            if (lecturasHoy != null && lecturasHoy.Any())
+                            {
+                                // Extraemos el campo "bpm", lo convertimos a double de forma segura y promediamos
+                                double sumaBpm = 0;
+                                int conteoValido = 0;
+
+                                foreach (var lectura in lecturasHoy)
+                                {
+                                    if (lectura.TryGetValue("bpm", out var bpmValue) && bpmValue != null)
+                                    {
+                                        if (double.TryParse(bpmValue.ToString(), out double bpmElemento))
+                                        {
+                                            sumaBpm += bpmElemento;
+                                            conteoValido++;
+                                        }
+                                    }
+                                }
+
+                                if (conteoValido > 0)
+                                {
+                                    pulsoPromedioCalculado = (int)Math.Round(sumaBpm / conteoValido);
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        pulsoPromedioCalculado = 0; // Si falla algo, evitamos romper el tablero
+                    }
+                }
+
+                // Agregamos el registro manteniendo todo lo que tu vista ya usa
+                usuariosResumen.Add(new UsuarioResumen
                 {
                     Id = p.id,
                     Nombre = p.nombre,
@@ -75,12 +123,11 @@ namespace VitalBand.Controllers
                     Edad = edadCalculada,
                     Sexo = p.genero ?? "No Especificado",
                     TieneAlertaHoy = alertasPacienteHoy.Any(),
-                    PulsoPromedioHoy = alertasPacienteHoy.Any() ? (int)alertasPacienteHoy.Average(a => a.fc_media) : 70,
-
-                    // 🛠️ CORRECCIÓN CLAVE: Guardamos el ID de la alerta que realmente está fallando hoy
+                    PulsoPromedioHoy = pulsoPromedioCalculado,
                     AlertaIdPendiente = alertasPacienteHoy.FirstOrDefault()?.id ?? 0
-                };
-            }).ToList();
+                });
+            }
+            // ─── FIN DEL BLOQUE ───
 
             // 6. Ordenamos: Casos críticos de HOY primero en el tablero
             var usuariosOrdenados = usuariosResumen.OrderByDescending(u => u.TieneAlertaHoy).ToList();

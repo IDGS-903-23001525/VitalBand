@@ -16,6 +16,7 @@ namespace VitalBand.Models
         public string EstadoSalud { get; set; } = "Estable";
         public int UsuarioId { get; set; }
         public string UsuarioNombre { get; set; } = string.Empty;
+        public List<double> DatosGrafica { get; set; } = new List<double>();
 
         public List<DiaHistorial> DiasDelMes { get; set; } = new();
     }

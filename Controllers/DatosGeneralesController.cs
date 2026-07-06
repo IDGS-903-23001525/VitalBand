@@ -71,7 +71,7 @@ namespace VitalBand.Controllers
             // Armamos el modelo original "DatosGenerales" intacto para la vista
             var modelo = new DatosGenerales
             {
-                UsuarioId = paciente.id, // Mantiene el ID del Paciente que la vista necesita
+                UsuarioId = paciente.usuario_id, // Mantiene el ID del Paciente que la vista necesita
                 Nombre = paciente.nombre,
                 Edad = edadCalculada,
                 Genero = paciente.genero ?? "No especificado",
@@ -85,6 +85,8 @@ namespace VitalBand.Controllers
             ViewBag.HorasJson = JsonSerializer.Serialize(lecturas.Select(l => l.Hora.ToString("HH:mm")));
             ViewBag.FechaSeleccionada = fechaSeleccionada.ToString("yyyy-MM-dd");
             ViewBag.PulsosJson = JsonSerializer.Serialize(lecturas.Select(l => l.Pulso));
+
+            ViewBag.ApiBaseUrl = _apiUrlProvider.GetApiUrl("");
 
             return View(modelo);
         }

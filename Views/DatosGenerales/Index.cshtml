@@ -460,82 +460,63 @@
 
 <script>
     // Date navigation for daily records
-    document.addEventListener('DOMContentLoaded', function() {
-        var esMedicoStr = document.getElementById('hdnEsMedico') ? document.getElementById('hdnEsMedico').value : "false";
-        var esMedico = esMedicoStr === "true";
+document.addEventListener('DOMContentLoaded', function() {
+    var esMedicoStr = document.getElementById('hdnEsMedico') ? document.getElementById('hdnEsMedico').value : "false";
+    var esMedico = esMedicoStr === "true";
 
-        var input = document.getElementById('selectedDate');
-        var btnPrev = document.getElementById('btnPrevDay');
-        var btnNext = document.getElementById('btnNextDay');
-        var usuarioId = '@Model.UsuarioId';
-        console.log('[DatosGenerales] esMedico=', esMedico, 'usuarioId=', usuarioId, 'initialDate=', input ? input.value : null);
-        var _navigating = false;
+    var input = document.getElementById('selectedDate');
+    var btnPrev = document.getElementById('btnPrevDay');
+    var btnNext = document.getElementById('btnNextDay');
 
-        function navigateToDate(d) {
-            if (_navigating) {
-                console.log('[DatosGenerales] navigateToDate ignored, already navigating');
-                return;
-            }
-            _navigating = true;
-            // Redirige a la misma acción con parámetro fecha
-            var y = d.getFullYear();
-            var m = String(d.getMonth()+1).padStart(2, '0');
-            var day = String(d.getDate()).padStart(2, '0');
-            var fechaStr = y + '-' + m + '-' + day;
-            // Actualizamos el input para reflejar el cambio inmediatamente
-            if (input) input.value = fechaStr;
-            var qs = '?id=' + usuarioId + '&fecha=' + fechaStr;
-            var url = '/DatosGenerales/Index' + qs;
-            console.log('[DatosGenerales] navigateToDate -> fechaStr=', fechaStr, 'url=', url);
-            // disable buttons while navigating to prevent double clicks
-            if (btnPrev) btnPrev.disabled = true;
-            if (btnNext) btnNext.disabled = true;
-            window.location.href = url;
+    // CORRECCIÓN: Separar los componentes manualmente para evitar desfases de zona horaria
+    function obtenerFechaDelInput() {
+        if (!input || !input.value) return new Date();
+        var partes = input.value.split('-'); 
+        // año, mes (0-11), día
+        return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+    }
+
+    function navigateToDate(d) {
+
+    var y = d.getFullYear();
+    var m = String(d.getMonth() + 1).padStart(2, '0');
+    var day = String(d.getDate()).padStart(2, '0');
+    var fechaStr = y + '-' + m + '-' + day;
+
+    if (input) input.value = fechaStr;
+
+    if (typeof cargarMetricasRealtime === 'function') {
+            cargarMetricasRealtime();
         }
+}
 
-        if (btnPrev) btnPrev.addEventListener('click', function() {
-            if (!esMedico) return;
-            var cur = input.valueAsDate;
-            if (!cur) {
-                cur = new Date();
-            }
-            cur.setDate(cur.getDate() - 1);
-            navigateToDate(cur);
-        });
-
-        if (btnNext) btnNext.addEventListener('click', function() {
-            if (!esMedico) return;
-            var cur = input.valueAsDate;
-            if (!cur) {
-                cur = new Date();
-            }
-            cur.setDate(cur.getDate() + 1);
-            navigateToDate(cur);
-        });
-
-        if (input) input.addEventListener('change', function() {
-            if (!esMedico) return;
-            var cur = input.valueAsDate;
-            if (!cur) {
-                cur = new Date();
-            }
-            navigateToDate(cur);
-        });
+    if (btnPrev) btnPrev.addEventListener('click', function() {
+        if (!esMedico) return;
+        var cur = obtenerFechaDelInput();
+        cur.setDate(cur.getDate() - 1);
+        navigateToDate(cur);
     });
+
+    if (btnNext) btnNext.addEventListener('click', function() {
+        if (!esMedico) return;
+        var cur = obtenerFechaDelInput();
+        cur.setDate(cur.getDate() + 1);
+        navigateToDate(cur);
+    });
+
+    if (input) input.addEventListener('change', function() {
+        if (!esMedico) return;
+        var cur = obtenerFechaDelInput();
+        navigateToDate(cur);
+    });
+});
 </script>
 
     <div class="lecturas-lista">
         <h4>Lecturas horarias</h4>
 
-        <div class="lecturas-grid">
-            @foreach (var lectura in Model.LecturasHoy.OrderBy(l => l.Hora))
-            {
-                string clase = ObtenerClasePulso(lectura.Pulso);
-                <div class="lectura-item @clase">
-                    <span>@lectura.Hora.ToString("HH:mm") hrs</span>
-                    <strong>@lectura.Pulso BPM</strong>
-                </div>
-            }
+        <div class="lecturas-grid" id="lecturasGrid">
+            <p style="grid-column: span 3; text-align: center; color: var(--gray-400);">Cargando signos vitales en tiempo real...</p>
         </div>
 
         @if (User.IsInRole("Medico") && Model.LecturasHoy.Any())
@@ -582,28 +563,102 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Gráfica
-        const horas = @Html.Raw(ViewBag.HorasJson);
-        const pulsos = @Html.Raw(ViewBag.PulsosJson);
+        // Configuración inicial de Chart.js global
         const ctx = document.getElementById('pulseChart').getContext('2d');
-        new Chart(ctx, {
-        type: 'line',
-        data: {
-        labels: horas,
-        datasets: [{
-        label: 'Pulso (BPM)',
-        data: pulsos,
-        borderColor: '#378ADD',
-        backgroundColor: 'rgba(55,138,221,0.05)',
-        tension: 0.3,
-        fill: true
-        }]
-        },
-        options: {
-        responsive: true,
-        maintainAspectRatio: true,
-        plugins: { legend: { position: 'top' } }
+        let pulseChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // Se llenará dinámicamente
+                datasets: [{
+                    label: 'Pulso (BPM)',
+                    data: [], // Se llenará dinámicamente
+                    borderColor: '#378ADD',
+                    backgroundColor: 'rgba(55,138,221,0.05)',
+                    tension: 0.3,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { position: 'top' } }
+            }
+        });
+
+        // Función auxiliar para determinar los estilos de color según el pulso de la lectura
+        function obtenerClasePulso(pulso) {
+            if (pulso < 50 || pulso > 110) return "lectura-critica";
+            if ((pulso >= 50 && pulso < 60) || (pulso > 100 && pulso <= 110)) return "lectura-precaucion";
+            return "lectura-normal";
         }
+
+        // Llamada asíncrona a la API de InfluxDB MetricasController / VitalSignController
+        async function cargarMetricasRealtime() {
+            const userId = '@Model.UsuarioId';
+            const grid = document.getElementById('lecturasGrid');
+            const fechaSeleccionada = document.getElementById('selectedDate').value;
+            
+            try {
+                // Consumimos el endpoint GET "hoy/{userId}" corregido anteriormente
+                // Consumimos el endpoint enviando el parámetro de la fecha seleccionada
+                const response = await fetch(`https://localhost:7116/api/VitalSign/hoy/${userId}?fecha=${fechaSeleccionada}`);
+                if (!response.ok) throw new Error('Error en la respuesta de la API');
+                
+                const datos = await response.json();
+
+                if (datos.length === 0) {
+                    grid.innerHTML = '<p style="grid-column: span 3; text-align: center; color: var(--gray-400);">No se encontraron lecturas registradas en esta fecha.</p>';
+                    // Limpiamos la gráfica para que no muestre datos del día anterior
+                    pulseChart.data.labels = [];
+                    pulseChart.data.datasets[0].data = [];
+                    pulseChart.update();
+                    return;
+                }
+
+                // Procesamos las fechas ISO recibidas para transformarlas a formato hora local "HH:mm"
+                const labelsHoras = datos.map(item => {
+                    const d = new Date(item.fecha);
+                    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+                });
+
+                const valoresBpm = datos.map(item => item.bpm);
+
+                // 1. Actualizar Gráfica en tiempo real
+                pulseChart.data.labels = labelsHoras;
+                pulseChart.data.datasets[0].data = valoresBpm;
+                pulseChart.update();
+
+                // 2. Actualizar el Grid de lecturas horarias en la vista
+                grid.innerHTML = ''; // Limpiamos el texto de "Cargando..."
+                
+                datos.forEach((item, index) => {
+                    const horaFormateada = labelsHoras[index];
+                    const claseColor = obtenerClasePulso(item.bpm);
+
+                    const itemHtml = `
+                        <div class="lectura-item ${claseColor}">
+                            <span>${horaFormateada} hrs</span>
+                            <strong>${item.bpm} BPM</strong>
+                        </div>
+                    `;
+                    grid.insertAdjacentHTML('beforeend', itemHtml);
+                });
+
+                // 3. Actualizar campos ocultos para el generador de alertas manuales si existen datos
+                const hdnPulso = document.getElementById('hdnPulso');
+                if (hdnPulso && valoresBpm.length > 0) {
+                    hdnPulso.value = valoresBpm[valoresBpm.length - 1]; // Toma el último pulso recibido
+                }
+
+            } catch (error) {
+                console.error('[Error Realtime API]:', error);
+                grid.innerHTML = '<p style="grid-column: span 3; text-align: center; color: #b91c1c;">Hubo un problema al conectar con el servidor de telemetría.</p>';
+            }
+        }
+
+        // Ejecutar carga automática al estar listo el DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarMetricasRealtime();
         });
 
         // Lógica del modal

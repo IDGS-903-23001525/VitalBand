@@ -12,6 +12,7 @@ namespace VitalBand.Models
         public string Periodo { get; set; } = string.Empty;
         public string Identificador { get; set; } = string.Empty;
         public List<IncidenteCritico> Incidentes { get; set; } = new();
+        public List<double> DatosGrafica { get; set; } = new List<double>();
     }
 
     [NotMapped]

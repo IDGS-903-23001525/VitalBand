@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,8 +27,10 @@ namespace VitalBand.Controllers
         }
 
         [Authorize(Roles = "Medico,medico")]
-        public async Task<IActionResult> Index(int año = 2026, int mes = 5, int usuarioId = 1)
+        public async Task<IActionResult> Index(int año = 0, int mes = 0, int usuarioId = 1)
         {
+            if (año == 0) año = DateTime.Today.Year;
+            if (mes == 0) mes = DateTime.Today.Month;
             var medicoIdStr = User.FindFirst("PerfilId")?.Value;
             if (string.IsNullOrEmpty(medicoIdStr)) return Challenge();
             int idMedicoLogueado = int.Parse(medicoIdStr);
@@ -58,7 +61,7 @@ namespace VitalBand.Controllers
                 ? await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>()
                 : new List<Alerta>();
 
-            var vm = GenerarHistorialModel(año, mes, pacienteSeleccionado, todasLasAlertas);
+            var vm = await GenerarHistorialModelAsync(año, mes, pacienteSeleccionado, todasLasAlertas);
 
             // El buscador del médico ahora se llena ÚNICAMENTE con sus propios pacientes asignados
             ViewBag.Usuarios = susPacientes.Select(p => new UsuarioResumen { Id = p.id, Nombre = p.nombre }).ToList();
@@ -67,12 +70,20 @@ namespace VitalBand.Controllers
         }
 
         [Authorize(Roles = "Paciente,paciente")]
-        public async Task<IActionResult> MiHistorial(int año = 2026, int mes = 5)
+        public async Task<IActionResult> MiHistorial(int año = 0, int mes = 0, int usuarioId = 1)
         {
+            if (año == 0) año = DateTime.Today.Year;
+            if (mes == 0) mes = DateTime.Today.Month;
             var perfilIdStr = User.FindFirst("PerfilId")?.Value;
             if (string.IsNullOrEmpty(perfilIdStr)) return RedirectToAction("Login", "Account");
 
             int idPaciente = int.Parse(perfilIdStr);
+            var usuarioIdStr = User.FindFirst("UsuarioBaseId")?.Value;
+            int idUsuarioReal = 0;
+            if (!string.IsNullOrEmpty(usuarioIdStr))
+            {
+                idUsuarioReal = int.Parse(usuarioIdStr);
+            }
 
             var client = _clientFactory.CreateClient();
 
@@ -84,18 +95,23 @@ namespace VitalBand.Controllers
             var paciente = await responsePaciente.Content.ReadFromJsonAsync<Paciente>();
             if (paciente == null) return NotFound();
 
+            if (idUsuarioReal > 0)
+            {
+                paciente.usuario_id = idUsuarioReal;
+            }
+
             // 2. Obtenemos las alertas de la API
             string urlAlertas = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
             var responseAlertas = await client.GetAsync(urlAlertas);
             var todasLasAlertas = await responseAlertas.Content.ReadFromJsonAsync<List<Alerta>>() ?? new List<Alerta>();
 
             // 3. Renderizamos el modelo del calendario
-            var vm = GenerarHistorialModel(año, mes, paciente, todasLasAlertas);
+            var vm = await GenerarHistorialModelAsync(año, mes, paciente, todasLasAlertas);
             return View("HistorialMensual", vm);
         }
 
         // Modificamos el método privado para que reciba la lista de alertas inyectada desde la API
-        private HistorialMensual GenerarHistorialModel(int año, int mes, Paciente paciente, List<Alerta> alertasGlobales)
+        private async Task<HistorialMensual> GenerarHistorialModelAsync(int año, int mes, Paciente paciente, List<Alerta> alertasGlobales)
         {
             var primerDia = new DateTime(año, mes, 1);
             int diasVacios = (int)primerDia.DayOfWeek == 0 ? 6 : (int)primerDia.DayOfWeek - 1;
@@ -112,6 +128,20 @@ namespace VitalBand.Controllers
             var dias = new List<DiaHistorial>();
             int pulsoBaseEstable = 72;
 
+            // ─── AÑADIR JUSTO DESPUÉS DE pulsoBaseEstable = 72; ───
+            var client = _clientFactory.CreateClient();
+            var datosTelemetriaMensual = new List<Dictionary<string, object>>();
+
+            if (paciente.usuario_id > 0)
+            {
+                string urlTelemetria = _apiUrlProvider.GetApiUrl($"/api/VitalSign/mensual/{paciente.usuario_id}/{año}/{mes}");
+                var responseTelemetria = await client.GetAsync(urlTelemetria);
+                if (responseTelemetria.IsSuccessStatusCode)
+                {
+                    datosTelemetriaMensual = await responseTelemetria.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>() ?? new List<Dictionary<string, object>>();
+                }
+            }
+
             for (int diaCorriente = 1; diaCorriente <= totalDias; diaCorriente++)
             {
                 var alertasDeEsteDia = alertasDelMes
@@ -120,9 +150,25 @@ namespace VitalBand.Controllers
 
                 bool tieneAlertaEseDia = alertasDeEsteDia.Any();
 
-                int promedioPulso = tieneAlertaEseDia
-                    ? (int)alertasDeEsteDia.Average(a => a.fc_media)
-                    : pulsoBaseEstable;
+                // ─── REEMPLAZAR ASIGNACIÓN DE promedioPulso POR ESTO ───
+                int promedioPulso = pulsoBaseEstable;
+
+                // Buscamos si en la lista de diccionarios existe el día corriente
+                var lecturaDeEsteDia = datosTelemetriaMensual.FirstOrDefault(lectura =>
+                    lectura.TryGetValue("dia", out var d) && d != null && Convert.ToInt32(d.ToString()) == diaCorriente);
+
+                if (lecturaDeEsteDia != null && lecturaDeEsteDia.TryGetValue("bpmPromedio", out var bpmVal) && bpmVal != null)
+                {
+                    int bpmParseado = Convert.ToInt32(bpmVal.ToString());
+                    if (bpmParseado > 0)
+                    {
+                        promedioPulso = bpmParseado;
+                    }
+                }
+                else if (tieneAlertaEseDia)
+                {
+                    promedioPulso = (int)alertasDeEsteDia.Average(a => a.fc_media);
+                }
 
                 string mensaje = tieneAlertaEseDia
                     ? $"⚠️ {alertasDeEsteDia.Count} Alerta(s)"
@@ -143,7 +189,11 @@ namespace VitalBand.Controllers
                 Mes = mes,
                 Año = año,
                 DiasVaciosInicio = diasVacios,
-                PromedioMensual = dias.Any() ? (int)dias.Average(d => d.BpmPromedio) : pulsoBaseEstable,
+                PromedioMensual = datosTelemetriaMensual.Any(t => t.TryGetValue("bpmPromedio", out var b) && Convert.ToInt32(b.ToString()) > 0)
+                    ? (int)Math.Round(datosTelemetriaMensual
+                        .Where(t => t.TryGetValue("bpmPromedio", out var b) && Convert.ToInt32(b.ToString()) > 0)
+                        .Average(t => Convert.ToDouble(t["bpmPromedio"].ToString())))
+                    : pulsoBaseEstable,
                 TotalIncidentes = alertasDelMes.Count,
                 EstadoSalud = alertasDelMes.Count > 5 ? "Riesgo Moderado" : "Estable",
                 DiasDelMes = dias,
@@ -153,17 +203,45 @@ namespace VitalBand.Controllers
         }
 
         [Authorize]
-        public IActionResult ExportarPdf(int año = 2026, int mes = 5, int usuarioId = 1)
+        public async Task<IActionResult> ExportarPdf(int año = 0, int mes = 0, int usuarioId = 0)
         {
+            // 1. Validaciones por defecto para fechas si llegan en 0 (usando el año actual 2026)
+            if (año == 0) año = DateTime.Today.Year;
+            if (mes == 0) mes = DateTime.Today.Month;
+
+            int idUsuarioReal = usuarioId;
+
+            // 2. Si el que está logueado es Paciente, asegura su propio ID (Obteniéndolo de su Claim)
             if (User.IsInRole("Paciente") || User.IsInRole("paciente"))
             {
                 var claimId = User.FindFirst("PerfilId")?.Value;
                 if (int.TryParse(claimId, out int pacienteId))
-                    usuarioId = pacienteId;
-                else
-                    return Forbid();
+                {
+                    usuarioId = pacienteId; // Asignamos el ID del paciente logueado
+                }
             }
-            return RedirectToAction("Index", "Reporte", new { año, mes, usuarioId });
+
+            // 3. CONSULTA A LA API CENTRALIZADA (Para Médico y Paciente)
+            if (usuarioId > 0)
+            {
+                using (var client = new HttpClient())
+                {
+                    string urlApiUsuario = $"http://localhost:5120/api/UsuariosApi/ObtenerUsuarioIdPorPaciente/{usuarioId}";
+                    var response = await client.GetAsync(urlApiUsuario);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var resultado = await response.Content.ReadFromJsonAsync<Dictionary<string, int>>();
+                        if (resultado != null && resultado.ContainsKey("usuarioIdReal"))
+                        {
+                            idUsuarioReal = resultado["usuarioIdReal"];
+                        }
+                    }
+                }
+            }
+
+            // 4. Redirige limpiamente al ReporteController pasando el ID DE USUARIO REAL extraído por la API
+            return RedirectToAction("Index", "Reporte", new { año = año, mes = mes, usuarioId = idUsuarioReal });
         }
     }
 }

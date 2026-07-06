@@ -101,10 +101,13 @@ namespace VitalBand.Controllers.Api
             {
                 try
                 {
+                    // Encripta la contraseña del paciente antes de meterla a la base de datos
+                    string passwordSegura = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
                     var nuevoUsuario = new Usuario
                     {
                         email = model.Email,
-                        password_hash = model.Password,
+                        password_hash = passwordSegura,
                         rol = "paciente",
                         fecha_registro = DateTime.Now
                     };

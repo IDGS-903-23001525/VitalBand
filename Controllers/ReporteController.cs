@@ -24,27 +24,39 @@ namespace VitalBand.Controllers
             _apiUrlProvider = apiUrlProvider;
         }
 
-        public async Task<IActionResult> Index(int año = 2026, int mes = 5, int usuarioId = 1)
+        [HttpGet] // 1. ASEGÚRATE DE QUE TENGA EL ATRIBUTO HTTPGET
+        public async Task<IActionResult> Index(int año = 0, int mes = 0, int usuarioId = 0)
         {
-            // Validamos la seguridad del rol exactamente igual
+
+            if (año == 0) año = DateTime.Today.Year;
+            if (mes == 0) mes = DateTime.Today.Month;
+
+            int idPacienteSQL = usuarioId;
+
             if (User.IsInRole("Paciente") || User.IsInRole("paciente"))
             {
                 var claimId = User.FindFirst("PerfilId")?.Value;
                 if (int.TryParse(claimId, out int pacienteId))
                 {
-                    if (pacienteId != usuarioId)
-                        return Forbid();
+                    // Si es paciente, lo obligamos a ver solo SU propio ID
+                    idPacienteSQL = pacienteId;
                 }
                 else
                 {
                     return Forbid();
                 }
             }
+            else
+            {
+                // SI ES MÉDICO: Si por algún error el parámetro 'usuarioId' llegó en 0, 
+                // le ponemos 1 como último recurso, pero si viene del calendario (ej. 2), se respeta el 2.
+                if (idPacienteSQL == 0) idPacienteSQL = 1;
+            }
 
             var client = _clientFactory.CreateClient();
 
             // 1. Solicitamos el expediente del paciente a la API de Configuración
-            string urlPaciente = _apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{usuarioId}");
+            string urlPaciente = _apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{idPacienteSQL}");
             var responsePaciente = await client.GetAsync(urlPaciente);
 
             if (!responsePaciente.IsSuccessStatusCode)
@@ -53,9 +65,9 @@ namespace VitalBand.Controllers
             var pacienteBD = await responsePaciente.Content.ReadFromJsonAsync<Paciente>();
             if (pacienteBD == null) return NotFound("No se pudo leer la información del expediente.");
 
-            // Calculamos la edad de forma idéntica
+            // Calculamos la edad de forma idéntica (AQUÍ YA SE CALCULA TU EDAD DINÁMICA)
             int edadCalculada = DateTime.Today.Year - pacienteBD.fecha_nacimiento.Year;
-            if (DateTime.Today.DayOfYear < pacienteBD.fecha_nacimiento.DayOfYear) edadCalculada--;
+            if (DateTime.Today.Date < pacienteBD.fecha_nacimiento.AddYears(edadCalculada)) edadCalculada--;
 
             // 2. Solicitamos el listado de alertas global a la API
             string urlAlertas = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
@@ -68,7 +80,7 @@ namespace VitalBand.Controllers
 
             // 3. Filtramos en memoria local las alertas del mes correspondientes al paciente solicitado
             var alertasMesBD = todasLasAlertas
-                .Where(a => a.paciente_id == usuarioId &&
+                .Where(a => a.paciente_id == idPacienteSQL &&
                             a.fecha_hora.HasValue &&
                             a.fecha_hora.Value.Year == año &&
                             a.fecha_hora.Value.Month == mes)
@@ -83,14 +95,74 @@ namespace VitalBand.Controllers
                 Tipo = a.fc_media >= 100 ? "high" : (a.fc_media <= 55 ? "low" : "irregular")
             }).ToList();
 
-            // Armamos el ViewModel final con la cultura en español para el nombre del mes
+            // ─── CONSUMIR LA TELEMETRÍA MENSUAL COMPLETAMENTE DINÁMICA ───
+            var datosTelemetriaMensual = new List<Dictionary<string, object>>();
+
+            // Evaluamos dinámicamente: usamos el ID de usuario vinculado al paciente.
+            int idParaBuscar = pacienteBD.usuario_id > 0 ? pacienteBD.usuario_id : idPacienteSQL;
+
+            string urlTelemetria = _apiUrlProvider.GetApiUrl($"/api/VitalSign/mensual/{idParaBuscar}/{año}/{mes}");
+            var responseTelemetria = await client.GetAsync(urlTelemetria);
+
+            if (responseTelemetria.IsSuccessStatusCode)
+            {
+                datosTelemetriaMensual = await responseTelemetria.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>() ?? new List<Dictionary<string, object>>();
+            }
+
+            // --- GENERACIÓN DE DATOS DINÁMICOS DE LA GRÁFICA ---
+            var datosGrafica = new List<double>();
+            int diasEnMes = DateTime.DaysInMonth(año, mes);
+
+            for (int dia = 1; dia <= diasEnMes; dia++)
+            {
+                var lecturaDeEsteDia = datosTelemetriaMensual.FirstOrDefault(lectura =>
+                {
+                    var keyDia = lectura.Keys.FirstOrDefault(k => k.Equals("dia", StringComparison.OrdinalIgnoreCase));
+                    if (keyDia != null && lectura[keyDia] != null)
+                    {
+                        return Convert.ToInt32(lectura[keyDia].ToString()) == dia;
+                    }
+                    return false;
+                });
+
+                if (lecturaDeEsteDia != null)
+                {
+                    var keyBpm = lecturaDeEsteDia.Keys.FirstOrDefault(k => k.Equals("bpmPromedio", StringComparison.OrdinalIgnoreCase));
+                    if (keyBpm != null && lecturaDeEsteDia[keyBpm] != null)
+                    {
+                        double bpmParseado = Convert.ToDouble(lecturaDeEsteDia[keyBpm].ToString());
+                        if (bpmParseado > 0)
+                        {
+                            datosGrafica.Add(Math.Round(bpmParseado, 1));
+                            continue;
+                        }
+                    }
+                }
+
+                var alertasDelDia = alertasMesBD
+                    .Where(a => a.fecha_hora.HasValue && a.fecha_hora.Value.Day == dia)
+                    .ToList();
+
+                if (alertasDelDia.Any())
+                {
+                    double promedioDia = alertasDelDia.Average(a => a.fc_media);
+                    datosGrafica.Add(Math.Round(promedioDia, 1));
+                }
+                else
+                {
+                    datosGrafica.Add(0);
+                }
+            }
+
+            // 5. MODIFICADO: Aquí asignamos el nombre y la edad real calculada desde la API
             var modelo = new ReporteSalud
             {
                 NombrePaciente = pacienteBD.nombre,
-                EdadPaciente = edadCalculada,
+                EdadPaciente = edadCalculada,      
                 Periodo = new DateTime(año, mes, 1).ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-MX")),
-                Identificador = $"VB-{año}-{mes:00}-{usuarioId}",
-                Incidentes = incidentesReporte
+                Identificador = $"VB-{año}-{mes:00}-{idPacienteSQL}",
+                Incidentes = incidentesReporte,
+                DatosGrafica = datosGrafica
             };
 
             return View("ReporteSalud", modelo);

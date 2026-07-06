@@ -130,5 +130,21 @@ namespace VitalBand.Controllers.Api
                 }
             }
         }
+
+        // GET: api/UsuariosApi/ObtenerUsuarioIdPorPaciente/{pacienteId}
+        [HttpGet("ObtenerUsuarioIdPorPaciente/{pacienteId}")]
+        public async Task<IActionResult> ObtenerUsuarioIdPorPaciente(int pacienteId)
+        {
+            // Buscamos al paciente por su ID de Perfil/Paciente
+            var paciente = await _context.Pacientes.FindAsync(pacienteId);
+
+            if (paciente == null)
+            {
+                return NotFound(new { mensaje = "Paciente no encontrado." });
+            }
+
+            // Si se encuentra, devolvemos un objeto con su usuario_id real de telemetría
+            return Ok(new { usuarioIdReal = paciente.usuario_id });
+        }
     }
 }

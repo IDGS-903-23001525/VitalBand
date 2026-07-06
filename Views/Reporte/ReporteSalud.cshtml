@@ -343,7 +343,10 @@
         <div class="report-meta">
             <div class="report-meta-group">
                 <label>Datos del Paciente</label>
-                <strong>@(Model?.NombrePaciente ?? "Paulina Vargas"), @(Model?.EdadPaciente ?? 21) años</strong>
+                <strong>
+                    @(!string.IsNullOrEmpty(Model?.NombrePaciente) ? Model.NombrePaciente : "Paulina Vargas"), 
+                    @((Model?.EdadPaciente ?? 0) > 0 ? Model.EdadPaciente : 21) años
+                </strong>
             </div>
             <div class="report-meta-group" style="text-align:right;">
                 <label>Período</label>
@@ -352,14 +355,8 @@
         </div>
 
         <p class="section-title">Análisis de Frecuencia Cardíaca</p>
-        <div class="chart-placeholder">
-            <canvas id="sparkChart"></canvas>
-            <div class="chart-placeholder-inner">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-                <span>Gráfico de Tendencia Mensual</span>
-            </div>
+        <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 12px; padding: 1.25rem; margin-bottom: 2rem; height: 240px; position: relative;">
+            <canvas id="sparkChart" style="max-height: 100%; width: 100%;"></canvas>
         </div>
 
         <div class="incidents-section">
@@ -422,41 +419,62 @@
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         (function () {
-            var canvas = document.getElementById('sparkChart');
-            if (!canvas) return;
-            var ctx = canvas.getContext('2d');
-            var W = canvas.offsetWidth, H = canvas.offsetHeight;
-            canvas.width = W; canvas.height = H;
+            var ctx = document.getElementById('sparkChart');
+            if (!ctx) return;
 
-            var bpms = [74,76,73,77,71,74,70,72,73,70,70,72,77,70,76,75,76,76,74,74,77,70,71,75,75,76,71,74,74,74,88];
-            var min = 65, max = 95;
-            var pts = bpms.map(function(v, i) {
-                return {
-                    x: (i / (bpms.length - 1)) * W,
-                    y: H - ((v - min) / (max - min)) * H * 0.8 - H * 0.1
-                };
+            // 1. Mapeamos los datos numéricos inyectados desde el backend en C#
+            var rawData = @Html.Raw(Json.Serialize(Model?.DatosGrafica ?? new List<double>()));
+            
+            // 2. Generamos las etiquetas de los días de forma automática (Día 1, Día 2...)
+            var labels = rawData.map(function(val, index) { return "Día " + (index + 1); });
+
+            // 3. Renderizamos la gráfica con Chart.js respetando tu paleta estética cian/azul
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frecuencia Cardíaca Promedio (BPM)',
+                        data: rawData,
+                        borderColor: '#0891b2', // Color --blue-600
+                        backgroundColor: 'rgba(6, 182, 212, 0.12)', // Sombreado bajo la curva
+                        borderWidth: 2.5,
+                        tension: 0.35, 
+                        pointRadius: rawData.length > 15 ? 1 : 3,
+                        pointBackgroundColor: '#06b6d4',
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    spanGaps: true,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            min: 50,
+                            max: 110,
+                            ticks: { color: '#475569', font: { family: 'Inter' } },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { 
+                                color: '#475569', 
+                                font: { family: 'Inter', size: 10 },
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 15
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
             });
-
-            ctx.beginPath();
-            ctx.moveTo(pts[0].x, pts[0].y);
-            for (var i = 1; i < pts.length; i++) {
-                var cp = { x: (pts[i-1].x + pts[i].x) / 2, y: (pts[i-1].y + pts[i].y) / 2 };
-                ctx.quadraticCurveTo(pts[i-1].x, pts[i-1].y, cp.x, cp.y);
-            }
-            ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
-            ctx.strokeStyle = '#378ADD';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-
-            ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
-            var grad = ctx.createLinearGradient(0, 0, 0, H);
-            var grayColor = getComputedStyle(document.documentElement).getPropertyValue('--gray-400').trim() || '#94a3b8';
-            grad.addColorStop(0, 'rgba(55,138,221,0.25)');
-            grad.addColorStop(1, 'rgba(55,138,221,0)');
-            ctx.fillStyle = grad;
-            ctx.fill();
         })();
     </script>
 }
