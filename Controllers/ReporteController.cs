@@ -25,13 +25,13 @@ namespace VitalBand.Controllers
         }
 
         [HttpGet] // 1. ASEGÚRATE DE QUE TENGA EL ATRIBUTO HTTPGET
-        public async Task<IActionResult> Index(int año = 0, int mes = 0, int usuarioId = 0)
+        public async Task<IActionResult> Index(int año = 0, int mes = 0, int usuarioId = 0, int idPacienteExterno = 0)
         {
 
             if (año == 0) año = DateTime.Today.Year;
             if (mes == 0) mes = DateTime.Today.Month;
 
-            int idPacienteSQL = usuarioId;
+            int idPacienteSQL = idPacienteExterno == 0 ? 1 : idPacienteExterno;
 
             if (User.IsInRole("Paciente") || User.IsInRole("paciente"))
             {
@@ -62,8 +62,16 @@ namespace VitalBand.Controllers
             if (!responsePaciente.IsSuccessStatusCode)
                 return NotFound("No se encontró el expediente del paciente.");
 
-            var pacienteBD = await responsePaciente.Content.ReadFromJsonAsync<Paciente>();
-            if (pacienteBD == null) return NotFound("No se pudo leer la información del expediente.");
+            // --- REEMPLAZO DE LECTURA DE JSON (AGREGAR AQUÍ) ---
+            var opcionesJson = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var jsonCompleto = await responsePaciente.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>(opcionesJson);
+
+            if (!jsonCompleto.TryGetProperty("paciente", out var pacientePropiedad))
+                return NotFound("No se encontró la propiedad 'paciente' en la respuesta.");
+
+            // Convertimos ese pedazo de JSON interno directamente en tu objeto Paciente
+            var pacienteBD = System.Text.Json.JsonSerializer.Deserialize<Paciente>(pacientePropiedad.GetRawText(), opcionesJson);
+            if (pacienteBD == null) return NotFound("No se pudo deserializar la información del expediente.");
 
             // Calculamos la edad de forma idéntica (AQUÍ YA SE CALCULA TU EDAD DINÁMICA)
             int edadCalculada = DateTime.Today.Year - pacienteBD.fecha_nacimiento.Year;
@@ -98,8 +106,7 @@ namespace VitalBand.Controllers
             // ─── CONSUMIR LA TELEMETRÍA MENSUAL COMPLETAMENTE DINÁMICA ───
             var datosTelemetriaMensual = new List<Dictionary<string, object>>();
 
-            // Evaluamos dinámicamente: usamos el ID de usuario vinculado al paciente.
-            int idParaBuscar = pacienteBD.usuario_id > 0 ? pacienteBD.usuario_id : idPacienteSQL;
+            int idParaBuscar = usuarioId == 0 ? idPacienteSQL : usuarioId;
 
             string urlTelemetria = _apiUrlProvider.GetApiUrl($"/api/VitalSign/mensual/{idParaBuscar}/{año}/{mes}");
             var responseTelemetria = await client.GetAsync(urlTelemetria);
@@ -154,11 +161,11 @@ namespace VitalBand.Controllers
                 }
             }
 
-            // 5. MODIFICADO: Aquí asignamos el nombre y la edad real calculada desde la API
+            // Aquí sigue tu objeto modelo original
             var modelo = new ReporteSalud
             {
-                NombrePaciente = pacienteBD.nombre,
-                EdadPaciente = edadCalculada,      
+                NombrePaciente = pacienteBD?.nombre,
+                EdadPaciente = edadCalculada, // <--- Revisa si aquí tenías la variable 'año' por error
                 Periodo = new DateTime(año, mes, 1).ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-MX")),
                 Identificador = $"VB-{año}-{mes:00}-{idPacienteSQL}",
                 Incidentes = incidentesReporte,

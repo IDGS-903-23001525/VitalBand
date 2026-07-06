@@ -183,6 +183,8 @@ namespace VitalBand.Controllers
                 });
             }
 
+            ViewBag.FechaRegistro = paciente.Usuario?.fecha_registro ?? DateTime.Today.AddDays(-7);
+
             return new HistorialMensual
             {
                 PeriodoNombre = primerDia.ToString("MMMM yyyy", new System.Globalization.CultureInfo("es-MX")),
@@ -240,8 +242,8 @@ namespace VitalBand.Controllers
                 }
             }
 
-            // 4. Redirige limpiamente al ReporteController pasando el ID DE USUARIO REAL extraído por la API
-            return RedirectToAction("Index", "Reporte", new { año = año, mes = mes, usuarioId = idUsuarioReal });
+            // Modifica el nombre del parámetro para que coincida con la firma del ReporteController
+            return RedirectToAction("Index", "Reporte", new { año = año, mes = mes, usuarioId = idUsuarioReal, idPacienteExterno = usuarioId });
         }
     }
 }

@@ -510,12 +510,18 @@
                 var dias = Model?.DiasDelMes ?? new List<VitalBand.Models.DiaHistorial>();
             }
 
+            @{
+                DateTime fechaRegistro = (ViewBag.FechaRegistro is DateTime) ? ((DateTime)ViewBag.FechaRegistro).Date : DateTime.MinValue.Date;
+                DateTime fechaHoy = DateTime.Today.Date;
+            }
+
             @foreach (var dia in dias)
             {
-                var fechaDia = new DateTime(Model.Año, Model.Mes, dia.Numero);
+                var fechaDia = new DateTime(Model.Año, Model.Mes, dia.Numero).Date;
                 var cellClass = dia.TieneAlerta ? "cal-cell alert" : "cal-cell";
                 if (esMedico) cellClass += " clickable";
                 if (!esMedico) cellClass += " disabled-cell";
+                
                 <div class="@cellClass" data-fecha='@fechaDia.ToString("yyyy-MM-dd")'>
                     @if (dia.TieneAlerta)
                     {
@@ -527,18 +533,32 @@
                     }
 
                     <div class="cal-day-num">@dia.Numero</div>
-                    @if (dia.BpmPromedio == 72 && !dia.TieneAlerta)
+
+                    @if (fechaDia == fechaRegistro)
                     {
-                        <div class="text-muted" style="font-size: 0.65rem; font-style: italic; margin-top: 5px;">Sin registros</div>
+                        <div style="font-size: 0.65rem; font-weight: 700; color: var(--teal-700); margin-top: 3px; line-height: 1.1;">Inicio en aplicación VitalBand</div>
                     }
-                    else
+
+                    @if (dia.BpmPromedio != 72 || dia.TieneAlerta)
                     {
                         <div class="cal-bpm-label">Prom:</div>
                         <div class="cal-bpm">@dia.BpmPromedio BPM</div>
-                        <svg class="ok-icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12" />
-                        </svg>
+    
+                        @if (!dia.TieneAlerta)
+                        {
+                            <svg class="ok-icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        }
                     }
+                    else
+                    {
+                        if (fechaDia > fechaRegistro && fechaDia <= fechaHoy)
+                        {
+                            <div class="text-muted" style="font-size: 0.65rem; font-style: italic; margin-top: 5px;">Sin registros</div>
+                        }
+                    }
+
                     @if (dia.TieneAlerta && !string.IsNullOrEmpty(dia.MensajeAlerta))
                     {
                         <div class="cal-alert-badge">@dia.MensajeAlerta</div>
