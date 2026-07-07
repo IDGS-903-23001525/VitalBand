@@ -72,7 +72,8 @@ namespace VitalBand.Controllers
             // Armamos el modelo original "DatosGenerales" intacto para la vista
             var modelo = new DatosGenerales
             {
-                UsuarioId = paciente.usuario_id, // Mantiene el ID del Paciente que la vista necesita
+                UsuarioId = paciente.usuario_id, // ID del usuario (para telemetría InfluxDB)
+                PacienteId = paciente.id,        // ID del paciente (para alertas y navegación)
                 Nombre = paciente.nombre,
                 Edad = edadCalculada,
                 Genero = paciente.genero ?? "No especificado",

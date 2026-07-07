@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         @if (User.IsInRole("Medico"))
         {
-            <input type="hidden" id="hdnPatientId" value="@Model.UsuarioId" />
+            <input type="hidden" id="hdnPatientId" value="@Model.PacienteId" />
         }
     </div>
 
@@ -596,9 +596,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const fechaSeleccionada = document.getElementById('selectedDate').value;
             
             try {
-                // Consumimos el endpoint GET "hoy/{userId}" corregido anteriormente
-                // Consumimos el endpoint enviando el parámetro de la fecha seleccionada
-                const response = await fetch(`https://localhost:7116/api/VitalSign/hoy/${userId}?fecha=${fechaSeleccionada}`);
+                // Consumimos el endpoint GET "hoy/{userId}" usando una ruta relativa al mismo origen.
+                const response = await fetch(`/api/VitalSign/hoy/${encodeURIComponent(userId)}?fecha=${encodeURIComponent(fechaSeleccionada)}`);
                 if (!response.ok) throw new Error('Error en la respuesta de la API');
                 
                 const datos = await response.json();

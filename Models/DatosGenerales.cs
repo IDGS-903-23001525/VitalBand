@@ -8,6 +8,7 @@ namespace VitalBand.Models
     public class DatosGenerales
     {
         public int UsuarioId { get; set; }
+        public int PacienteId { get; set; }
         public string Nombre { get; set; } = string.Empty;
         public int Edad { get; set; }
         public string Genero { get; set; } = string.Empty;

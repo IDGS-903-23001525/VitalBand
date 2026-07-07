@@ -1,12 +1,10 @@
-﻿using InfluxDB.Client;
-using InfluxDB.Client.Api.Domain;
-using InfluxDB.Client.Writes;
+﻿using InfluxDB3.Client;
+using InfluxDB3.Client.Config;
+using InfluxDB3.Client.Write;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using VitalBand.Models;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
-using System.Linq;
+using System.Globalization;
+using VitalBand.Models;
 
 namespace VitalBand.Controllers.Api
 {
@@ -22,28 +20,39 @@ namespace VitalBand.Controllers.Api
         }
 
         [HttpPost("registrar-reposo")]
-        public async Task<IActionResult> RegistrarVectoresReposo([FromBody] TelemetriaSaludDto data)
+        public async Task<IActionResult> RegistrarVectoresReposo([FromBody] TelemetriaSaludDto? data)
         {
-            if (data == null) return BadRequest("El vector de datos no puede estar vacío.");
+            if (data is null)
+            {
+                return BadRequest("El vector de datos no puede estar vacío.");
+            }
 
             var url = _configuration["InfluxDB:Url"];
             var token = _configuration["InfluxDB:Token"];
-            var org = _configuration["InfluxDB:Org"];
-            var bucket = _configuration["InfluxDB:Bucket"];
+            var database = _configuration["InfluxDB:Database"] ?? _configuration["InfluxDB:Bucket"];
 
-            using var client = new InfluxDBClient(url, token);
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(database))
+            {
+                return StatusCode(500, new { status = "Error", error = "Faltan configuraciones de InfluxDB." });
+            }
 
             try
             {
-                var point = PointData.Measurement("signos_vitales")
-                    .Tag("userId", data.UserId)
-                    .Field("bpm", data.Bpm)
-                    .Field("rmssd", data.Rmssd)
-                    .Field("spo2", data.Spo2)
-                    .Timestamp(DateTime.UtcNow, WritePrecision.Ms);
+                using var client = new InfluxDBClient(new ClientConfig
+                {
+                    Host = url,
+                    Token = token,
+                    Database = database
+                });
 
-                var writeApi = client.GetWriteApiAsync();
-                await writeApi.WritePointAsync(point, bucket, org);
+                var point = PointData.Measurement("signos_vitales")
+                    .SetTag("userId", data.UserId)
+                    .SetField("bpm", data.Bpm)
+                    .SetField("rmssd", data.Rmssd)
+                    .SetField("spo2", data.Spo2)
+                    .SetTimestamp(DateTime.UtcNow);
+
+                await client.WritePointAsync(point: point);
 
                 return Ok(new { status = "Éxito", message = "Vector tridimensional guardado correctamente." });
             }
@@ -54,56 +63,70 @@ namespace VitalBand.Controllers.Api
         }
 
         [HttpGet("hoy/{userId}")]
-        public async Task<IActionResult> ObtenerRegistrosHoy(string userId, [FromQuery] string fecha = null)
+        public async Task<IActionResult> ObtenerRegistrosHoy(string userId, [FromQuery] string? fecha = null)
         {
-            if (string.IsNullOrEmpty(userId)) return BadRequest("El ID de usuario es requerido.");
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                return BadRequest("El ID de usuario es requerido.");
+            }
 
             var url = _configuration["InfluxDB:Url"];
             var token = _configuration["InfluxDB:Token"];
-            var org = _configuration["InfluxDB:Org"];
-            var bucket = _configuration["InfluxDB:Bucket"];
+            var database = _configuration["InfluxDB:Database"] ?? _configuration["InfluxDB:Bucket"];
 
-            using var client = new InfluxDBClient(url, token);
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(database))
+            {
+                return StatusCode(500, new { status = "Error", error = "Faltan configuraciones de InfluxDB." });
+            }
 
             try
             {
+                using var client = new InfluxDBClient(new ClientConfig
+                {
+                    Host = url,
+                    Token = token,
+                    Database = database
+                });
+
                 DateTime diaBase = DateTime.Today;
-                if (!string.IsNullOrEmpty(fecha) && DateTime.TryParse(fecha, out var fechaParseada))
+                if (!string.IsNullOrWhiteSpace(fecha) && DateTime.TryParse(fecha, out var fechaParseada))
                 {
                     diaBase = fechaParseada.Date;
                 }
 
                 DateTime inicioHoyUtc = new DateTime(diaBase.Year, diaBase.Month, diaBase.Day, 0, 0, 0, DateTimeKind.Utc);
-                DateTime finHoyUtc = inicioHoyUtc.AddDays(1).AddTicks(-1);
+                DateTime finHoyUtc = inicioHoyUtc.AddDays(1);
 
-                string startIso = inicioHoyUtc.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                string stopIso = finHoyUtc.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                string query = """
+                    SELECT time, "userId", bpm, rmssd, spo2
+                    FROM signos_vitales
+                    WHERE time >= $start AND time < $stop AND "userId" = $userId
+                    ORDER BY time ASC
+                    """;
 
-                string query = $@"
-            from(bucket: ""{bucket}"")
-              |> range(start: {startIso}, stop: {stopIso})
-              |> filter(fn: (r) => r[""_measurement""] == ""signos_vitales"")
-              |> filter(fn: (r) => r[""userId""] == ""{userId}"")
-              |> pivot(rowKey:[""_time""], columnKey: [""_field""], valueColumn: ""_value"")";
+                var rows = new List<object?[]>();
+                await foreach (var row in client.Query(
+                    query: query,
+                    namedParameters: new Dictionary<string, object>
+                    {
+                        ["start"] = inicioHoyUtc.ToString("o"),
+                        ["stop"] = finHoyUtc.ToString("o"),
+                        ["userId"] = userId
+                    }))
+                {
+                    rows.Add(row);
+                }
 
-                var queryApi = client.GetQueryApi();
-                var tables = await queryApi.QueryAsync(query, org);
-
-                var resultado = tables
-                    .SelectMany(table => table.Records)
-                    .Select(record => {
-                        var fluxTime = record.GetTime();
-
-                        return new
-                        {
-                            fecha = fluxTime != null ? fluxTime.Value.ToDateTimeUtc() : DateTime.UtcNow,
-                            userId = record.GetValueByKey("userId")?.ToString(),
-                            bpm = record.GetValueByKey("bpm"),
-                            rmssd = record.GetValueByKey("rmssd"),
-                            spo2 = record.GetValueByKey("spo2")
-                        };
+                var resultado = rows
+                    .Select(row => new
+                    {
+                        fecha = ToIsoMilisegundos(row[0]),
+                        userId = row[1],
+                        bpm = row[2],
+                        rmssd = row[3],
+                        spo2 = row[4]
                     })
-                    .OrderBy(r => r.fecha)
+                    .OrderBy(x => x.fecha)
                     .ToList();
 
                 return Ok(resultado);
@@ -119,56 +142,68 @@ namespace VitalBand.Controllers.Api
         {
             var url = _configuration["InfluxDB:Url"];
             var token = _configuration["InfluxDB:Token"];
-            var org = _configuration["InfluxDB:Org"];
-            var bucket = _configuration["InfluxDB:Bucket"];
+            var database = _configuration["InfluxDB:Database"] ?? _configuration["InfluxDB:Bucket"];
 
-            using var client = new InfluxDBClient(url, token);
+            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(database))
+            {
+                return StatusCode(500, new { error = "Faltan configuraciones de InfluxDB." });
+            }
 
             try
             {
-                DateTime inicioMesLocal = new DateTime(ano, mes, 1, 0, 0, 0);
-                DateTime finMesLocal = inicioMesLocal.AddMonths(1).AddTicks(-1);
+                using var client = new InfluxDBClient(new ClientConfig
+                {
+                    Host = url,
+                    Token = token,
+                    Database = database
+                });
 
-                DateTime startUtc = inicioMesLocal.AddHours(6);
-                DateTime stopUtc = finMesLocal.AddHours(6);
+                DateTime inicioMesUtc = new DateTime(ano, mes, 1, 0, 0, 0, DateTimeKind.Utc);
+                DateTime finMesUtc = inicioMesUtc.AddMonths(1);
 
-                string startIso = startUtc.ToString("yyyy-MM-ddTHH:mm:ssZ");
-                string stopIso = stopUtc.ToString("yyyy-MM-ddTHH:mm:ssZ");
+                string query = """
+                    SELECT time, bpm
+                    FROM signos_vitales
+                    WHERE time >= $start AND time < $stop AND "userId" = $userId
+                    ORDER BY time ASC
+                    """;
 
-                string query = $@"
-            from(bucket: ""{bucket}"")
-              |> range(start: {startIso}, stop: {stopIso})
-              |> filter(fn: (r) => r[""_measurement""] == ""signos_vitales"")
-              |> filter(fn: (r) => r[""userId""] == ""{userId}"")
-              |> filter(fn: (r) => r[""_field""] == ""bpm"")
-              |> yield(name: ""mean"")";
-
-                var queryApi = client.GetQueryApi();
-                var tables = await queryApi.QueryAsync(query, org);
-
-                var registrosCrudos = tables
-                    .SelectMany(table => table.Records)
-                    .Select(record => {
-                        var fluxTime = record.GetTime();
-                        DateTime fechaLocal = fluxTime != null ? fluxTime.Value.ToDateTimeUtc().AddHours(-6) : DateTime.MinValue;
-
-                        return new
-                        {
-                            DiaLocal = fechaLocal.Day,
-                            Valor = record.GetValue() != null ? Convert.ToDouble(record.GetValue()) : 0
-                        };
-                    })
-                    .Where(r => r.DiaLocal > 0)
-                    .ToList();
-
-                var resultado = registrosCrudos
-                    .GroupBy(r => r.DiaLocal)
-                    .Select(g => new
+                var registrosPorDia = new Dictionary<int, List<double>>();
+                await foreach (var row in client.Query(
+                    query: query,
+                    namedParameters: new Dictionary<string, object>
                     {
-                        dia = g.Key,
-                        bpmPromedio = (int)Math.Round(g.Average(r => r.Valor))
+                        ["start"] = inicioMesUtc.ToString("o"),
+                        ["stop"] = finMesUtc.ToString("o"),
+                        ["userId"] = userId
+                    }))
+                {
+                    if (row.Length < 2 || row[0] is null || row[1] is null)
+                    {
+                        continue;
+                    }
+
+                    DateTime fecha = ToDateTimeUtc(row[0]);
+
+                    if (double.TryParse(row[1]?.ToString(), CultureInfo.InvariantCulture, out var bpm))
+                    {
+                        int dia = fecha.Day;
+                        if (!registrosPorDia.ContainsKey(dia))
+                        {
+                            registrosPorDia[dia] = new List<double>();
+                        }
+
+                        registrosPorDia[dia].Add(bpm);
+                    }
+                }
+
+                var resultado = registrosPorDia
+                    .OrderBy(x => x.Key)
+                    .Select(x => new
+                    {
+                        dia = x.Key,
+                        bpmPromedio = Math.Round(x.Value.Average(), 2)
                     })
-                    .OrderBy(r => r.dia)
                     .ToList();
 
                 return Ok(resultado);
@@ -177,6 +212,44 @@ namespace VitalBand.Controllers.Api
             {
                 return StatusCode(500, new { error = ex.Message });
             }
+        }
+
+        private static string ToIsoMilisegundos(object? valor)
+        {
+            var dt = ToDateTimeUtc(valor);
+            return dt.ToString("yyyy-MM-ddTHH:mm:ss.fff", CultureInfo.InvariantCulture);
+        }
+
+        private static DateTime ToDateTimeUtc(object? valor)
+        {
+            DateTime dt;
+            var s = valor?.ToString();
+
+            if (long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var nanos) && s!.Length >= 18)
+            {
+                dt = DateTimeOffset.FromUnixTimeMilliseconds(nanos / 1_000_000).UtcDateTime;
+            }
+            else if (long.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out var micros) && s!.Length >= 15)
+            {
+                dt = DateTimeOffset.FromUnixTimeMilliseconds(micros / 1_000).UtcDateTime;
+            }
+            else
+            {
+                dt = valor switch
+                {
+                    DateTime d => d,
+                    DateTimeOffset dto => dto.UtcDateTime,
+                    _ => DateTime.Parse(s!, CultureInfo.InvariantCulture,
+                        DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal)
+                };
+            }
+
+            if (dt.Kind == DateTimeKind.Local)
+            {
+                dt = dt.ToUniversalTime();
+            }
+
+            return dt;
         }
     }
 }

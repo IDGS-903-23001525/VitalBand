@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -155,14 +156,14 @@ namespace VitalBand.Controllers
 
                 // Buscamos si en la lista de diccionarios existe el día corriente
                 var lecturaDeEsteDia = datosTelemetriaMensual.FirstOrDefault(lectura =>
-                    lectura.TryGetValue("dia", out var d) && d != null && Convert.ToInt32(d.ToString()) == diaCorriente);
+                    lectura.TryGetValue("dia", out var d) && d != null && Convert.ToInt32(d.ToString(), CultureInfo.InvariantCulture) == diaCorriente);
 
                 if (lecturaDeEsteDia != null && lecturaDeEsteDia.TryGetValue("bpmPromedio", out var bpmVal) && bpmVal != null)
                 {
-                    int bpmParseado = Convert.ToInt32(bpmVal.ToString());
+                    double bpmParseado = Convert.ToDouble(bpmVal.ToString(), CultureInfo.InvariantCulture);
                     if (bpmParseado > 0)
                     {
-                        promedioPulso = bpmParseado;
+                        promedioPulso = (int)Math.Round(bpmParseado);
                     }
                 }
                 else if (tieneAlertaEseDia)
@@ -191,10 +192,10 @@ namespace VitalBand.Controllers
                 Mes = mes,
                 Año = año,
                 DiasVaciosInicio = diasVacios,
-                PromedioMensual = datosTelemetriaMensual.Any(t => t.TryGetValue("bpmPromedio", out var b) && Convert.ToInt32(b.ToString()) > 0)
+                PromedioMensual = datosTelemetriaMensual.Any(t => t.TryGetValue("bpmPromedio", out var b) && b != null && Convert.ToDouble(b.ToString(), CultureInfo.InvariantCulture) > 0)
                     ? (int)Math.Round(datosTelemetriaMensual
-                        .Where(t => t.TryGetValue("bpmPromedio", out var b) && Convert.ToInt32(b.ToString()) > 0)
-                        .Average(t => Convert.ToDouble(t["bpmPromedio"].ToString())))
+                        .Where(t => t.TryGetValue("bpmPromedio", out var b) && b != null && Convert.ToDouble(b.ToString(), CultureInfo.InvariantCulture) > 0)
+                        .Average(t => Convert.ToDouble(t["bpmPromedio"].ToString(), CultureInfo.InvariantCulture)))
                     : pulsoBaseEstable,
                 TotalIncidentes = alertasDelMes.Count,
                 EstadoSalud = alertasDelMes.Count > 5 ? "Riesgo Moderado" : "Estable",
@@ -228,7 +229,7 @@ namespace VitalBand.Controllers
             {
                 using (var client = new HttpClient())
                 {
-                    string urlApiUsuario = $"http://localhost:5120/api/UsuariosApi/ObtenerUsuarioIdPorPaciente/{usuarioId}";
+                    string urlApiUsuario = _apiUrlProvider.GetApiUrl($"/api/UsuariosApi/ObtenerUsuarioIdPorPaciente/{usuarioId}");
                     var response = await client.GetAsync(urlApiUsuario);
 
                     if (response.IsSuccessStatusCode)
