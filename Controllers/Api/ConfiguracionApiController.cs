@@ -19,7 +19,6 @@ namespace VitalBand.Controllers.Api
             _context = context;
         }
 
-        // GET: api/ConfiguracionApi/paciente/5
         [HttpGet("paciente/{id}")]
         public async Task<IActionResult> GetConfiguracionPaciente(int id)
         {
@@ -29,8 +28,6 @@ namespace VitalBand.Controllers.Api
 
             if (paciente == null) return NotFound();
 
-            // Si tiene un médico asignado, podemos inyectarle la Cédula al vuelo en una propiedad dinámica o DTO si lo prefieres,
-            // pero para mantener tu Paciente plano, la web se encargará de pedirla o la API la incluye si creas un objeto anónimo:
             string? cedulaActual = null;
             if (paciente.medico_asignado_id.HasValue)
             {
@@ -44,7 +41,6 @@ namespace VitalBand.Controllers.Api
             return Ok(new { paciente, cedulaActual, usuarioEmail = paciente.Usuario?.email });
         }
 
-        // GET: api/ConfiguracionApi/verificar-cedula?cedula=XYZ
         [HttpGet("verificar-cedula")]
         public async Task<IActionResult> VerificarCedula(string cedula)
         {
@@ -55,10 +51,9 @@ namespace VitalBand.Controllers.Api
             {
                 return Ok(new { existe = true, id = medico.id, nombre = medico.nombre });
             }
-            return Ok(new { existe = false, mensaje = "Médico no encontrado en VitalBand ❌" });
+            return Ok(new { existe = false, mensaje = "Médico no encontrado en VitalBand" });
         }
 
-        // PUT: api/ConfiguracionApi/paciente/5
         [HttpPut("paciente/{id}")]
         public async Task<IActionResult> UpdateConfiguracion(int id, [FromBody] UsuarioResumen model)
         {
@@ -70,7 +65,7 @@ namespace VitalBand.Controllers.Api
             paciente.peso_inicial = model.Peso;
             paciente.altura_inicial = model.Altura;
             paciente.historial_medico_breve = model.HistorialMedico;
-            paciente.medico_asignado_id = model.MedicoAsignadoId; // Vinculación unificada del médico
+            paciente.medico_asignado_id = model.MedicoAsignadoId; 
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.id == paciente.usuario_id);
             if (usuario != null) usuario.email = model.Email;
@@ -78,8 +73,7 @@ namespace VitalBand.Controllers.Api
             await _context.SaveChangesAsync();
             return Ok();
         }
-        // GET: api/ConfiguracionApi/pacientes
-        // Trae la lista completa de todos los pacientes en el sistema
+
         [HttpGet("pacientes")]
         public async Task<IActionResult> GetTodosLosPacientes()
         {
@@ -90,7 +84,6 @@ namespace VitalBand.Controllers.Api
             return Ok(pacientes);
         }
 
-        // POST: api/ConfiguracionApi/registro-paciente
         [HttpPost("registro-paciente")]
         public async Task<IActionResult> RegistroPaciente([FromBody] RegistroPacienteDTO model)
         {
@@ -101,7 +94,6 @@ namespace VitalBand.Controllers.Api
             {
                 try
                 {
-                    // Encripta la contraseña del paciente antes de meterla a la base de datos
                     string passwordSegura = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
                     var nuevoUsuario = new Usuario

@@ -4,10 +4,13 @@
 }
 
 @section Styles {
+    <!-- ── HOJA DE ESTILOS MAPA INTERACTIVO ── -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
     <style>
         .atender-container {
             max-width: 900px;
-            margin: 2rem auto;
+            margin: 1rem auto;
             background: rgba(255,255,255,0.22);
             backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
             -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
@@ -17,193 +20,209 @@
             box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
         }
 
-        /* 🛠️ CORRECCIÓN: Evaluamos de forma segura si es true */
+        @@media (min-width: 768px) {
+            .atender-container {
+                margin: 2rem auto;
+            }
+        }
+
         .alerta-header {
-            padding: 1rem 1.5rem;
-            background: @(Model.Atendida == true ? "var(--gray-50)" : "var(--red-50)");
-            border-bottom: 1px solid var(--gray-100);
+            padding: 1.25rem 1.5rem;
+            background: @(Model.Atendida == true ? "rgba(241, 245, 249, 0.6)" : "rgba(254, 242, 242, 0.7)");
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         }
 
             .alerta-header h2 {
-                font-size: 1.25rem;
-                font-weight: 600;
-                color: @(Model.Atendida == true ? "var(--gray-900)" : "var(--red-600)");
+                font-size: 1.2rem;
+                font-weight: 700;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                color: @(Model.Atendida == true ? "#334155" : "#dc2626");
             }
 
-        .mapa-placeholder {
-            background: var(--gray-100);
-            height: 250px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            font-family: monospace;
-            border-bottom: 1px solid var(--gray-200);
+        #mapRealAlert {
+            width: 100%;
+            height: 280px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+            z-index: 1;
         }
 
         .info-alerta {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.2rem;
             padding: 1.5rem;
         }
 
         .dato {
-            background: rgba(255,255,255,0.55);
+            background: rgba(255,255,255,0.65);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border: 1px solid rgba(6,182,212,0.15);
-            border-radius: 12px;
-            padding: 0.85rem;
-            box-shadow: 0 2px 10px rgba(8,145,178,0.06);
+            border: 1px solid rgba(13,148,136,0.15);
+            border-radius: 16px;
+            padding: 1rem;
+            box-shadow: 0 4px 14px rgba(8,145,178,0.04);
         }
 
             .dato label {
-                font-size: 0.7rem;
+                font-size: 0.68rem;
+                font-weight: 700;
                 text-transform: uppercase;
-                color: var(--gray-600);
+                letter-spacing: 0.5px;
+                color: #64748b;
                 display: block;
                 margin-bottom: 4px;
             }
 
             .dato strong {
-                font-size: 1rem;
+                font-size: 1.1rem;
+                color: #0f172a;
+                font-weight: 700;
             }
 
-        .respuesta {
-            grid-column: span 2;
-        }
+            .dato.respuesta {
+                grid-column: 1 / -1;
+            }
 
         .acciones {
-            padding: 1rem 1.5rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-            border-top: 1px solid var(--gray-100);
+            flex-direction: column-reverse;
+            gap: 0.8rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        @@media (min-width: 576px) {
+            .acciones {
+                flex-direction: row;
+                justify-content: flex-end;
+                gap: 1rem;
+            }
         }
 
         .btn {
-            padding: 0.5rem 1.2rem;
-            border-radius: 6px;
-            text-decoration: none;
-            font-weight: 500;
+            padding: 0.65rem 1.4rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-radius: 12px;
+            text-decoration: none !important;
             border: none;
             cursor: pointer;
             font-family: inherit;
-        }
-
-        .btn-secundario {
-            background: rgba(255,255,255,0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            border: 1.5px solid rgba(6,182,212,0.2);
-            color: var(--gray-700, #334155);
-            border-radius: 10px;
-        }
-
-            .btn-secundario:hover {
-                background: rgba(255,255,255,0.85);
-            }
-
-        .btn-primario {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            color: white;
-            box-shadow: 0 2px 8px rgba(6,182,212,0.3);
-        }
-
-        .btn-peligro {
-            /* Glassy, compact danger button that harmonizes with the palette */
-            padding: 0.4rem 0.9rem;
-            font-size: 0.95rem;
-            border-radius: 999px;
-            color: var(--red-700);
-            background: linear-gradient(180deg, rgba(254,202,202,0.22), rgba(254,226,226,0.12));
-            border: 1px solid rgba(239,68,68,0.18);
-            backdrop-filter: blur(6px) saturate(120%);
-            -webkit-backdrop-filter: blur(6px) saturate(120%);
-            box-shadow: 0 6px 18px rgba(239,68,68,0.10), inset 0 1px 0 rgba(255,255,255,0.35);
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
-        }
-
-        .btn-peligro:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 26px rgba(239,68,68,0.18), inset 0 1px 0 rgba(255,255,255,0.45);
-            background: linear-gradient(180deg, rgba(239,68,68,0.18), rgba(239,68,68,0.06));
-            color: white;
-        }
-
-        .btn-peligro:active { transform: translateY(0); }
-
-        /* Optional small numeric badge inside the button */
-        .btn-peligro .badge {
-            background: rgba(220,38,38,0.95);
-            color: white;
-            min-width: 18px;
-            height: 18px;
-            border-radius: 999px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
-            padding: 0 4px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+            transition: all 0.15s ease;
+            width: 100%;
         }
+
+        @@media (min-width: 576px) {
+            .btn {
+                width: auto;
+            }
+        }
+
+        .btn-secundario {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1.5px solid rgba(13,148,136,0.2);
+            color: #334155;
+        }
+
+            .btn-secundario:hover {
+                background: rgba(255,255,255,0.95);
+                transform: translateY(-1px);
+            }
+
+        .btn-peligro {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.2);
+        }
+
+            .btn-peligro:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(220, 38, 38, 0.3);
+                background: linear-gradient(135deg, #b91c1c, #991b1b);
+            }
+
+            .btn-peligro:active {
+                transform: translateY(0);
+            }
     </style>
 }
 
 <div class="atender-container">
     <div class="alerta-header">
-        <h2>@(Model.Atendida == true ? "Alerta atendida" : "¡Nueva alerta! Requiere atención")</h2>
+        <h2>@(Model.Atendida == true ? "✓ Alerta Gestionada e Historiada" : "⚠️ Incidente IoT Crítico en Proceso")</h2>
     </div>
 
-    <div class="mapa-placeholder">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#0891b2" stroke-width="1.5">
-            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-            <circle cx="12" cy="10" r="3" />
-        </svg>
-        <p><strong>Ubicación:</strong> Lat @Model.Latitud, Lng @Model.Longitud</p>
-        <small>(Integración con mapa real)</small>
-    </div>
+    <div id="mapRealAlert"></div>
 
     <div class="info-alerta">
         <div class="dato">
-            <label>Pulso registrado</label>
+            <label>Pulso Registrado</label>
             <strong>@Model.PulsoRegistrado BPM</strong>
         </div>
         <div class="dato">
-            <label>Duración del episodio</label>
-            <strong>@Model.DuracionSegundos segundos</strong>
+            <label>Duración del Episodio</label>
+            <strong>@Model.DuracionSegundos seg</strong>
         </div>
         <div class="dato">
-            <label>Fecha y hora</label>
-            <strong>@(Model.FechaHoraAlerta.HasValue ? Model.FechaHoraAlerta.Value.ToString("dd/MM/yyyy HH:mm") : "Sin fecha")</strong>
+            <label>Fecha y Hora Local</label>
+            <strong>@(Model.FechaHoraAlerta.HasValue ? Model.FechaHoraAlerta.Value.ToString("dd/MM/yyyy HH:mm") : "Sin Registro")</strong>
         </div>
         <div class="dato">
-            <label>Estado</label>
-            <strong>@(Model.Atendida == true ? "Atendida" : "Pendiente")</strong>
+            <label>Estado Clínico</label>
+            <strong style="color: @(Model.Atendida == true ? "#16a34a" : "#dc2626")">
+                @(Model.Atendida == true ? "Atendida" : "Pendiente de Asignación")
+            </strong>
         </div>
         <div class="dato respuesta">
-            <label>Respuesta del paciente</label>
-            <strong>@Model.RespuestaUsuario</strong>
+            <label>Respuesta o Comentarios del Paciente</label>
+            <strong>@(!string.IsNullOrEmpty(Model.RespuestaUsuario) ? Model.RespuestaUsuario : "El paciente no ha ingresado notas adicionales en la pulsera.")</strong>
         </div>
     </div>
 
     <div class="acciones">
-        <a asp-controller="HistorialAlertas" asp-action="Index" asp-route-usuarioId="@ViewBag.UsuarioId" class="btn btn-secundario">Volver al historial</a>
+        <a asp-controller="HistorialAlertas" asp-action="Index" asp-route-usuarioId="@ViewBag.UsuarioId" class="btn btn-secundario">Regresar al Tablero</a>
 
         @if (Model.Atendida != true)
         {
-            <form asp-action="MarcarAtendida" asp-controller="AtenderAlerta" method="post" style="margin:0;">
+            <form asp-action="MarcarAtendida" asp-controller="AtenderAlerta" method="post" style="margin:0; width:100%; display:contents;">
                 @Html.AntiForgeryToken()
-
-                <!-- 🛠️ CORRECCIÓN: Cambia name="alertaId" por name="id" -->
                 <input type="hidden" name="id" value="@Model.AlertaId" />
-
-                <button type="submit" class="btn btn-peligro">Marcar como atendida</button>
+                <button type="submit" class="btn btn-peligro">Marcar como Atendida</button>
             </form>
         }
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        var lat = parseFloat('@Model.Latitud');
+        var lng = parseFloat('@Model.Longitud');
+
+        if (isNaN(lat) || lat === 0) lat = 21.1226;
+        if (isNaN(lng) || lng === 0) lng = -101.6807;
+
+        var map = L.map('mapRealAlert').setView([lat, lng], 15);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        var marker = L.marker([lat, lng]).addTo(map);
+        marker.bindPopup("<b>Ubicación del Incidente</b><br>Pac. VitalBand").openPopup();
+        });
+    </script>
+}

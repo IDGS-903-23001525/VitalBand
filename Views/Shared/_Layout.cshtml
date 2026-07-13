@@ -16,29 +16,19 @@
             }
 
             :root {
-                /* Cyan / Teal */
-                --teal-900: #0d3d40;
-                --teal-700: #0a6775;
-                --teal-600: #0891b2;
-                --teal-500: #06b6d4;
-                --teal-400: #22d3ee;
-                --teal-100: #cffafe;
-                --teal-50: #ecfeff;
-                /* Emerald */
-                --em-700: #065f46;
+                --teal-900: #09333f;
+                --teal-700: #0f766e;
+                --teal-600: #0d9488;
+                --teal-500: #14b8a6;
+                --teal-400: #2dd4bf;
+                --teal-100: #ccfbf1;
+                --teal-50: #f0fdfa;
+                --em-700: #047857;
                 --em-600: #059669;
                 --em-500: #10b981;
                 --em-400: #34d399;
                 --em-100: #d1fae5;
                 --em-50: #ecfdf5;
-                /* Aliases */
-                --blue-600: #0891b2;
-                --blue-500: #06b6d4;
-                --blue-100: #cffafe;
-                --blue-50: #ecfeff;
-                --green-600: #059669;
-                --green-50: #ecfdf5;
-                /* Grays (fríos) */
                 --gray-900: #0f172a;
                 --gray-800: #1e293b;
                 --gray-700: #334155;
@@ -49,15 +39,13 @@
                 --gray-100: #f1f5f9;
                 --gray-50: #f8fafc;
                 --white: #ffffff;
-                /* Status */
                 --red-600: #dc2626;
                 --red-500: #ef4444;
                 --red-50: #fef2f2;
                 --red-100: #fecaca;
                 --amber-600: #d97706;
                 --amber-50: #fffbeb;
-                /* Page */
-                --page-bg: #f0fdfe;
+                --page-bg: #f4f7f6;
             }
 
             html, body {
@@ -67,8 +55,8 @@
 
             body {
                 font-family: 'Inter', sans-serif;
-                background: #f0fdfe;
-                background-image: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(6,182,212,0.14) 0%, transparent 65%), radial-gradient(ellipse 55% 45% at 95% 90%, rgba(16,185,129,0.10) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 5% 80%, rgba(6,182,212,0.07) 0%, transparent 55%);
+                background: var(--page-bg);
+                background-image: radial-gradient(ellipse 90% 55% at 50% -5%, rgba(13,148,136,0.08) 0%, transparent 65%), radial-gradient(ellipse 45% 45% at 95% 90%, rgba(16,185,129,0.04) 0%, transparent 60%);
                 background-attachment: fixed;
                 color: var(--gray-900);
                 display: flex;
@@ -76,59 +64,58 @@
                 min-height: 100vh;
             }
 
-            /* ── Navbar ────────────────────────────────────────────── */
             .vb-navbar {
-                background: rgba(255,255,255,0.68);
+                background: rgba(255, 255, 255, 0.8);
                 backdrop-filter: blur(20px) saturate(180%);
                 -webkit-backdrop-filter: blur(20px) saturate(180%);
-                border-bottom: 1px solid rgba(6,182,212,0.14);
+                border-bottom: 1px solid rgba(13, 148, 136, 0.12);
                 padding: 0 2.5rem;
-                height: 58px;
+                height: 64px;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 position: sticky;
                 top: 0;
                 z-index: 100;
-                box-shadow: 0 1px 20px rgba(8,145,178,0.06);
+                box-shadow: 0 4px 20px rgba(13, 148, 136, 0.03);
             }
 
-            .vb-brand {
+            .brand-logo-nav {
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                font-size: 0.9375rem;
+                gap: 12px;
+                text-decoration: none !important;
+            }
+
+            .logo-nav-icon {
+                height: 52px;
+                width: auto;
+                object-fit: contain;
+            }
+
+            .logo-nav-text {
+                height: 52px;
+                width: auto;
+                object-fit: contain;
+                filter: brightness(0) saturate(100%) invert(37%) sepia(35%) side(41deg) hue-rotate(130deg) brightness(95%) contrast(92%);
+            }
+
+            .portal-tag {
+                font-size: 0.72rem;
                 font-weight: 700;
+                background: var(--teal-100);
                 color: var(--teal-700);
-                text-decoration: none;
-                letter-spacing: -0.4px;
+                padding: 0.15rem 0.5rem;
+                border-radius: 6px;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-left: 4px;
             }
-
-                .vb-brand:hover {
-                    color: var(--teal-600);
-                    text-decoration: none;
-                }
-
-            .vb-brand-icon {
-                width: 30px;
-                height: 30px;
-                background: linear-gradient(135deg, var(--teal-600), var(--em-500));
-                border-radius: 8px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 2px 8px rgba(6,182,212,0.3);
-            }
-
-                .vb-brand-icon svg {
-                    width: 16px;
-                    height: 16px;
-                }
 
             .vb-nav-links {
                 display: flex;
                 align-items: center;
-                gap: 0.1rem;
+                gap: 0.25rem;
                 list-style: none;
                 margin: 0;
                 padding: 0;
@@ -136,84 +123,81 @@
 
                 .vb-nav-links li a {
                     display: block;
-                    padding: 0.38rem 0.95rem;
-                    font-size: 0.845rem;
+                    padding: 0.45rem 1rem;
+                    font-size: 0.88rem;
                     font-weight: 500;
                     color: var(--gray-600);
                     text-decoration: none;
-                    border-radius: 8px;
-                    transition: background 0.15s, color 0.15s;
-                    letter-spacing: -0.1px;
+                    border-radius: 10px;
+                    transition: all 0.15s ease;
                 }
 
                     .vb-nav-links li a:hover {
-                        background: rgba(6,182,212,0.08);
+                        background: rgba(13, 148, 136, 0.06);
                         color: var(--teal-700);
                     }
 
                     .vb-nav-links li a.active {
-                        background: rgba(6,182,212,0.1);
+                        background: rgba(13, 148, 136, 0.1);
                         color: var(--teal-700);
                         font-weight: 600;
-                        box-shadow: inset 0 0 0 1px rgba(6,182,212,0.25);
+                        box-shadow: inset 0 0 0 1px rgba(13, 148, 136, 0.18);
                     }
 
             .vb-nav-actions {
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                gap: 8px;
             }
 
             .vb-icon-btn {
-                width: 36px;
-                height: 36px;
+                width: 38px;
+                height: 38px;
                 background: none;
                 border: none;
-                border-radius: 9px;
+                border-radius: 10px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 cursor: pointer;
-                color: var(--gray-500, #64748b);
-                transition: background 0.15s, color 0.15s;
+                color: var(--gray-600);
+                transition: all 0.15s ease;
             }
 
                 .vb-icon-btn:hover {
-                    background: rgba(6,182,212,0.1);
+                    background: rgba(13, 148, 136, 0.08);
                     color: var(--teal-700);
                 }
 
                 .vb-icon-btn svg {
-                    width: 19px;
-                    height: 19px;
+                    width: 20px;
+                    height: 20px;
                 }
 
-            /* Contenedor interactivo del avatar */
             .vb-avatar-link {
                 text-decoration: none !important;
-                display: inline-block;
             }
 
             .vb-avatar {
-                width: 32px;
-                height: 32px;
+                width: 34px;
+                height: 34px;
                 border-radius: 50%;
-                background: linear-gradient(135deg, var(--teal-500), var(--em-500));
-                border: 1.5px solid rgba(6,182,212,0.35);
+                background: linear-gradient(135deg, var(--teal-600), var(--em-500));
+                border: 2px solid var(--white);
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 0.75rem;
+                font-size: 0.8rem;
                 font-weight: 700;
                 color: var(--white);
-                cursor: pointer;
-                box-shadow: 0 1px 6px rgba(6,182,212,0.25);
-                transition: transform 0.15s, box-shadow 0.15s;
+                box-shadow: 0 2px 10px rgba(13, 148, 136, 0.15);
+                transition: all 0.2s ease;
+                overflow: hidden;
             }
 
                 .vb-avatar:hover {
                     transform: scale(1.05);
-                    box-shadow: 0 2px 10px rgba(6,182,212,0.4);
+                    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
                 }
 
             .vb-hamburger {
@@ -225,133 +209,264 @@
             }
 
                 .vb-hamburger svg {
-                    width: 22px;
-                    height: 22px;
+                    width: 24px;
+                    height: 24px;
                 }
 
-            /* ── Content ─────────────────────────────────────────── */
             .vb-content {
                 flex: 1;
+                padding: 2rem 0;
             }
 
-            /* ── Footer ──────────────────────────────────────────── */
             .vb-footer {
-                background: rgba(255,255,255,0.55);
-                backdrop-filter: blur(14px);
-                -webkit-backdrop-filter: blur(14px);
-                border-top: 1px solid rgba(6,182,212,0.12);
-                padding: 1rem 2.5rem;
+                background: var(--white);
+                border-top: 1px solid var(--gray-200);
+                padding: 1.25rem 2.5rem;
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
                 flex-wrap: wrap;
-                gap: 0.5rem;
+                gap: 1rem;
             }
 
             .vb-footer-brand {
-                font-size: 0.85rem;
+                font-size: 0.88rem;
                 font-weight: 700;
-                background: linear-gradient(90deg, var(--teal-700), var(--em-500));
+                background: linear-gradient(90deg, var(--teal-700), var(--em-600));
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 background-clip: text;
             }
 
             .vb-footer-copy {
-                font-size: 0.78rem;
-                color: var(--gray-400);
+                font-size: 0.82rem;
+                color: var(--gray-600);
             }
 
             .vb-footer-links {
                 display: flex;
-                gap: 1.25rem;
+                gap: 1.5rem;
                 list-style: none;
                 margin: 0;
                 padding: 0;
             }
 
                 .vb-footer-links a {
-                    font-size: 0.78rem;
-                    color: var(--gray-400);
+                    font-size: 0.82rem;
+                    color: var(--gray-600);
                     text-decoration: none;
+                    transition: color 0.15s;
                 }
 
                     .vb-footer-links a:hover {
                         color: var(--teal-600);
+                        text-decoration: underline;
                     }
 
-            /* ── Glass card utility ──────────────────────────────── */
             .glass-card {
-                background: rgba(255,255,255,0.72);
-                backdrop-filter: blur(18px) saturate(150%);
-                -webkit-backdrop-filter: blur(18px) saturate(150%);
-                border: 1px solid rgba(6,182,212,0.18);
-                border-radius: 18px;
-                box-shadow: 0 4px 28px rgba(8,145,178,0.07), 0 1px 3px rgba(0,0,0,0.03);
+                background: var(--white);
+                border: 1px solid var(--gray-200);
+                border-radius: 16px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+                padding: 1.5rem;
             }
 
-            /* ── Inputs / selects / textareas globales cristal iOS ────── */
             input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]),
             select,
             textarea {
-                background: rgba(255,255,255,0.35) !important;
-                backdrop-filter: blur(20px) !important;
-                -webkit-backdrop-filter: blur(20px) !important;
-                border: 1px solid rgba(255,255,255,0.55) !important;
-                border-radius: 10px !important;
+                background: var(--white) !important;
+                border: 1.5px solid #cbd5e1 !important;
+                border-radius: 12px !important;
                 font-family: 'Inter', sans-serif;
                 color: var(--gray-900);
+                padding: 0.75rem 1rem !important;
                 transition: all 0.2s ease;
                 outline: none !important;
-                box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 8px rgba(0,0,0,0.06) !important;
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
             }
 
                 input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="hidden"]):focus,
                 select:focus,
                 textarea:focus {
-                    background: rgba(255,255,255,0.55) !important;
-                    border-color: rgba(255,255,255,0.8) !important;
-                    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 0 0 3px rgba(6,182,212,0.18), 0 2px 12px rgba(0,0,0,0.08) !important;
+                    border-color: var(--teal-600) !important;
+                    box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12), 0 1px 2px rgba(0, 0, 0, 0.05) !important;
                 }
 
-            /* ── Tablas globales cristal ─────────────────────────────── */
             table {
                 border-collapse: collapse;
                 width: 100%;
+                background: var(--white);
+                border-radius: 14px;
+                overflow: hidden;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.02);
             }
 
             th {
-                background: rgba(255,255,255,0.25) !important;
+                background: #f8fafc !important;
                 color: var(--teal-700) !important;
-                font-size: 0.72rem !important;
+                font-size: 0.75rem !important;
                 font-weight: 700 !important;
                 text-transform: uppercase;
-                letter-spacing: 0.6px;
-                padding: 0.7rem 0.75rem !important;
-                border-bottom: 1px solid rgba(255,255,255,0.4) !important;
-                backdrop-filter: blur(10px);
-                -webkit-backdrop-filter: blur(10px);
+                letter-spacing: 0.8px;
+                padding: 1rem 1.25rem !important;
+                border-bottom: 1.5px solid var(--gray-200) !important;
             }
 
             td {
-                padding: 0.75rem 0.75rem !important;
-                border-bottom: 1px solid rgba(255,255,255,0.25) !important;
+                padding: 1rem 1.25rem !important;
+                border-bottom: 1px solid var(--gray-100) !important;
                 vertical-align: middle;
-                background: transparent !important;
+                font-size: 0.9rem;
+                color: var(--gray-700);
             }
 
             tr:hover td {
-                background: rgba(255,255,255,0.15) !important;
+                background: #f8fafc !important;
             }
 
             .em-accent {
-                border-left: 3px solid var(--em-500);
+                border-left: 4px solid var(--teal-600);
                 padding-left: 0.75rem;
             }
 
-            @@media (max-width: 640px) {
+            .fb-badge {
+                position: absolute;
+                top: 2px;
+                right: 2px;
+                background: linear-gradient(135deg, #e11d48, #dc2626);
+                color: #ffffff;
+                font-size: 0.65rem;
+                font-weight: 800;
+                min-width: 16px;
+                height: 16px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 4px;
+                border: 2px solid #ffffff;
+                box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+                pointer-events: none;
+                animation: bounceNotification 0.3s ease-out;
+            }
+
+            /* ── 🛠️ DISEÑO DE LA VENTANITA DESPLEGABLE DE ALERTAS ── */
+            .vb-notification-dropdown {
+                position: absolute;
+                top: 50px;
+                right: 0;
+                width: 320px;
+                background: rgba(255, 255, 255, 0.94);
+                backdrop-filter: blur(25px);
+                -webkit-backdrop-filter: blur(25px);
+                border: 1px solid rgba(13, 148, 136, 0.2);
+                border-radius: 16px;
+                box-shadow: 0 12px 35px rgba(9, 51, 63, 0.15);
+                z-index: 1000;
+                display: none; /* Inicia oculto */
+                flex-direction: column;
+                overflow: hidden;
+                animation: slideFadeIn 0.2s ease-out;
+            }
+
+            @@keyframes slideFadeIn {
+                from {
+                    transform: translateY(-10px);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateY(0);
+                    opacity: 1;
+                }
+            }
+
+            .dropdown-alert-header {
+                padding: 0.85rem 1rem;
+                background: #09333f;
+                color: #ffffff;
+                font-size: 0.8rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .dropdown-alert-body {
+                max-height: 280px;
+                overflow-y: auto;
+            }
+
+            .alert-dropdown-item {
+                padding: 0.85rem 1rem;
+                border-bottom: 1px solid rgba(0,0,0,0.06);
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+                transition: background 0.15s;
+            }
+
+                .alert-dropdown-item:hover {
+                    background: rgba(13, 148, 136, 0.04);
+                }
+
+                .alert-dropdown-item:last-child {
+                    border-bottom: none;
+                }
+
+            .patient-alert-details {
+                display: flex;
+                flex-direction: column;
+            }
+
+                .patient-alert-details .name {
+                    font-size: 0.88rem;
+                    font-weight: 700;
+                    color: #1e293b;
+                }
+
+                .patient-alert-details .meta {
+                    font-size: 0.75rem;
+                    color: #dc2626;
+                    font-weight: 500;
+                }
+
+            .btn-dropdown-atender {
+                background: linear-gradient(135deg, #dc2626, #ef4444);
+                color: #ffffff !important;
+                font-size: 0.72rem;
+                font-weight: 700;
+                padding: 0.35rem 0.75rem;
+                border-radius: 8px;
+                text-decoration: none !important;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
+                transition: all 0.15s;
+            }
+
+                .btn-dropdown-atender:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.3);
+                }
+
+            @@keyframes bounceNotification {
+                0% {
+                    transform: scale(0);
+                }
+
+                50% {
+                    transform: scale(1.3);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            @@media (max-width: 768px) {
                 .vb-navbar {
-                    padding: 0 1rem;
+                    padding: 0 1.25rem;
                 }
 
                 .vb-nav-links {
@@ -364,8 +479,8 @@
 
                 .vb-footer {
                     flex-direction: column;
-                    align-items: flex-start;
-                    gap: 0.75rem;
+                    align-items: center;
+                    text-align: center;
                 }
             }
     </style>
@@ -375,43 +490,32 @@
     @inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
     <header>
         <nav class="vb-navbar">
+            @{
+                string targetController = "Account";
+                string targetAction = "Login";
 
-            @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Medico") || User.IsInRole("medico")))
-            {
-                <a class="vb-brand" asp-controller="Usuarios" asp-action="Index">
-                    <div class="vb-brand-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 12 L7 7 L11 15 L15 5 L19 12" />
-                        </svg>
-                    </div>
-                    VitalBand Portal Web
-                </a>
+                if (User.Identity?.IsAuthenticated == true)
+                {
+                    if (User.IsInRole("Medico") || User.IsInRole("medico"))
+                    {
+                        targetController = "Usuarios";
+                        targetAction = "Index";
+                    }
+                    else if (User.IsInRole("Paciente") || User.IsInRole("paciente"))
+                    {
+                        targetController = "Historial";
+                        targetAction = "MiHistorial";
+                    }
+                }
             }
-            else if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Paciente") || User.IsInRole("paciente")))
-            {
-                <a class="vb-brand" asp-controller="Historial" asp-action="MiHistorial">
-                    <div class="vb-brand-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 12 L7 7 L11 15 L15 5 L19 12" />
-                        </svg>
-                    </div>
-                    VitalBand Portal Web
-                </a>
-            }
-            else
-            {
-                <a class="vb-brand" asp-controller="Account" asp-action="Login">
-                    <div class="vb-brand-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M3 12 L7 7 L11 15 L15 5 L19 12" />
-                        </svg>
-                    </div>
-                    VitalBand Portal Web
-                </a>
-            }
+
+            <a class="brand-logo-nav" asp-controller="@targetController" asp-action="@targetAction">
+                <img src="~/img/logoVitalBand.png?v=2.2" alt="Logo" class="logo-nav-icon" />
+                <img src="~/img/letrasVitalBand.png?v=2.2" alt="VitalBand" class="logo-nav-text" />
+            </a>
 
             <ul class="vb-nav-links">
-                @if (User.IsInRole("Medico") || User.IsInRole("medico"))
+                @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Medico") || User.IsInRole("medico")))
                 {
                     <li>
                         <a asp-controller="Usuarios" asp-action="Index"
@@ -426,7 +530,7 @@
                         </a>
                     </li>
                 }
-                @if (User.IsInRole("Paciente") || User.IsInRole("paciente"))
+                @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Paciente") || User.IsInRole("paciente")))
                 {
                     <li>
                         <a asp-controller="Historial" asp-action="MiHistorial"
@@ -435,63 +539,78 @@
                         </a>
                     </li>
                 }
-                <li>
-                    <a asp-controller="Configuracion" asp-action="Index"
-                       class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracion" ? "active" : "")">
-                        Configuración
-                    </a>
-                </li>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <li>
+                        <a asp-controller="Configuracion" asp-action="Index"
+                           class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracion" ? "active" : "")">
+                            Configuración
+                        </a>
+                    </li>
+                }
             </ul>
 
             <div class="vb-nav-actions">
-                <button class="vb-icon-btn" title="Notificaciones">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                    </svg>
-                </button>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <!-- ── 🛠️ CORREGIDO: CAMPANA CON DROP-DOWN INTERACTIVO ── -->
+                    <div class="vb-notification-wrapper" id="notificationWrapper" style="position: relative; display: inline-block;">
+                        <button type="button" class="vb-icon-btn" id="btnCampana" title="Notificaciones de Emergencia">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                            </svg>
+                        </button>
+                        <span id="notificationBadge" class="fb-badge" style="display: none;">0</span>
 
-                @{
+                        <!-- Ventanita Flotante Desplegable -->
+                        <div class="vb-notification-dropdown" id="notifDropdown">
+                            <div class="dropdown-alert-header">Incidentes en Proceso</div>
+                            <div class="dropdown-alert-body" id="dropdownAlertContainer">
+                                <!-- Se llenará dinámicamente con JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    // 🛠️ CORREGIDO PARA EVITAR ERROR RZ1010
                     string? avatarUrl = null;
                     var claimId = User.FindFirst("UsuarioBaseId")?.Value;
                     var isDoctor = User.IsInRole("Medico") || User.IsInRole("medico");
+
                     if (!string.IsNullOrEmpty(claimId))
                     {
-                        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "uploads", "avatars");
+                        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "img", "pacientes");
                         if (Directory.Exists(uploadsDir))
                         {
                             var files = Directory.GetFiles(uploadsDir, claimId + ".*");
                             if (files.Length > 0)
                             {
-                                avatarUrl = "/uploads/avatars/" + System.IO.Path.GetFileName(files[0]);
+                                avatarUrl = "/img/pacientes/" + System.IO.Path.GetFileName(files[0]);
                             }
                         }
                     }
-                }
 
-                <a class="vb-avatar-link" href="/Configuracion/Index" title="Mi cuenta / Configuración">
-                    <div class="vb-avatar" id="headerAvatar" title="Mi cuenta / Configuración">
-                        @if (!string.IsNullOrEmpty(avatarUrl))
-                        {
-                            <img src="@avatarUrl" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />
-                        }
-                        else
-                        {
-                            @((User.Identity?.Name?.Substring(0,1).ToUpper()) ?? "U")
-                        }
-                    </div>
-                </a>
+                    <a class="vb-avatar-link" href="/Configuracion/Index" title="Mi cuenta">
+                        <div class="vb-avatar" id="headerAvatar">
+                            @if (!string.IsNullOrEmpty(avatarUrl))
+                            {
+                                <img src="@avatarUrl" alt="avatar" style="width:100%;height:100%;object-fit:cover;" />
+                            }
+                            else
+                            {
+                                @((User.Identity?.Name?.Substring(0, 1).ToUpper()) ?? "U")
+                            }
+                        </div>
+                    </a>
 
-                @if (isDoctor)
-                {
-                    <input type="file" id="headerAvatarInput" accept="image/*" style="display:none;" />
-                }
+                    if (isDoctor)
+                    {
+                        <input type="file" id="headerAvatarInput" accept="image/*" style="display:none;" />
+                    }
 
-                @if (User.Identity?.IsAuthenticated == true)
-                {
                     <form asp-controller="Account" asp-action="Logout" method="post" style="margin:0;">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="vb-icon-btn" title="Cerrar sesión">
+                        <button type="submit" class="vb-icon-btn" title="Cerrar sesión" style="color: var(--red-600);">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                                 <polyline points="16 17 21 12 16 7" />
@@ -512,7 +631,7 @@
         </nav>
     </header>
 
-    <div class="vb-content">
+    <div class="container vb-content">
         <main role="main">
             @RenderBody()
         </main>
@@ -522,7 +641,7 @@
         <div>
             <span class="vb-footer-brand">Vital Health Systems</span>
             <span class="vb-footer-copy" style="margin-left:1rem;">
-                &copy; 2026 Vital Health Systems &ndash; VitalBand Monitoring Portal
+                &copy; 2026 Vital Health Systems &ndash; Portal de Monitoreo VitalBand
             </span>
         </div>
         <ul class="vb-footer-links">
@@ -536,7 +655,6 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
-        // Hamburger mobile toggle
         var btn = document.getElementById('vbHamburger');
         var nav = document.querySelector('.vb-nav-links');
         if (btn && nav) {
@@ -545,39 +663,95 @@
         nav.style.display = open ? 'none' : 'flex';
         nav.style.flexDirection = 'column';
         nav.style.position = 'absolute';
-        nav.style.top = '56px';
+        nav.style.top = '64px';
         nav.style.left = '0';
         nav.style.right = '0';
         nav.style.background = 'var(--white)';
-        nav.style.borderBottom = '1px solid var(--gray-100)';
-        nav.style.padding = '0.5rem 1rem 1rem';
-        nav.style.gap = '4px';
+        nav.style.borderBottom = '1px solid var(--gray-200)';
+        nav.style.padding = '1rem';
+        nav.style.gap = '8px';
+        nav.style.boxShadow = '0 10px 20px rgba(0,0,0,0.05)';
         });
         }
-        // Avatar upload from header (medico can change own photo)
-        (function(){
-            var avatarDiv = document.getElementById('headerAvatar');
-            var fileInput = document.getElementById('headerAvatarInput');
-            if (!avatarDiv || !fileInput) return;
+    </script>
 
-            avatarDiv.style.cursor = 'pointer';
-            avatarDiv.addEventListener('click', function(e){
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+        const badge = document.getElementById('notificationBadge');
+        const btnCampana = document.getElementById('btnCampana');
+        const dropdown = document.getElementById('notifDropdown');
+        const container = document.getElementById('dropdownAlertContainer');
 
-                var form = new FormData();
-                form.append('avatar', f);
+        async function verificarAlertasPendientes() {
+        try {
+        const response = await fetch('/api/AlertasApi');
+        if (!response.ok) return;
 
-                fetch('/Account/UploadAvatar', { method: 'POST', body: form })
-                    .then(function(res){ return res.json(); })
-                    .then(function(data){
-                        if (data && data.url) {
-                            // update header image
-                            avatarDiv.innerHTML = '<img src="' + data.url + '" alt="avatar" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />';
-                        } else {
-                            alert('No se pudo subir la imagen.');
-                        }
-                    }).catch(function(){ alert('Error al subir la imagen.'); });
-            });
-        })();
+        const alertas = await response.json();
+
+        // 🛠️ FILTRO BLINDADO: Validamos contra todas las formas de "true"
+        const pendientes = alertas.filter(a => {
+        // Convertimos todo a string y minúsculas para evitar falsos positivos
+        const valAtendida = String(a.atendida).toLowerCase();
+        const valRespondida = String(a.respondida).toLowerCase();
+        const valMensaje = String(a.mensaje_enviado).toLowerCase();
+
+        const estaGestionada =
+        valAtendida === "true" || valAtendida === "1" ||
+        valRespondida === "true" || valRespondida === "1" ||
+        valMensaje === "true" || valMensaje === "1";
+
+        // Solo retornamos las que NO están gestionadas
+        return !estaGestionada;
+        });
+
+        if (pendientes.length > 0) {
+        badge.innerText = pendientes.length > 9 ? '9+' : pendientes.length;
+        badge.style.display = 'inline-flex';
+
+        container.innerHTML = '';
+        pendientes.forEach(alerta => {
+        const pacienteNombre = alerta.pacienteNombre || alerta.paciente_nombre || `Paciente #${alerta.paciente_id || alerta.pacienteId}`;
+        const idAlerta = alerta.id || alerta.alertaId || alerta.alerta_id;
+
+        const itemHtml = `
+        <div class="alert-dropdown-item">
+        <div class="patient-alert-details">
+        <span class="name">${pacienteNombre}</span>
+        <span class="meta">Ritmo crítico detectado</span>
+        </div>
+        <a href="/AtenderAlerta?alertaId=${idAlerta}" class="btn-dropdown-atender">Atender</a>
+        </div>
+        `;
+        container.insertAdjacentHTML('beforeend', itemHtml);
+        });
+        } else {
+        badge.style.display = 'none';
+        container.innerHTML = '<p style="text-align:center; padding:1.5rem; color:#94a3b8; font-size:0.85rem; margin:0;">No hay alertas pendientes.</p>';
+        }
+        } catch (error) {
+        console.error('[Error de sondeo en campana layout]:', error);
+        }
+        }
+
+        // Manejo del Clic en la Campana
+        if (btnCampana && dropdown) {
+        btnCampana.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const isOpen = dropdown.style.display === 'flex';
+        dropdown.style.display = isOpen ? 'none' : 'flex';
+        });
+
+        document.addEventListener('click', function (e) {
+        if (!document.getElementById('notificationWrapper').contains(e.target)) {
+        dropdown.style.display = 'none';
+        }
+        });
+        }
+
+        verificarAlertasPendientes();
+        setInterval(verificarAlertasPendientes, 15000);
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

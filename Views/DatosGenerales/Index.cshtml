@@ -2,10 +2,8 @@
 @model VitalBand.Models.DatosGenerales
 @{
     ViewData["Title"] = $"Datos de {Model.Nombre} - VitalBand";
-    // 🛠️ CORRECCIÓN: Ajustado al nuevo nombre del modelo plano RangoPulso
     var rangos = ViewBag.RangosPulso as List<VitalBand.Models.RangoPulso>;
 }
-
 @functions {
     string ObtenerClasePulso(int pulso)
     {
@@ -18,8 +16,9 @@
 @section Styles {
     <style>
         .datos-container {
-            max-width: 1000px;
-            margin: 2.5rem auto;
+            max-width: 1200px;
+            width: 92%;
+            margin: 1.5rem auto;
             background: rgba(255,255,255,0.22);
             backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
             -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
@@ -28,143 +27,197 @@
             box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
         }
 
-        /* ── Header ─────────────────────────────────────────── */
+        @@media (min-width: 768px) {
+            .datos-container {
+                margin: 2.5rem auto;
+            }
+        }
+
         .datos-header {
-            padding: 2rem 2rem 1.5rem;
+            padding: 2.2rem 2rem;
             border-bottom: 1px solid rgba(255,255,255,0.25);
-            background: linear-gradient(135deg, rgba(8,145,178,0.18), rgba(16,185,129,0.1));
+            background: linear-gradient(135deg, rgba(9, 51, 63, 0.95) 0%, rgba(13, 72, 86, 0.9) 100%);
             border-radius: 24px 24px 0 0;
             display: flex;
             align-items: center;
             justify-content: space-between;
             flex-wrap: wrap;
-            gap: 1rem;
+            gap: 1.5rem;
         }
 
-        .datos-avatar {
+        .header-left-brand {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 1.5rem;
         }
 
         .datos-avatar .avatar {
-            width: 56px;
-            height: 56px;
-            border-radius: 999px;
+            width: 96px; 
+            height: 96px;
+            border-radius: 50%;
             overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.5);
-            box-shadow: 0 6px 18px rgba(6,182,212,0.06);
+            border: 3px solid #0d9488;
+            box-shadow: 0 8px 24px rgba(9, 51, 63, 0.3);
+            background-color: #ffffff;
+            transition: transform 0.2s ease;
         }
 
-        .datos-avatar .avatar img { width:100%; height:100%; object-fit:cover; }
-
-        .datos-header-icon {
-            width: 42px;
-            height: 42px;
-            flex-shrink: 0;
-            background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(16,185,129,0.12));
-            border: 1px solid rgba(6,182,212,0.2);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-            .datos-header-icon svg {
-                width: 20px;
-                height: 20px;
-                stroke: #0a6775;
+            .datos-avatar .avatar:hover {
+                transform: scale(1.03);
             }
 
-        .datos-header h2 {
-            font-size: 1.4rem;
+            .datos-avatar .avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .header-patient-info h2 {
+            font-size: 1.6rem;
             font-weight: 700;
-            margin: 0 0 0.2rem;
-            color: var(--gray-900);
-            letter-spacing: -0.4px;
+            margin: 0 0 0.25rem 0;
+            color: #ffffff;
+            letter-spacing: -0.5px;
         }
 
-        .datos-header p {
-            font-size: 0.825rem;
-            color: var(--gray-400);
+        .header-patient-info p {
+            font-size: 0.875rem;
+            color: #2dd4bf;
             margin: 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .header-right-controls {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 0.8rem;
+        }
+
+        @@media (max-width: 768px) {
+            .header-left-brand {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                width: 100%;
+            }
+
+            .header-right-controls {
+                width: 100%;
+                align-items: center;
+            }
         }
 
         .info-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 0;
             padding: 0;
             border-bottom: 1px solid rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .info-item {
             padding: 1.25rem 1.5rem;
-            border-right: 1px solid rgba(255,255,255,0.18);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
             transition: background 0.15s;
         }
 
-            .info-item:hover {
-                background: rgba(255,255,255,0.12);
+        @@media (min-width: 576px) {
+            .info-item {
+                border-right: 1px solid rgba(0,0,0,0.05);
             }
+        }
 
-            .info-item:last-child {
-                border-right: none;
-            }
+        .info-item:hover {
+            background: rgba(255,255,255,0.3);
+        }
 
-            .info-item label {
-                font-size: 0.68rem;
-                text-transform: uppercase;
-                letter-spacing: 0.6px;
-                color: var(--gray-400);
-                display: block;
-                margin-bottom: 3px;
-            }
+        .info-item:last-child {
+            border-right: none;
+            border-bottom: none;
+        }
 
-            .info-item .value {
-                font-weight: 600;
-                font-size: 0.9375rem;
-                color: var(--gray-800);
-            }
+        .info-item label {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            display: block;
+            margin-bottom: 3px;
+            font-weight: 700;
+        }
+
+        .info-item .value {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
 
         .chart-card {
-            padding: 1.75rem 2rem;
+            padding: 1.5rem;
             border-bottom: 1px solid rgba(255,255,255,0.2);
+            background: #ffffff;
         }
 
-            .chart-card h4 {
-                font-size: 0.72rem;
-                font-weight: 700;
-                text-transform: uppercase;
-                letter-spacing: 1px;
-                color: rgba(8,145,178,0.8);
-                margin-bottom: 1rem;
+        @@media (min-width: 768px) {
+            .chart-card {
+                padding: 1.75rem 2rem;
             }
+        }
+
+        .chart-card h4 {
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #0891b2;
+            margin-bottom: 1rem;
+        }
 
         canvas {
-            width: 100%;
-            max-height: 230px;
-            margin: 0;
+            width: 100% !important;
+            height: auto !important;
+            max-height: 240px;
         }
 
-        /* ── Lecturas lista ─────────────────────────────────── */
         .lecturas-lista {
-            padding: 1.25rem 2rem 1.5rem;
+            padding: 1.5rem;
         }
 
-            .lecturas-lista h4 {
-                font-size: 0.8rem;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.6px;
-                color: var(--gray-400);
-                margin: 0 0 0.875rem;
+        @@media (min-width: 768px) {
+            .lecturas-lista {
+                padding: 1.25rem 2rem 1.5rem;
             }
+        }
+
+        .lecturas-lista h4 {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #475569;
+            margin: 0 0 0.875rem;
+        }
 
         .lecturas-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 0.5rem;
+            grid-template-columns: 1fr;
+            gap: 0.6rem;
+        }
+
+        @@media (min-width: 576px) {
+            .lecturas-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @@media (min-width: 992px) {
+            .lecturas-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
 
         .lectura-item {
@@ -172,20 +225,21 @@
             flex-direction: row;
             align-items: center;
             justify-content: space-between;
-            padding: 0.6rem 0.9rem;
-            border-radius: 10px;
+            padding: 0.7rem 1rem;
+            border-radius: 12px;
             font-size: 0.875rem;
-            transition: opacity 0.12s, box-shadow 0.12s;
+            transition: all 0.15s ease;
         }
 
             .lectura-item:hover {
-                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+                transform: translateY(-1px);
             }
 
             .lectura-item span {
-                color: var(--gray-500, #64748b);
+                color: #64748b;
                 font-size: 0.75rem;
-                font-weight: 500;
+                font-weight: 600;
             }
 
             .lectura-item strong {
@@ -195,7 +249,7 @@
 
         .lectura-normal {
             background: rgba(16,185,129,0.09);
-            border: 2px solid rgba(16,185,129,0.35);
+            border: 1.5px solid rgba(16,185,129,0.3);
         }
 
             .lectura-normal strong {
@@ -204,7 +258,7 @@
 
         .lectura-precaucion {
             background: rgba(245,158,11,0.09);
-            border: 2px solid rgba(245,158,11,0.35);
+            border: 1.5px solid rgba(245,158,11,0.3);
         }
 
             .lectura-precaucion strong {
@@ -213,55 +267,53 @@
 
         .lectura-critica {
             background: rgba(220,38,38,0.09);
-            border: 2px solid rgba(220,38,38,0.35);
+            border: 1.5px solid rgba(220,38,38,0.3);
         }
 
             .lectura-critica strong {
                 color: #991b1b;
             }
 
-        /* ── Botones acción ──────────────────────────────────── */
         .btn-accion {
             display: inline-block;
-            background: rgba(6,182,212,0.08);
-            border: 1px solid rgba(6,182,212,0.22);
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
             border-radius: 8px;
-            padding: 0.35rem 0.9rem;
-            font-size: 0.75rem;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
             font-weight: 600;
             text-decoration: none;
-            color: #0a6775;
+            color: #ffffff;
             transition: all 0.15s;
-            margin: 0 4px 0 0;
             cursor: pointer;
         }
 
             .btn-accion:hover {
-                background: rgba(6,182,212,0.16);
-                border-color: #06b6d4;
+                background: #0d9488;
+                border-color: #2dd4bf;
             }
 
-        .btn-accion:disabled,
-        #selectedDate:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-            background: rgba(148,163,184,0.12);
-            border-color: rgba(148,163,184,0.25);
-            color: rgba(15,23,42,0.6);
-        }
+            .btn-accion:disabled, #selectedDate:disabled {
+                opacity: 0.4;
+                cursor: not-allowed;
+                background: rgba(255,255,255,0.05);
+                border-color: rgba(255,255,255,0.1);
+                color: rgba(255,255,255,0.4);
+            }
 
-        /* ── Volver ──────────────────────────────────────────── */
         .footer-actions {
-            padding: 1rem 2rem 1.5rem;
+            padding: 1.25rem 1.5rem;
             display: flex;
             justify-content: flex-end;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 0 0 24px 24px;
         }
 
         .btn-volver {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
+            background: linear-gradient(135deg, #0f766e, #0d9488);
             color: white;
             border: none;
             border-radius: 10px;
@@ -269,17 +321,16 @@
             font-size: 0.85rem;
             font-weight: 600;
             text-decoration: none;
-            box-shadow: 0 3px 12px rgba(6,182,212,0.3);
-            transition: opacity 0.15s, transform 0.12s;
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.2);
+            transition: all 0.15s ease;
         }
 
             .btn-volver:hover {
-                opacity: 0.9;
                 transform: translateY(-1px);
+                box-shadow: 0 6px 18px rgba(13, 148, 136, 0.3);
                 color: white;
             }
 
-        /* ── FAB alerta ──────────────────────────────────────── */
         .vb-fab-alerta {
             position: fixed;
             bottom: 1.25rem;
@@ -292,8 +343,8 @@
             color: white;
             border: none;
             border-radius: 50%;
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             cursor: pointer;
             box-shadow: 0 4px 14px rgba(220,38,38,0.45);
             transition: transform 0.15s, box-shadow 0.15s;
@@ -304,13 +355,9 @@
                 box-shadow: 0 8px 24px rgba(220,38,38,0.5);
             }
 
-            .vb-fab-alerta:active {
-                transform: scale(0.96);
-            }
-
             .vb-fab-alerta svg {
-                width: 20px;
-                height: 20px;
+                width: 22px;
+                height: 22px;
             }
 
         .vb-fab-label {
@@ -325,6 +372,7 @@
             animation: vb-pulse 2.2s ease-out infinite;
             pointer-events: none;
         }
+
         @@keyframes vb-pulse {
             0% {
                 transform: scale(1);
@@ -332,17 +380,16 @@
             }
 
             70% {
-                transform: scale(1.18);
+                transform: scale(1.22);
                 opacity: 0;
             }
 
             100% {
-                transform: scale(1.18);
+                transform: scale(1.22);
                 opacity: 0;
             }
         }
 
-        /* ── Modal ───────────────────────────────────────────── */
         .modal-confirm {
             display: none;
             position: fixed;
@@ -355,9 +402,8 @@
         }
 
         .modal-content {
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(20px) saturate(160%);
-            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(20px);
             border-radius: 20px;
             border: 1px solid rgba(6,182,212,0.18);
             max-width: 380px;
@@ -371,7 +417,7 @@
                 font-size: 0.95rem;
                 line-height: 1.6;
                 margin-bottom: 1.5rem;
-                color: var(--gray-700);
+                color: #334155;
             }
 
         .modal-buttons {
@@ -400,48 +446,36 @@
         }
 
         .modal-btn-cancel {
-            background: var(--gray-100);
-            color: var(--gray-700);
-        }
-
-        .clearfix::after {
-            content: "";
-            clear: both;
-            display: table;
+            background: #e2e8f0;
+            color: #334155;
         }
     </style>
 }
 
 <div class="datos-container">
     <div class="datos-header">
-        <div style="display:flex; align-items:center; gap:1rem;">
-            <div class="datos-header-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                    <circle cx="12" cy="7" r="4" />
-                </svg>
-            </div>
-
-            <!-- Avatar UI-only -->
+        <div class="header-left-brand">
             <div class="datos-avatar">
                 <div class="avatar" id="pacienteAvatar">
-                    <img src="/images/avatar-placeholder.png" id="imgPacienteAvatar" alt="Paciente" />
+                    <img src="/img/pacientes/@(Model.UsuarioId).jpg" id="imgPacienteAvatar" alt="Foto de @Model.Nombre" onerror="this.onerror=null; this.src='/img/avatar-placeholder.png';" />
                 </div>
+            </div>
+            <div class="header-patient-info">
+                <h2>@Model.Nombre</h2>
+                <p>Expediente Médico · Telemetría IoT Activa</p>
             </div>
         </div>
 
-        <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-            @{ var esMedico = User.IsInRole("Medico") || User.IsInRole("medico"); }
-            <div style="display:flex; gap:0.6rem; align-items:center;">
+        <div class="header-right-controls">
+            @{
+                var esMedico = User.IsInRole("Medico") || User.IsInRole("medico");
+            }
+            <div style="display:flex; gap:0.5rem; align-items:center;">
                 <button type="button" id="btnPrevDay" class="btn-accion" title="Día anterior" @(esMedico ? "" : "disabled")>◀</button>
-                <input type="date" id="selectedDate" value="@(ViewBag.FechaSeleccionada ?? DateTime.Today.ToString("yyyy-MM-dd"))" style="padding:6px 10px; border-radius:8px; border:1px solid rgba(148,163,184,0.25);" @(esMedico ? "" : "disabled") />
+                <input type="date" id="selectedDate" value="@(ViewBag.FechaSeleccionada ?? DateTime.Today.ToString("yyyy-MM-dd"))" style="padding:6px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.9); font-weight: 600; color: #09333f;" @(esMedico ? "" : "disabled") />
                 <button type="button" id="btnNextDay" class="btn-accion" title="Siguiente día" @(esMedico ? "" : "disabled")>▶</button>
             </div>
             <input type="hidden" id="hdnEsMedico" value="@(User.IsInRole("Medico") || User.IsInRole("medico") ? "true" : "false")" />
-            <div>
-                <h2>@Model.Nombre</h2>
-                <p>Perfil clínico · lecturas del día</p>
-            </div>
         </div>
     </div>
 
@@ -455,68 +489,15 @@
 
     <div class="chart-card">
         <h4>Frecuencia cardíaca — últimas 24h</h4>
-        <canvas id="pulseChart"></canvas>
+        <div style="width: 100%; position: relative;">
+            <canvas id="pulseChart"></canvas>
+        </div>
     </div>
-
-<script>
-    // Date navigation for daily records
-document.addEventListener('DOMContentLoaded', function() {
-    var esMedicoStr = document.getElementById('hdnEsMedico') ? document.getElementById('hdnEsMedico').value : "false";
-    var esMedico = esMedicoStr === "true";
-
-    var input = document.getElementById('selectedDate');
-    var btnPrev = document.getElementById('btnPrevDay');
-    var btnNext = document.getElementById('btnNextDay');
-
-    // CORRECCIÓN: Separar los componentes manualmente para evitar desfases de zona horaria
-    function obtenerFechaDelInput() {
-        if (!input || !input.value) return new Date();
-        var partes = input.value.split('-'); 
-        // año, mes (0-11), día
-        return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
-    }
-
-    function navigateToDate(d) {
-
-    var y = d.getFullYear();
-    var m = String(d.getMonth() + 1).padStart(2, '0');
-    var day = String(d.getDate()).padStart(2, '0');
-    var fechaStr = y + '-' + m + '-' + day;
-
-    if (input) input.value = fechaStr;
-
-    if (typeof cargarMetricasRealtime === 'function') {
-            cargarMetricasRealtime();
-        }
-}
-
-    if (btnPrev) btnPrev.addEventListener('click', function() {
-        if (!esMedico) return;
-        var cur = obtenerFechaDelInput();
-        cur.setDate(cur.getDate() - 1);
-        navigateToDate(cur);
-    });
-
-    if (btnNext) btnNext.addEventListener('click', function() {
-        if (!esMedico) return;
-        var cur = obtenerFechaDelInput();
-        cur.setDate(cur.getDate() + 1);
-        navigateToDate(cur);
-    });
-
-    if (input) input.addEventListener('change', function() {
-        if (!esMedico) return;
-        var cur = obtenerFechaDelInput();
-        navigateToDate(cur);
-    });
-});
-</script>
 
     <div class="lecturas-lista">
         <h4>Lecturas horarias</h4>
-
         <div class="lecturas-grid" id="lecturasGrid">
-            <p style="grid-column: span 3; text-align: center; color: var(--gray-400);">Cargando signos vitales en tiempo real...</p>
+            <p style="grid-column: 1 / -1; text-align: center; color: #94a3b8;">Cargando signos vitales en tiempo real...</p>
         </div>
 
         @if (User.IsInRole("Medico"))
@@ -560,58 +541,91 @@ document.addEventListener('DOMContentLoaded', function() {
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Configuración inicial de Chart.js global
+        document.addEventListener('DOMContentLoaded', function() {
+            var esMedicoStr = document.getElementById('hdnEsMedico') ? document.getElementById('hdnEsMedico').value : "false";
+            var esMedico = esMedicoStr === "true";
+
+            var input = document.getElementById('selectedDate');
+            var btnPrev = document.getElementById('btnPrevDay');
+            var btnNext = document.getElementById('btnNextDay');
+
+            function obtenerFechaDelInput() {
+                if (!input || !input.value) return new Date();
+                var partes = input.value.split('-'); 
+                return new Date(parseInt(partes[0]), parseInt(partes[1]) - 1, parseInt(partes[2]));
+            }
+
+            function navigateToDate(d) {
+                var y = d.getFullYear();
+                var m = String(d.getMonth() + 1).padStart(2, '0');
+                var day = String(d.getDate()).padStart(2, '0');
+                var fechaStr = y + '-' + m + '-' + day;
+
+                if (input) input.value = fechaStr;
+                cargarMetricasRealtime();
+            }
+
+            if (btnPrev) btnPrev.addEventListener('click', function() {
+                if (!esMedico) return;
+                var cur = obtenerFechaDelInput();
+                cur.setDate(cur.getDate() - 1);
+                navigateToDate(cur);
+            });
+
+            if (btnNext) btnNext.addEventListener('click', function() {
+                if (!esMedico) return;
+                var cur = obtenerFechaDelInput();
+                cur.setDate(cur.getDate() + 1);
+                navigateToDate(cur);
+            });
+
+            if (input) input.addEventListener('change', function() {
+                if (!esMedico) return;
+                var cur = obtenerFechaDelInput();
+                navigateToDate(cur);
+            });
+        });
+
         const ctx = document.getElementById('pulseChart').getContext('2d');
         let pulseChart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [], // Se llenará dinámicamente
+                labels: [],
                 datasets: [{
                     label: 'Pulso (BPM)',
-                    data: [], // Se llenará dinámicamente
-                    borderColor: '#378ADD',
-                    backgroundColor: 'rgba(55,138,221,0.05)',
+                    data: [],
+                    borderColor: '#0d9488',
+                    backgroundColor: 'rgba(13,148,136,0.05)',
                     tension: 0.3,
                     fill: true
                 }]
             },
             options: {
                 responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { position: 'top' } }
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }
             }
         });
 
-        // Función auxiliar para determinar los estilos de color según el pulso de la lectura
-        function obtenerClasePulso(pulso) {
-            if (pulso < 50 || pulso > 110) return "lectura-critica";
-            if ((pulso >= 50 && pulso < 60) || (pulso > 100 && pulso <= 110)) return "lectura-precaucion";
-            return "lectura-normal";
-        }
-
-        // Llamada asíncrona a la API de InfluxDB MetricasController / VitalSignController
         async function cargarMetricasRealtime() {
             const userId = '@Model.UsuarioId';
             const grid = document.getElementById('lecturasGrid');
             const fechaSeleccionada = document.getElementById('selectedDate').value;
             
             try {
-                // Consumimos el endpoint GET "hoy/{userId}" usando una ruta relativa al mismo origen.
                 const response = await fetch(`/api/VitalSign/hoy/${encodeURIComponent(userId)}?fecha=${encodeURIComponent(fechaSeleccionada)}`);
                 if (!response.ok) throw new Error('Error en la respuesta de la API');
                 
                 const datos = await response.json();
 
                 if (datos.length === 0) {
-                    grid.innerHTML = '<p style="grid-column: span 3; text-align: center; color: var(--gray-400);">No se encontraron lecturas registradas en esta fecha.</p>';
-                    // Limpiamos la gráfica para que no muestre datos del día anterior
+                    grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #94a3b8;">No se encontraron lecturas registradas en esta fecha.</p>';
                     pulseChart.data.labels = [];
                     pulseChart.data.datasets[0].data = [];
                     pulseChart.update();
                     return;
                 }
 
-                // Procesamos las fechas ISO recibidas para transformarlas a formato hora local "HH:mm"
                 const labelsHoras = datos.map(item => {
                     const d = new Date(item.fecha);
                     return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
@@ -619,14 +633,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 const valoresBpm = datos.map(item => item.bpm);
 
-                // 1. Actualizar Gráfica en tiempo real
                 pulseChart.data.labels = labelsHoras;
                 pulseChart.data.datasets[0].data = valoresBpm;
                 pulseChart.update();
 
-                // 2. Actualizar el Grid de lecturas horarias en la vista
-                grid.innerHTML = ''; // Limpiamos el texto de "Cargando..."
-                
+                grid.innerHTML = '';
                 datos.forEach((item, index) => {
                     const horaFormateada = labelsHoras[index];
                     const claseColor = obtenerClasePulso(item.bpm);
@@ -640,76 +651,64 @@ document.addEventListener('DOMContentLoaded', function() {
                     grid.insertAdjacentHTML('beforeend', itemHtml);
                 });
 
-                // 3. Actualizar campos ocultos para el generador de alertas manuales si existen datos
-                const hdnPulso = document.getElementById('hdnPulso');
-                if (hdnPulso && valoresBpm.length > 0) {
-                    hdnPulso.value = valoresBpm[valoresBpm.length - 1]; // Toma el último pulso recibido
-                }
-
             } catch (error) {
                 console.error('[Error Realtime API]:', error);
-                grid.innerHTML = '<p style="grid-column: span 3; text-align: center; color: #b91c1c;">Hubo un problema al conectar con el servidor de telemetría.</p>';
+                grid.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: #b91c1c;">Hubo un problema al conectar con el servidor de telemetría.</p>';
             }
         }
 
-        // Ejecutar carga automática al estar listo el DOM
         document.addEventListener('DOMContentLoaded', () => {
             cargarMetricasRealtime();
+            setInterval(cargarMetricasRealtime, 120000);
         });
 
-        // Lógica del modal
         const modal = document.getElementById('modalConfirmacion');
         const btnAbrir = document.getElementById('btnAbrirModal');
         const btnCancelar = document.getElementById('btnCancelar');
         const btnConfirmar = document.getElementById('btnConfirmar');
 
         if (btnAbrir) {
-        btnAbrir.addEventListener('click', function() {
-        const patientId = document.getElementById('hdnPatientId').value;
-
-        modal.setAttribute('data-patientId', patientId);
-        modal.style.display = 'flex';
-        });
+            btnAbrir.addEventListener('click', function() {
+                const patientId = document.getElementById('hdnPatientId').value;
+                modal.setAttribute('data-patientId', patientId);
+                modal.style.display = 'flex';
+            });
         }
 
         if (btnCancelar) {
-        btnCancelar.addEventListener('click', function() {
-        modal.style.display = 'none';
-        });
+            btnCancelar.addEventListener('click', function() { modal.style.display = 'none'; });
         }
 
         if (btnConfirmar) {
-        btnConfirmar.addEventListener('click', function() {
-        const patientId = modal.getAttribute('data-patientId');
-        const tokenInput = document.querySelector('#modalConfirmacion input[name="__RequestVerificationToken"]');
+            btnConfirmar.addEventListener('click', function() {
+                const patientId = modal.getAttribute('data-patientId');
+                const tokenInput = document.querySelector('#modalConfirmacion input[name="__RequestVerificationToken"]');
 
-        const form = document.createElement('form');
-        form.method = 'post';
-        form.action = '@Url.Action("ActivateManualAlert", "DatosGenerales")';
+                const form = document.createElement('form');
+                form.method = 'post';
+                form.action = '@Url.Action("ActivateManualAlert", "DatosGenerales")';
 
-        if (tokenInput) {
-        const inputToken = document.createElement('input');
-        inputToken.type = 'hidden';
-        inputToken.name = '__RequestVerificationToken';
-        inputToken.value = tokenInput.value;
-        form.appendChild(inputToken);
-        }
+                if (tokenInput) {
+                    const inputToken = document.createElement('input');
+                    inputToken.type = 'hidden';
+                    inputToken.name = '__RequestVerificationToken';
+                    inputToken.value = tokenInput.value;
+                    form.appendChild(inputToken);
+                }
 
-        const inputPatientId = document.createElement('input');
-        inputPatientId.type = 'hidden';
-        inputPatientId.name = 'patientId';
-        inputPatientId.value = patientId;
+                const inputPatientId = document.createElement('input');
+                inputPatientId.type = 'hidden';
+                inputPatientId.name = 'patientId';
+                inputPatientId.value = patientId;
 
-        form.appendChild(inputPatientId);
-        document.body.appendChild(form);
-        form.submit();
-        });
+                form.appendChild(inputPatientId);
+                document.body.appendChild(form);
+                form.submit();
+            });
         }
 
         window.addEventListener('click', function(e) {
-        if (e.target === modal) {
-        modal.style.display = 'none';
-        }
+            if (e.target === modal) { modal.style.display = 'none'; }
         });
     </script>
 }

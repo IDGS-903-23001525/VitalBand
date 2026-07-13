@@ -58,6 +58,7 @@ namespace VitalBand.Controllers
 
             if (!response.IsSuccessStatusCode)
             {
+                // Se conserva tu emoji personalizado para el error
                 ModelState.AddModelError(string.Empty, "Correo electrónico o contraseña incorrectos 🔒❤️");
                 return View(model);
             }
@@ -78,7 +79,7 @@ namespace VitalBand.Controllers
                 new(ClaimTypes.Role, char.ToUpper(datosLogin.Rol[0]) + datosLogin.Rol.Substring(1)),
                 new("UsuarioBaseId", datosLogin.Id.ToString()),
                 new("PerfilId", datosLogin.PerfilId.ToString()),
-                new("TokenSesionActual", datosLogin.TokenSesionActual) // Sesión por inactividad unificada
+                new("TokenSesionActual", datosLogin.TokenSesionActual)
             };
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -125,11 +126,11 @@ namespace VitalBand.Controllers
 
                 string mensajeBody = $@"
                 <div style='font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 12px;'>
-                    <h2 style='color: #0a6775;'>Restablecer Contraseña - VitalBand</h2>
+                    <h2 style='color: #0f766e;'>Restablecer Contraseña - VitalBand</h2>
                     <p>Recibimos una solicitud para cambiar la contraseña de tu cuenta.</p>
                     <p>Para continuar, haz clic en el siguiente botón (este enlace expirará en 15 minutos):</p>
                     <div style='text-align: center; margin: 30px 0;'>
-                        <a href='{callbackUrl}' style='background: linear-gradient(135deg, #0a6775, #06b6d4); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Restablecer Contraseña</a>
+                        <a href='{callbackUrl}' style='background: linear-gradient(135deg, #0f766e, #0d9488); color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;'>Restablecer Contraseña</a>
                     </div>
                     <p style='color: #64748b; font-size: 0.85em;'>Si tú no solicitaste este cambio, puedes ignorar este correo de forma segura.</p>
                 </div>";
@@ -221,11 +222,11 @@ namespace VitalBand.Controllers
 
             if (!response.IsSuccessStatusCode)
             {
-                ViewBag.Error = await response.Content.ReadAsStringAsync() ?? "Error interno al procesar el Onboarding clinico.";
+                ViewBag.Error = await response.Content.ReadAsStringAsync() ?? "Error interno al procesar el Onboarding clínico.";
                 return View(model);
             }
 
-            TempData["SuccessRegister"] = "¡Tu Onboarding clinico se ha completado con exito! Ya puedes iniciar sesion.";
+            TempData["SuccessRegister"] = "¡Tu Onboarding clínico se ha completado con éxito! Ya puedes iniciar sesión.";
             return RedirectToAction(nameof(Login));
         }
 
@@ -239,12 +240,14 @@ namespace VitalBand.Controllers
                 if (int.TryParse(claimId, out int userId))
                 {
                     var client = _clientFactory.CreateClient();
-                    await client.PostAsync(_apiUrlProvider.GetApiUrl($"/api/UsuariosApi/logout/{userId}"), null); // Borra tokens en BD mediante API
+                    await client.PostAsync(_apiUrlProvider.GetApiUrl($"/api/UsuariosApi/logout/{userId}"), null);
                 }
             }
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction(nameof(Login));
+
+            // Redirige correctamente a la Landing Page corporativa (Home/Index)
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
@@ -259,7 +262,7 @@ namespace VitalBand.Controllers
                 return BadRequest("No file uploaded.");
             }
 
-            var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+            var uploads = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "img", "pacientes");
             Directory.CreateDirectory(uploads);
 
             var ext = Path.GetExtension(avatar.FileName);
@@ -273,7 +276,7 @@ namespace VitalBand.Controllers
                 await avatar.CopyToAsync(stream);
             }
 
-            var url = $"/uploads/avatars/{fileName}";
+            var url = $"/img/pacientes/{fileName}";
             return Ok(new { url });
         }
 

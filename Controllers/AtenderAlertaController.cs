@@ -15,21 +15,18 @@ namespace VitalBand.Controllers
         private readonly IHttpClientFactory _clientFactory;
         private readonly IApiUrlProvider _apiUrlProvider;
 
-        // Cambiamos el contexto de BD por el cliente HTTP factory
         public AtenderAlertaController(IHttpClientFactory clientFactory, IApiUrlProvider apiUrlProvider)
         {
             _clientFactory = clientFactory;
             _apiUrlProvider = apiUrlProvider;
         }
 
-        // 🛠️ Cambiamos 'int id' por 'int alertaId' para atrapar la QueryString '?alertaId=2' de la imagen
         public async Task<IActionResult> Index(int alertaId)
         {
             var client = _clientFactory.CreateClient();
             string url = _apiUrlProvider.GetApiUrl("/api/AlertasApi");
             var response = await client.GetFromJsonAsync<List<Alerta>>(url);
 
-            // 🛠️ Buscamos la alerta exacta usando la variable corregida
             var alertaEspecifica = response?.FirstOrDefault(a => a.id == alertaId);
 
             if (alertaEspecifica == null) return NotFound();
@@ -54,16 +51,13 @@ namespace VitalBand.Controllers
         {
             var client = _clientFactory.CreateClient();
 
-            // Llamamos al método PUT que ya creamos en tu API para marcar la alerta como atendida
             string urlApi = _apiUrlProvider.GetApiUrl($"/api/AlertasApi/atender/{model.AlertaId}");
 
-            // Como es un método PUT sin un cuerpo complejo (la API solo necesita el ID en la URL), 
-            // mandamos un contenido vacío (StringContent) o un Json vacío
             var response = await client.PutAsJsonAsync(urlApi, new { });
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["Mensaje"] = "¡La alerta médica ha sido atendida y registrada con éxito! ❤️✨";
+                TempData["Mensaje"] = "¡La alerta médica ha sido atendida y registrada con éxito!";
             }
             else
             {

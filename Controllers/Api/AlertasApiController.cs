@@ -36,7 +36,7 @@ namespace VitalBand.Controllers.Api
             var alert = await _context.Alertas.FindAsync(id);
             if (alert == null)
             {
-                return NotFound(new { message = "The alert does not exist." });
+                return NotFound(new { message = "La alerta no existe" });
             }
 
             alert.mensaje_enviado = true;
@@ -52,7 +52,7 @@ namespace VitalBand.Controllers.Api
         {
             if (request == null || request.PatientId <= 0)
             {
-                return BadRequest(new { message = "A valid patient id is required." });
+                return BadRequest(new { message = "Se requiere un paciente valido." });
             }
 
             var alert = new Alerta
@@ -67,7 +67,7 @@ namespace VitalBand.Controllers.Api
 
             await Middleware.WebSocketConnectionManager.SendMessageAsync(alert.paciente_id, "ALERT");
 
-            return Ok(new { message = "Manual alert registered successfully.", alertId = alert.id });
+            return Ok(new { message = "Alerta Manual registrada con éxito", alertId = alert.id });
         }
     }
 }

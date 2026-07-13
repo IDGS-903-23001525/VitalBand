@@ -22,7 +22,7 @@ namespace VitalBand.Controllers
         }
 
         // GET: HistorialAlertas
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int id)
         {
             var client = _clientFactory.CreateClient();
             var response = await client.GetAsync(_apiUrlProvider.GetApiUrl("/api/AlertasApi"));

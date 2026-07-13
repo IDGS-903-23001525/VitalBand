@@ -3,16 +3,17 @@
 @{
     ViewData["Title"] = "Mi Cuenta - VitalBand";
     var claimId = User.FindFirst("UsuarioBaseId")?.Value;
-    string userAvatarUrl = "/images/avatar-placeholder.png";
+
+    string userAvatarUrl = "/img/paciente /avatar-placeholder.png";
     if (!string.IsNullOrEmpty(claimId))
     {
-        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "uploads", "avatars");
+        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "img", "pacientes");
         if (System.IO.Directory.Exists(uploadsDir))
         {
             var files = System.IO.Directory.GetFiles(uploadsDir, claimId + ".*");
             if (files.Length > 0)
             {
-                userAvatarUrl = "/uploads/avatars/" + System.IO.Path.GetFileName(files[0]);
+                userAvatarUrl = "/img/pacientes/" + System.IO.Path.GetFileName(files[0]);
             }
         }
     }
@@ -20,34 +21,158 @@
 
 @section Styles {
     <style>
-        .perfil-container {
-            max-width: 650px;
+        .perfil-wrapper {
+            max-width: 1150px;
             margin: 2rem auto;
-            background: rgba(255,255,255,0.22);
-            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 24px;
-            padding: 2.5rem;
-            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
         }
 
-            .perfil-container h2 {
-                font-size: 1.5rem;
-                margin-bottom: 1.5rem;
-                border-left: 3px solid #0891b2;
+        @@media (min-width: 992px) {
+            .perfil-wrapper {
+                grid-template-columns: 320px 1fr;
+            }
+        }
+
+        .identity-card {
+            background: linear-gradient(135deg, #09333f 0%, #0d4856 100%);
+            border-radius: 24px;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(9, 51, 63, 0.15);
+            border: 1px solid rgba(255,255,255,0.1);
+            height: fit-content;
+        }
+
+        .profile-avatar-holder {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid #0d9488;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            background: #ffffff;
+            margin-bottom: 1.25rem;
+        }
+
+            .profile-avatar-holder img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .identity-card h3 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.4rem;
+        }
+
+        .identity-card p {
+            font-size: 0.78rem;
+            color: #2dd4bf;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .avatar-edit-btn {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #ffffff;
+            padding: 0.5rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+            .avatar-edit-btn:hover {
+                background: #0d9488;
+                border-color: #2dd4bf;
+            }
+
+        .avatar-input {
+            display: none;
+        }
+
+        .health-quick-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .health-stat-card {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 14px;
+            padding: 0.75rem;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+        }
+
+            .health-stat-card .label {
+                font-size: 0.68rem;
+                font-weight: 700;
+                color: #64748b;
+                text-transform: uppercase;
+            }
+
+            .health-stat-card .value {
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: #09333f;
+                margin-top: 2px;
+            }
+
+            .health-stat-card .badge-status {
+                font-size: 0.7rem;
+                font-weight: 700;
+                padding: 2px 6px;
+                border-radius: 6px;
+                margin-top: 4px;
+                display: inline-block;
+            }
+
+        .glass-card-premium {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(30px) saturate(160%);
+            -webkit-backdrop-filter: blur(30px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 24px;
+            padding: 2.2rem;
+            box-shadow: 0 10px 30px rgba(9, 51, 63, 0.04);
+        }
+
+            .glass-card-premium h2 {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #09333f;
+                margin-bottom: 1.75rem;
+                border-left: 4px solid #0d9488;
                 padding-left: 0.75rem;
-                color: #0f172a;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
             }
 
         .form-group {
-            margin-bottom: 1.2rem;
+            margin-bottom: 1.25rem;
         }
 
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            gap: 1.25rem;
         }
 
         .form-group label {
@@ -62,66 +187,24 @@
 
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
-            padding: 0.7rem 0.9rem;
-            background: rgba(255,255,255,0.7);
-            border: 1.5px solid rgba(6,182,212,0.2);
-            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            background: #ffffff !important;
+            border: 1.5px solid #cbd5e1 !important;
+            border-radius: 12px !important;
             font-family: inherit;
             font-size: 0.9rem;
             color: #0f172a;
             outline: none;
-            transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
         }
 
         .form-group textarea {
             resize: vertical;
-            min-height: 90px;
+            min-height: 110px;
         }
 
             .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-                border-color: #0891b2;
-                background: rgba(255,255,255,0.85);
-                box-shadow: 0 0 0 3px rgba(6,182,212,0.15);
-            }
-
-        .alert-mensaje {
-            padding: 0.75rem 1rem;
-            border-radius: 10px;
-            margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .alert-success {
-            background: rgba(34,197,94,0.15);
-            color: #15803d;
-            border: 1px solid rgba(34,197,94,0.3);
-        }
-
-        .alert-danger {
-            background: rgba(239,68,68,0.15);
-            color: #b91c1c;
-            border: 1px solid rgba(239,68,68,0.3);
-        }
-
-        .btn-guardar {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            color: white;
-            border: none;
-            padding: 0.75rem 1.8rem;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95rem;
-            width: 100%;
-            margin-top: 1rem;
-            box-shadow: 0 4px 12px rgba(6,182,212,0.3);
-            transition: opacity 0.15s, transform 0.1s;
-        }
-
-            .btn-guardar:hover {
-                opacity: 0.95;
-                transform: translateY(-1px);
+                border-color: #0d9488 !important;
+                box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.12) !important;
             }
 
         .cedula-container {
@@ -130,262 +213,288 @@
         }
 
         .btn-verificar {
-            background: #0f172a;
+            background: #09333f;
             color: white;
             border: none;
-            padding: 0 1.2rem;
-            border-radius: 10px;
+            padding: 0 1.25rem;
+            border-radius: 12px;
             cursor: pointer;
             font-weight: 600;
             font-size: 0.85rem;
-            transition: background 0.15s;
-            white-space: nowrap;
         }
 
             .btn-verificar:hover {
-                background: #1e293b;
+                background: #0d4856;
             }
 
-        .status-resultado {
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 0.3rem;
-            display: block;
-        }
-
-        .profile-avatar-wrapper {
-            display: flex;
+        .doctor-verified-badge {
+            display: none;
             align-items: center;
-            gap: 1.25rem;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
+            gap: 10px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-top: 0.6rem;
+            animation: slideInNotif 0.2s ease-out;
         }
 
-        .profile-avatar {
-            width: 96px;
-            height: 96px;
-            border-radius: 999px;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.45));
-            border: 1px solid rgba(6,182,212,0.2);
-            box-shadow: 0 10px 24px rgba(6,182,212,0.12), inset 0 1px 0 rgba(255,255,255,0.75);
+        @@keyframes slideInNotif {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
-        .profile-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .avatar-actions {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            min-width: 180px;
-        }
-
-        .avatar-edit-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.78rem 1.2rem;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
+        .btn-guardar {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
             color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
             font-weight: 700;
             font-size: 0.95rem;
-            border: none;
-            cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 10px 22px rgba(6,182,212,0.18);
-            transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            width: 100%;
+            margin-top: 1rem;
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.25);
         }
 
-        .avatar-edit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 26px rgba(6,182,212,0.22);
-            background: linear-gradient(135deg, #06b6d4, #0891b2);
+            .btn-guardar:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(13, 148, 136, 0.35);
+            }
+
+        .alert-mensaje {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
 
-        .avatar-input {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            border: 0;
+        .alert-success {
+            background: rgba(34,197,94,0.12);
+            color: #166534;
+            border: 1px solid rgba(34,197,94,0.2);
+        }
+
+        .alert-danger {
+            background: rgba(239,68,68,0.12);
+            color: #991b1b;
+            border: 1px solid rgba(239,68,68,0.2);
         }
     </style>
 }
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var fileInput = document.getElementById('fileAvatar');
-        var img = document.getElementById('imgAvatar');
-        if (!fileInput) return;
 
-        fileInput.addEventListener('change', function (e) {
-            var f = e.target.files && e.target.files[0];
-            if (!f) return;
+<div class="perfil-wrapper">
+    <div class="identity-card">
+        <div class="profile-avatar-holder">
+            <img src="@userAvatarUrl" alt="Avatar" id="imgAvatar" />
+        </div>
+        <h3>@Model.Nombre</h3>
+        <p>Expediente VitalBand</p>
 
-            var reader = new FileReader();
-            reader.onload = function(ev) { img.src = ev.target.result; };
-            reader.readAsDataURL(f);
+        <label class="avatar-edit-btn" for="fileAvatar">Cambiar foto</label>
+        <input id="fileAvatar" class="avatar-input" type="file" accept="image/*" />
+        <div style="font-size:0.75rem; color:#a5f3fc; opacity:0.7; margin-top:1rem; padding:0 0.5rem; font-weight:500;">
+            Sube una foto clara de frente para tu registro.
+        </div>
+    </div>
 
-            var form = new FormData();
-            form.append('avatar', f);
-
-            fetch('/Account/UploadAvatar', {
-                method: 'POST',
-                body: form
-            })
-            .then(function(res) {
-                if (!res.ok) throw new Error('Upload failed');
-                return res.json();
-            })
-            .then(function(data) {
-                if (data && data.url) {
-                    img.src = data.url;
-                } else {
-                    alert('No se pudo subir la imagen.');
-                }
-            })
-            .catch(function() {
-                alert('Error al subir la imagen.');
-            });
-        });
-    });
-</script>
-
-<div class="perfil-container">
-    <h2>Editar mi perfil y expediente de salud</h2>
-
-    @if (TempData["Mensaje"] != null)
-    {
-        <div class="alert-mensaje alert-success">@TempData["Mensaje"]</div>
-    }
-    @if (TempData["Error"] != null)
-    {
-        <div class="alert-mensaje alert-danger">@TempData["Error"]</div>
-    }
-
-    <form asp-action="ActualizarPerfil" method="post">
-        @Html.AntiForgeryToken()
-
-        <input type="hidden" asp-for="Id" />
-
-        <div class="profile-avatar-wrapper">
-            <div class="profile-avatar" id="perfilAvatar">
-                <img src="@userAvatarUrl" alt="Avatar" id="imgAvatar" />
+    <div class="glass-card-premium">
+        <div class="health-quick-status">
+            <div class="health-stat-card">
+                <div class="label">Edad</div>
+                <div class="value">@Model.Edad <span style="font-size:0.75rem;">años</span></div>
             </div>
-            <div class="avatar-actions">
-                <label class="avatar-edit-btn" for="fileAvatar">Cambiar imagen</label>
-                <input id="fileAvatar" class="avatar-input" type="file" accept="image/*" />
-                <div style="font-size:0.85rem; color:var(--gray-500);">Sube una foto de perfil para tu cuenta.</div>
+            <div class="health-stat-card">
+                <div class="label">Masa Corporal</div>
+                <div class="value" id="imcValor">--</div>
+            </div>
+            <div class="health-stat-card">
+                <div class="label">Estado Clínico</div>
+                <div><span class="badge-status" id="imcRango" style="background:#e2e8f0; color:#475569;">Calculando...</span></div>
             </div>
         </div>
 
-        <div class="form-group">
-            <label asp-for="Nombre">Nombre completo</label>
-            <input asp-for="Nombre" required placeholder="Tu nombre completo" />
-        </div>
+        <h2>Mi Información y Registro Clínico</h2>
 
-        <div class="form-group">
-            <label asp-for="Email">Correo electrónico</label>
-            <input asp-for="Email" type="email" required placeholder="ejemplo@vitalband.com" />
-        </div>
+        @if (TempData["Mensaje"] != null)
+        {
+            <div class="alert-mensaje alert-success">@TempData["Mensaje"]</div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-mensaje alert-danger">@TempData["Error"]</div>
+        }
 
-        <div class="form-row">
+        <form asp-action="ActualizarPerfil" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+
             <div class="form-group">
-                <label asp-for="Sexo">Género asignado</label>
-                <select asp-for="Sexo">
-                    <option value="Masculino">Masculino</option>
-                    <option value="Femenino">Femenino</option>
-                    <option value="Otro">Otro</option>
-                </select>
+                <label asp-for="Nombre">Nombre completo</label>
+                <input asp-for="Nombre" required placeholder="Tu nombre completo" />
             </div>
+
             <div class="form-group">
-                <label asp-for="Edad">Edad actual (Calculada)</label>
-                <input asp-for="Edad" type="number" readonly style="background: rgba(0,0,0,0.05); color: #64748b; cursor: not-allowed;" />
+                <label asp-for="Email">Dirección de Correo Electrónico</label>
+                <input asp-for="Email" type="email" required placeholder="ejemplo@vitalband.com" />
             </div>
-        </div>
 
-        <div class="form-row">
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Sexo">Género biológico</label>
+                    <select asp-for="Sexo">
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Edad">Edad actual (Solo Lectura)</label>
+                    <input asp-for="Edad" id="txtEdad" type="number" readonly style="background: #f1f5f9 !important; color: #64748b; cursor: not-allowed;" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Peso">Peso actual (kg)</label>
+                    <input asp-for="Peso" id="txtPeso" type="number" step="0.1" required placeholder="ej. 75.4" oninput="calcularIMCDinamico()" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Altura">Estatura actual (m)</label>
+                    <input asp-for="Altura" id="txtAltura" type="number" step="0.01" required placeholder="ej. 1.72" oninput="calcularIMCDinamico()" />
+                </div>
+            </div>
+
+            <input type="hidden" asp-for="MedicoAsignadoId" id="hfMedicoId" />
+
             <div class="form-group">
-                <label asp-for="Peso">Peso actual (kg)</label>
-                <input asp-for="Peso" type="number" step="0.1" required placeholder="ej. 75.4" />
+                <label asp-for="CedulaMedico">Médico de Cabecera Asignado</label>
+                <div class="cedula-container">
+                    <input asp-for="CedulaMedico" id="txtCedula" placeholder="Digita la cédula profesional de tu médico" />
+                    <button type="button" class="btn-verificar" id="btnVerificarCedula">Verificar</button>
+                </div>
+
+                <div class="doctor-verified-badge" id="doctorBadge">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+                    <span id="lblResultadoCedula" style="font-size: 0.88rem; font-weight: 700; color: #166534;"></span>
+                </div>
             </div>
+
             <div class="form-group">
-                <label asp-for="Altura">Estatura actual (m)</label>
-                <input asp-for="Altura" type="number" step="0.01" required placeholder="ej. 1.72" />
+                <label asp-for="HistorialMedico">Antecedentes Clínicos y Alergias</label>
+                <textarea asp-for="HistorialMedico" placeholder="Indica padecimientos crónicos, cirugías previas o tipo de sangre..."></textarea>
             </div>
-        </div>
 
-        <input type="hidden" asp-for="MedicoAsignadoId" id="hfMedicoId" />
-
-        <div class="form-group">
-            <label asp-for="CedulaMedico">Cédula Profesional del Médico</label>
-            <div class="cedula-container">
-                <input asp-for="CedulaMedico" id="txtCedula" placeholder="Ej. 12345678" />
-                <button type="button" class="btn-verificar" id="btnVerificarCedula">Verificar</button>
-            </div>
-            <span id="lblResultadoCedula" class="status-resultado"></span>
-        </div>
-
-        <div class="form-group">
-            <label asp-for="HistorialMedico">Historial clínico breve</label>
-            <textarea asp-for="HistorialMedico" placeholder="Indica padecimientos crónicos, cirugías previas, tipo de sangre o alergias bajo control médico..."></textarea>
-        </div>
-
-        <button type="submit" class="btn-guardar">💾 Guardar cambios clínicos</button>
-    </form>
+            <button type="submit" class="btn-guardar">💾 Guardar expediente de salud</button>
+        </form>
+    </div>
 </div>
+
 @section Scripts {
     <script>
+        function calcularIMCDinamico() {
+            const peso = parseFloat(document.getElementById('txtPeso').value);
+            const altura = parseFloat(document.getElementById('txtAltura').value);
+            const imcValor = document.getElementById('imcValor');
+            const imcRango = document.getElementById('imcRango');
+
+            if (!peso || !altura || altura <= 0) return;
+
+            const imc = (peso / (altura * altura)).toFixed(1);
+            imcValor.innerHTML = `${imc} <span style="font-size:0.75rem;">Kg/m²</span>`;
+
+            if (imc < 18.5) {
+                imcRango.innerText = "Bajo Peso";
+                imcRango.style.background = "#fef3c7"; imcRango.style.color = "#d97706";
+            } else if (imc >= 18.5 && imc <= 24.9) {
+                imcRango.innerText = "Normal";
+                imcRango.style.background = "#dcfce7"; imcRango.style.color = "#15803d";
+            } else if (imc >= 25 && imc <= 29.9) {
+                imcRango.innerText = "Sobrepeso";
+                imcRango.style.background = "#fee2e2"; imcRango.style.color = "#b91c1c";
+            } else {
+                imcRango.innerText = "Obesidad";
+                imcRango.style.background = "#fca5a5"; imcRango.style.color = "#991b1b";
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            calcularIMCDinamico();
+
+            var fileInput = document.getElementById('fileAvatar');
+            var img = document.getElementById('imgAvatar');
+            if (!fileInput) return;
+
+            fileInput.addEventListener('change', function (e) {
+                var f = e.target.files && e.target.files[0];
+                if (!f) return;
+
+                var reader = new FileReader();
+                reader.onload = function(ev) { img.src = ev.target.result; };
+                reader.readAsDataURL(f);
+
+                var form = new FormData();
+                form.append('avatar', f);
+
+                fetch('/Account/UploadAvatar', { method: 'POST', body: form })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.url) {
+                        const nuevaRutaConBusting = data.url + '?t=' + new Date().getTime();
+                        img.src = nuevaRutaConBusting;
+                        const navAvatar = document.querySelector('#headerAvatar img');
+                        if (navAvatar) navAvatar.src = nuevaRutaConBusting;
+                    }
+                });
+            });
+        });
+
         document.getElementById("btnVerificarCedula").addEventListener("click", function () {
             var cedulaInput = document.getElementById("txtCedula").value.trim();
+            var badge = document.getElementById("doctorBadge");
             var lblResultado = document.getElementById("lblResultadoCedula");
             var hfMedicoId = document.getElementById("hfMedicoId");
 
             if (cedulaInput === "") {
-                lblResultado.style.color = "#b91c1c";
+                badge.style.display = "flex";
+                badge.style.background = "#fef2f2"; badge.style.borderColor = "#fca5a5";
+                lblResultado.style.color = "#991b1b";
                 lblResultado.innerHTML = "Por favor, escribe una cédula primero.";
                 return;
             }
 
-            lblResultado.style.color = "#475569";
-            lblResultado.innerHTML = "Buscando en VitalBand...";
-
-            // Realizamos la consulta asíncrona al controlador
             fetch('/Configuracion/VerificarCedula?cedula=' + encodeURIComponent(cedulaInput))
                 .then(response => response.json())
                 .then(data => {
+                    badge.style.display = "flex";
                     if (data.existe) {
-                        lblResultado.style.color = "#15803d";
-                        lblResultado.innerHTML = "✔ Médico verificado: " + data.nombre;
-                        hfMedicoId.value = data.id; // Asignamos el ID encontrado al campo oculto
+                        badge.style.background = "#f0fdf4"; badge.style.borderColor = "#bbf7d0";
+                        lblResultado.style.color = "#166534";
+                        lblResultado.innerHTML = "Médico Verificado: " + data.nombre;
+                        hfMedicoId.value = data.id;
                     } else {
-                        lblResultado.style.color = "#b91c1c";
+                        badge.style.background = "#fef2f2"; badge.style.borderColor = "#fca5a5";
+                        lblResultado.style.color = "#991b1b";
                         lblResultado.innerHTML = data.mensaje;
-                        hfMedicoId.value = ""; // Limpiamos el ID si no existe
+                        hfMedicoId.value = "";
                     }
-                })
-                .catch(error => {
-                    lblResultado.style.color = "#b91c1c";
-                    lblResultado.innerHTML = "Error al conectar con el servidor.";
                 });
         });
 
-        // Si el usuario cambia el texto de la cédula después de verificar, borramos el ID oculto para obligar a verificar de nuevo
         document.getElementById("txtCedula").addEventListener("input", function() {
             document.getElementById("hfMedicoId").value = "";
-            document.getElementById("lblResultadoCedula").innerHTML = "";
+            document.getElementById("doctorBadge").style.display = "none";
         });
     </script>
 }

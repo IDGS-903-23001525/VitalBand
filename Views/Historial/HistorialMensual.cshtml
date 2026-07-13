@@ -5,408 +5,512 @@
 }
 @section Styles {
     <style>
-        :root {
-            --teal-700: #0a6775;
-            --teal-600: #0891b2;
-            --teal-500: #06b6d4;
-            --teal-400: #22d3ee;
-            --teal-100: #cffafe;
-            --teal-50: #ecfeff;
-            --em-700: #047857;
-            --em-600: #059669;
-            --em-500: #10b981;
-            --em-400: #34d399;
-            --em-100: #d1fae5;
-            --em-50: #ecfdf5;
-            --blue-600: #0891b2;
-            --blue-500: #06b6d4;
-            --blue-100: #cffafe;
-            --blue-50: #ecfeff;
-            --gray-900: #0f172a;
-            --gray-700: #334155;
-            --gray-600: #475569;
-            --gray-400: #94a3b8;
-            --gray-200: #e2e8f0;
-            --gray-100: #f1f5f9;
-            --gray-50: #f8fafc;
-            --red-600: #dc2626;
-            --red-50: #fef2f2;
-            --red-100: #fecaca;
-            --amber-600: #d97706;
-            --amber-50: #fffbeb;
-            --green-600: #059669;
-            --green-50: #ecfdf5;
-            --white: #ffffff;
-            --page-bg: #f0fdfe;
-        }
-
-        body {
-            background: var(--page-bg);
-            font-family: 'Inter', 'DM Sans', sans-serif;
-            color: var(--gray-900);
-        }
-
-        .page-header {
-            padding: 2.5rem 0 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1.5rem;
-        }
-
-            .page-header h1 {
-                font-size: 1.85rem;
-                font-weight: 600;
-                color: var(--gray-900);
-                letter-spacing: -0.5px;
-                margin-bottom: 0.35rem;
+        @@media (min-width: 992px) {
+            body {
+                overflow: hidden;
             }
 
-            .page-header p {
-                font-size: 0.9rem;
-                color: var(--gray-600);
+            .vb-content.container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                height: calc(100vh - 122px);
+                display: flex;
+                align-items: stretch;
             }
 
-        /* ── SECCIÓN DE FILTROS LINDA (Soft Capsule) ── */
-        .period-badge {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(6, 182, 212, 0.15);
-            border-radius: 20px;
-            padding: 0.65rem 1.25rem;
-            box-shadow: 0 10px 25px rgba(8, 145, 178, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
+            .vb-content main {
+                width: 100%;
+                height: 100%;
+            }
         }
 
-        .filter-form {
+        .history-split-layout {
             display: flex;
-            align-items: center;
-            gap: 1.25rem;
-            flex-wrap: wrap;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
         }
 
-        /* Contenedor del select con su etiqueta interna */
+        @@media (min-width: 992px) {
+            .history-split-layout {
+                flex-direction: row;
+            }
+        }
+
+        .history-sidebar {
+            flex: 1;
+            background: linear-gradient(145deg, #09333f 0%, #0d4856 60%, #115e59 100%);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            color: #ffffff;
+        }
+
+        @@media (min-width: 992px) {
+            .history-sidebar {
+                flex: 0.32;
+                padding: 2.5rem 2rem;
+                gap: 1.5rem;
+                border-right: 1px solid rgba(255,255,255,0.08);
+                overflow-y: auto;
+            }
+        }
+
+        .sidebar-title h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #ffffff;
+            margin-bottom: 0.35rem;
+        }
+
+        .sidebar-title p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .sidebar-divider {
+            border: none;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            margin: 0.25rem 0;
+        }
+
+        .sidebar-filters-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+        }
+
         .filter-group {
             display: flex;
             flex-direction: column;
-            position: relative;
+            margin-bottom: 1.25rem;
         }
+
+            .filter-group:last-child {
+                margin-bottom: 0;
+            }
 
             .filter-group label {
                 font-size: 0.68rem;
                 font-weight: 700;
                 text-transform: uppercase;
-                letter-spacing: 0.8px;
-                color: var(--teal-700);
-                margin-bottom: 3px;
-                padding-left: 2px;
+                letter-spacing: 0.9px;
+                color: #2dd4bf;
+                margin-bottom: 0.4rem;
             }
 
-        /* Estilo personalizado y estilizado para los select */
         .filter-select {
-            padding: 0.5rem 2.2rem 0.5rem 0.85rem;
+            padding: 0.65rem 2.2rem 0.65rem 0.85rem !important;
             font-family: inherit;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: var(--gray-700);
-            background: var(--white);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-            border-radius: 10px;
+            font-size: 0.88rem !important;
+            font-weight: 600;
+            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            border: 1.5px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 10px !important;
             outline: none;
             cursor: pointer;
-            transition: all 0.2s ease;
-            min-width: 130px;
-            appearance: none; /* Quitamos la flecha fea nativa */
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230891b2' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 14px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232dd4bf' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: right 0.75rem center !important;
+            background-size: 14px !important;
         }
 
-        /* Ancho dinámico para el select de pacientes */
-        .filter-group select[name="usuarioId"] {
-            min-width: 200px;
-        }
-
-        .filter-select:hover {
-            border-color: var(--teal-400);
-            background-color: var(--gray-50);
-        }
-
-        .filter-select:focus {
-            border-color: var(--teal-500);
-            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);
-            background-color: var(--white);
-        }
-
-        /* ── RESTO DE LOS ESTILOS (Mantenidos intactos) ── */
-        .calendar-card {
-            background: rgba(255,255,255,0.22);
-            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 24px;
-            overflow: hidden;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
-        }
-
-        .calendar-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-        }
-
-        .cal-header-cell {
-            padding: 0.7rem 0;
-            text-align: center;
-            font-size: 0.6875rem;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            color: var(--teal-700);
-            background: rgba(6,182,212,0.08);
-            border-bottom: 2px solid rgba(6,182,212,0.25);
-        }
-
-        .cal-cell {
-            min-height: 80px;
-            padding: 0.5rem;
-            border-right: 1px solid rgba(6,182,212,0.18);
-            border-bottom: 1px solid rgba(6,182,212,0.18);
-            position: relative;
-            background: rgba(255,255,255,0.7);
-            transition: background 0.1s;
-        }
-
-            .cal-cell:hover {
-                background: rgba(6,182,212,0.06);
+            .filter-select option {
+                color: #0f172a;
+                background: #ffffff;
             }
 
-                .cal-cell.clickable {
-                    cursor: pointer;
-                }
-
-            .cal-cell.empty {
-                background: rgba(241,253,254,0.5);
-            }
-
-            .cal-cell.alert {
-                background: rgba(254,242,242,0.85);
-                border: 1.5px solid rgba(220,38,38,0.25);
-            }
-
-        .cal-day-num {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--gray-700);
-            margin-bottom: 0.4rem;
-        }
-
-        .cal-cell.alert .cal-day-num {
-            color: var(--red-600);
-        }
-
-        .cal-bpm {
-            font-size: 0.8125rem;
-            font-weight: 600;
-            color: var(--teal-600);
-        }
-
-        .cal-bpm-label {
-            font-size: 0.7rem;
-            color: var(--gray-400);
-            margin-bottom: 1px;
-        }
-
-        .cal-alert-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            margin-top: 4px;
-            font-size: 0.6875rem;
-            font-weight: 600;
-            color: var(--red-600);
-        }
-
-        .alert-icon {
-            width: 26px;
-            height: 26px;
-            position: absolute;
-            bottom: 6px;
-            right: 6px;
-            opacity: 0.85;
-        }
-
-        .ok-icon {
-            width: 20px;
-            height: 20px;
-            position: absolute;
-            bottom: 6px;
-            right: 6px;
-            opacity: 0.55;
-        }
-
-        .export-bar {
+        .dash-calendar-content {
+            flex: 1;
+            padding: 1.5rem;
+            background: #fafbfc;
             display: flex;
-            justify-content: flex-end;
-            padding: 1rem 1rem 1rem;
-            border-top: 1px solid rgba(6,182,212,0.15);
-            background: rgba(6,182,212,0.04);
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        @@media (min-width: 992px) {
+            .dash-calendar-content {
+                flex: 1.68;
+                padding: 2rem 3rem;
+                height: 100%;
+            }
+        }
+
+        .calendar-header-area {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        @@media (min-width: 576px) {
+            .calendar-header-area {
+                flex-direction: row;
+                align-items: center;
+            }
+        }
+
+        .calendar-header-area h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        @@media (min-width: 992px) {
+            .calendar-header-area h2 {
+                font-size: 1.45rem;
+            }
         }
 
         .btn-export {
             display: inline-flex;
             align-items: center;
             gap: 8px;
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            color: var(--white);
-            font-family: 'Inter', 'DM Sans', sans-serif;
-            font-size: 0.875rem;
-            font-weight: 600;
-            padding: 0.65rem 1.4rem;
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.65rem 1.25rem;
             border: none;
             border-radius: 10px;
+            text-decoration: none !important;
+            box-shadow: 0 4px 14px rgba(13, 148, 136, 0.18);
+            transition: all 0.15s ease;
             cursor: pointer;
-            text-decoration: none;
-            box-shadow: 0 3px 12px rgba(6,182,212,0.35);
-            transition: opacity 0.15s, transform 0.15s;
+            width: fit-content;
         }
 
             .btn-export:hover {
-                opacity: 0.9;
                 transform: translateY(-1px);
-                color: var(--white);
+                box-shadow: 0 6px 18px rgba(13, 148, 136, 0.28);
+                color: #ffffff;
             }
 
-            .btn-export svg {
-                width: 16px;
-                height: 16px;
-            }
-
-        .summary-grid {
+        .summary-grid-top {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: 1fr;
             gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .summary-card {
-            background: rgba(255,255,255,0.22);
-            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 18px;
-            padding: 1rem 1.25rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            box-shadow: 0 4px 20px rgba(8,145,178,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
-        }
-
-        .summary-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            margin-bottom: 1.25rem;
             flex-shrink: 0;
         }
 
-            .summary-icon.blue {
-                background: var(--blue-50);
+        @@media (min-width: 576px) {
+            .summary-grid-top {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.25rem;
+            }
+        }
+
+        .summary-card-top {
+            background: #ffffff;
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 16px;
+            padding: 1rem 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+        }
+
+            .summary-card-top .icon-container {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
             }
 
-            .summary-icon.red {
-                background: var(--red-50);
+            .summary-card-top.blue-card .icon-container {
+                background: #f0fdfa;
             }
 
-            .summary-icon.green {
-                background: rgba(16,185,129,0.12);
+            .summary-card-top.red-card .icon-container {
+                background: #fef2f2;
             }
 
-            .summary-icon svg {
-                width: 20px;
-                height: 20px;
+            .summary-card-top.green-card .icon-container {
+                background: #f0fdf4;
             }
 
-            .summary-icon.blue svg {
-                stroke: var(--blue-500);
+            .summary-card-top .icon-container svg {
+                width: 22px;
+                height: 22px;
             }
 
-            .summary-icon.red svg {
-                stroke: var(--red-600);
+            .summary-card-top.blue-card svg {
+                stroke: #0d9488;
             }
 
-            .summary-icon.green svg {
-                stroke: #059669;
+            .summary-card-top.red-card svg {
+                stroke: #dc2626;
             }
 
-        .summary-label {
-            font-size: 0.8rem;
-            color: var(--gray-600);
+            .summary-card-top.green-card svg {
+                stroke: #16a34a;
+            }
+
+        .summary-text-block .label-title {
+            display: block;
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #475569;
+            font-weight: 600;
             margin-bottom: 2px;
         }
 
-        .summary-value {
-            font-size: 1.125rem;
+        .summary-text-block .value-data {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .summary-card-top.red-card .value-data {
+            color: #dc2626;
+        }
+
+        .summary-card-top.green-card .value-data {
+            color: #16a34a;
+        }
+
+        .real-calendar-book {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1.5px solid #cbd5e1;
+            box-shadow: 0 4px 20px rgba(15, 23, 42, 0.02);
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 400px;
+            margin-bottom: 0.5rem;
+            overflow: hidden;
+        }
+
+        @@media (min-width: 992px) {
+            .real-calendar-book {
+                min-height: 0;
+                overflow-y: auto;
+            }
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: transparent;
+            width: 100%;
+            height: 100%;
+        }
+
+        .cal-header-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #09333f;
+            border-bottom: 1.5px solid #cbd5e1;
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .cal-header-cell {
+            padding: 0.75rem 0;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            color: #ffffff; 
+        }
+
+        .cal-cell {
+            padding: 0.6rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            position: relative;
+            height: 105px !important;
+            border-right: 1px solid #cbd5e1;
+            border-bottom: 1px solid #cbd5e1;
+        }
+
+            .cal-cell:nth-child(7n) {
+                border-right: none;
+            }
+
+
+        .calendar-grid > div:nth-child(between 1 and 7),
+        .calendar-grid > div:nth-child(between 15 and 21),
+        .calendar-grid > div:nth-child(between 29 and 35) {
+            background-color: #d9effb;
+        }
+
+        .calendar-grid > div:nth-child(between 8 and 14),
+        .calendar-grid > div:nth-child(between 22 and 28),
+        .calendar-grid > div:nth-child(between 36 and 42) {
+            background-color: #ffffff;
+        }
+
+        .cal-cell.empty {
+            background-color: #f1f5f9 !important;
+        }
+
+        .cal-cell.alert {
+            background-color: #fef2f2 !important;
+            box-shadow: inset 0 0 0 1px #fecaca;
+        }
+
+        .cal-cell.clickable:hover {
+            background-color: #e0f2fe !important;
+            outline: 2px solid #0d9488;
+            z-index: 5;
+        }
+
+        .cell-top-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .cal-day-num {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+            line-height: 1;
+        }
+
+        .cal-cell.alert .cal-day-num {
+            color: #dc2626;
+        }
+
+        .cell-bottom-info {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: 2px;
+        }
+
+        .cal-bpm-block {
+            line-height: 1.1;
+        }
+
+        .cal-bpm {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #0f766e;
+        }
+
+        @@media (min-width: 576px) {
+            .cal-bpm {
+                font-size: 0.85rem;
+            }
+        }
+
+        .cal-cell.alert .cal-bpm {
+            color: #dc2626;
+        }
+
+        .cal-bpm-label {
+            font-size: 0.55rem;
             font-weight: 600;
-            color: var(--gray-900);
+            color: #94a3b8;
+            text-transform: uppercase;
+            display: block;
         }
 
-            .summary-value.alert-val {
-                color: var(--red-600);
-            }
+        .cal-alert-badge {
+            display: none;
+            font-size: 0.58rem;
+            font-weight: 800;
+            color: #ffffff;
+            background-color: #dc2626;
+            padding: 2px 5px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            width: fit-content;
+            margin-top: 1px;
+        }
 
-        @@media (max-width: 768px) {
-            .filter-form {
-                gap: 0.75rem;
-            }
-
-            .filter-select {
-                min-width: 100%;
+        @@media (min-width: 576px) {
+            .cal-alert-badge {
+                display: inline-block;
             }
         }
 
-        @@media (max-width: 640px) {
-            .summary-grid {
-                grid-template-columns: 1fr;
-            }
+        .status-icon-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            .cal-cell {
-                min-height: 60px;
-            }
+        .alert-icon {
+            width: 14px;
+            height: 14px;
+        }
 
-            .cal-bpm-label {
-                display: none;
+        @@media (min-width: 576px) {
+            .alert-icon {
+                width: 16px;
+                height: 16px;
             }
+        }
+
+        .ok-icon {
+            width: 12px;
+            height: 12px;
+            opacity: 0.6;
+        }
+
+        .text-no-signal {
+            font-size: 0.6rem;
+            font-style: italic;
+            color: #94a3b8;
         }
     </style>
 }
 
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
-
-<div class="container" style="max-width:1100px; margin:0 auto; padding:0 1.5rem;">
-
-    <div class="page-header">
-        <div>
-            <h1>Historial Cardíaco - @Model.UsuarioNombre</h1>
-            <p>Monitoreo detallado de frecuencia cardíaca promedio diaria.</p>
+<div class="history-split-layout">
+    <div class="history-sidebar">
+        <div class="sidebar-title">
+            <h1>Historial Clínico</h1>
+            <p>Selector de períodos y asignación de telemetría de red médica.</p>
         </div>
 
-        <div class="period-badge">
-            <form method="get" action="@Url.Action(esMedico ? "Index" : "MiHistorial", "Historial")" class="filter-form">
+        <hr class="sidebar-divider" />
 
+        <div class="sidebar-filters-box">
+            <form method="get" action="@Url.Action(esMedico ? "Index" : "MiHistorial", "Historial")" id="historyFilterForm">
                 @if (esMedico)
                 {
                     <div class="filter-group">
-                        <label>Paciente</label>
+                        <label>Paciente en Consulta</label>
                         <select name="usuarioId" class="filter-select" onchange="this.form.submit()">
                             @foreach (var usuario in ViewBag.Usuarios as List<VitalBand.Models.UsuarioResumen>)
                             {
@@ -421,7 +525,7 @@
                 }
 
                 <div class="filter-group">
-                    <label>Mes</label>
+                    <label>Mes Evaluado</label>
                     <select name="mes" class="filter-select" onchange="this.form.submit()">
                         <option value="1" selected="@(Model.Mes == 1)">Enero</option>
                         <option value="2" selected="@(Model.Mes == 2)">Febrero</option>
@@ -439,12 +543,11 @@
                 </div>
 
                 <div class="filter-group">
-                    <label>Año</label>
+                    <label>Año de Registro</label>
                     <select name="año" class="filter-select" onchange="this.form.submit()">
                         @{
                             int anioActual = DateTime.Today.Year;
-                            int anioInicio = 2000; // El año en que arrancó tu sistema o base de datos
-
+                            int anioInicio = 2020;
                             for (int i = anioActual; i >= anioInicio; i--)
                             {
                                 <option value="@i" selected="@(Model.Año == i)">@i</option>
@@ -456,151 +559,165 @@
         </div>
     </div>
 
-    <div class="summary-grid">
-        <div class="summary-card">
-            <div class="summary-icon blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
-            </div>
-            <div>
-                <div class="summary-label">Promedio Mensual</div>
-                <div class="summary-value">@(Model?.PromedioMensual ?? 74) BPM</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-icon red">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="12" />
-                    <line x1="12" y1="16" x2="12.01" y2="16" />
-                </svg>
-            </div>
-            <div>
-                <div class="summary-label">Incidentes Críticos</div>
-                <div class="summary-value alert-val">@(Model?.TotalIncidentes ?? 0) Evento@(Model?.TotalIncidentes != 1 ? "s" : "")</div>
-            </div>
-        </div>
-        <div class="summary-card">
-            <div class="summary-icon green">
-                <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-            </div>
-            <div>
-                <div class="summary-label">Estado de Salud</div>
-                <div class="summary-value">@(Model?.EstadoSalud ?? "Estable")</div>
-            </div>
-        </div>
-    </div>
+    <div class="dash-calendar-content">
+        <div class="calendar-header-area">
+            <h2>Panel de Diagnóstico &ndash; @Model.UsuarioNombre</h2>
 
-    <div class="calendar-card">
-        <div class="calendar-grid">
-            @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" })
-            {
-                <div class="cal-header-cell">@dia</div>
-            }
-
-            @{
-                var diasVacios = Model?.DiasVaciosInicio ?? 0;
-                for (int i = 0; i < diasVacios; i++)
-                {
-                    <div class="cal-cell empty"></div>
-                }
-                var dias = Model?.DiasDelMes ?? new List<VitalBand.Models.DiaHistorial>();
-            }
-
-            @{
-                DateTime fechaRegistro = (ViewBag.FechaRegistro is DateTime) ? ((DateTime)ViewBag.FechaRegistro).Date : DateTime.MinValue.Date;
-                DateTime fechaHoy = DateTime.Today.Date;
-            }
-
-            @foreach (var dia in dias)
-            {
-                var fechaDia = new DateTime(Model.Año, Model.Mes, dia.Numero).Date;
-                var cellClass = dia.TieneAlerta ? "cal-cell alert" : "cal-cell";
-                if (esMedico) cellClass += " clickable";
-                if (!esMedico) cellClass += " disabled-cell";
-                
-                <div class="@cellClass" data-fecha='@fechaDia.ToString("yyyy-MM-dd")'>
-                    @if (dia.TieneAlerta)
-                    {
-                        <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                            <line x1="12" y1="9" x2="12" y2="13" />
-                            <line x1="12" y1="17" x2="12.01" y2="17" />
-                        </svg>
-                    }
-
-                    <div class="cal-day-num">@dia.Numero</div>
-
-                    @if (fechaDia == fechaRegistro)
-                    {
-                        <div style="font-size: 0.65rem; font-weight: 700; color: var(--teal-700); margin-top: 3px; line-height: 1.1;">Inicio en aplicación VitalBand</div>
-                    }
-
-                    @if (dia.BpmPromedio != 72 || dia.TieneAlerta)
-                    {
-                        <div class="cal-bpm-label">Prom:</div>
-                        <div class="cal-bpm">@dia.BpmPromedio BPM</div>
-    
-                        @if (!dia.TieneAlerta)
-                        {
-                            <svg class="ok-icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                        }
-                    }
-                    else
-                    {
-                        if (fechaDia > fechaRegistro && fechaDia <= fechaHoy)
-                        {
-                            <div class="text-muted" style="font-size: 0.65rem; font-style: italic; margin-top: 5px;">Sin registros</div>
-                        }
-                    }
-
-                    @if (dia.TieneAlerta && !string.IsNullOrEmpty(dia.MensajeAlerta))
-                    {
-                        <div class="cal-alert-badge">@dia.MensajeAlerta</div>
-                    }
-                </div>
-            }
-        </div>
-
-        <div class="export-bar">
             <a asp-action="ExportarPdf" asp-controller="Historial"
                asp-route-año="@Model.Año"
                asp-route-mes="@Model.Mes"
                asp-route-usuarioId="@Model.UsuarioId"
                class="btn-export">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9" />
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:15px; height:15px;">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
-                Exportar en PDF
+                Descargar Reporte (PDF)
             </a>
         </div>
+
+        <div class="summary-grid-top">
+            <div class="summary-card-top blue-card">
+                <div class="icon-container">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z" />
+                    </svg>
+                </div>
+                <div class="summary-text-block">
+                    <span class="label-title">Promedio Mensual</span>
+                    <div class="value-data">@(Model?.PromedioMensual ?? 74) BPM</div>
+                </div>
+            </div>
+
+            <div class="summary-card-top red-card">
+                <div class="icon-container">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                    </svg>
+                </div>
+                <div class="summary-text-block">
+                    <span class="label-title">Incidentes Críticos</span>
+                    <div class="value-data">@(Model?.TotalIncidentes ?? 0) Eventos</div>
+                </div>
+            </div>
+
+            <div class="summary-card-top green-card">
+                <div class="icon-container">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+                    </svg>
+                </div>
+                <div class="summary-text-block">
+                    <span class="label-title">Diagnóstico Inicial</span>
+                    <div class="value-data">@(Model?.EstadoSalud ?? "Estable")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="real-calendar-book">
+            <div class="cal-header-row">
+                @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo" })
+                {
+                    <div class="cal-header-cell">@dia</div>
+                }
+            </div>
+
+            <div class="calendar-grid">
+                @{
+                    var diasVacios = Model?.DiasVaciosInicio ?? 0;
+                    for (int i = 0; i < diasVacios; i++)
+                    {
+                        <div class="cal-cell empty"></div>
+                    }
+                    var dias = Model?.DiasDelMes ?? new List<VitalBand.Models.DiaHistorial>();
+                    DateTime fechaRegistro = (ViewBag.FechaRegistro is DateTime) ? ((DateTime)ViewBag.FechaRegistro).Date : DateTime.MinValue.Date;
+                    DateTime fechaHoy = DateTime.Today.Date;
+                }
+
+                @foreach (var dia in dias)
+                {
+                    var fechaDia = new DateTime(Model.Año, Model.Mes, dia.Numero).Date;
+
+                    var cellClass = dia.TieneAlerta ? "cal-cell alert" : "cal-cell";
+
+                    if (esMedico)
+                    {
+                        cellClass += " clickable";
+                    }
+                    else
+                    {
+                        cellClass += " disabled-cell";
+                    }
+
+                    <div class="@cellClass" data-fecha='@fechaDia.ToString("yyyy-MM-dd")'>
+                        <div class="cell-top-info">
+                            <div class="cal-day-num">@dia.Numero</div>
+                            <div class="status-icon-container">
+                                @if (dia.TieneAlerta)
+                                {
+                                    <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                                        <line x1="12" y1="9" x2="12" y2="13" />
+                                        <line x1="12" y1="17" x2="12.01" y2="17" />
+                                    </svg>
+                                }
+                                else if (dia.BpmPromedio != 72 && !dia.TieneAlerta)
+                                {
+                                    <svg class="ok-icon" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="20 6 9 17 4 12" />
+                                    </svg>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="cell-bottom-info">
+                            @if (dia.BpmPromedio != 72 || dia.TieneAlerta)
+                            {
+                                <div class="cal-bpm-block">
+                                    <span class="cal-bpm-label">Promedio</span>
+                                    <span class="cal-bpm">@dia.BpmPromedio <span style="font-size:0.58rem; font-weight:500;">BPM</span></span>
+                                </div>
+                            }
+                            else
+                            {
+                                if (fechaDia > fechaRegistro && fechaDia <= fechaHoy)
+                                {
+                                    <div class="text-no-signal">Sin señal</div>
+                                }
+                            }
+
+                            @if (dia.TieneAlerta && !string.IsNullOrEmpty(dia.MensajeAlerta))
+                            {
+                                <div class="cal-alert-badge">@dia.MensajeAlerta</div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
+</div>
 
-    <script>
-        (function(){
-            var usuarioId = '@Model.UsuarioId';
+<script>
+    (function(){
+        var usuarioId = '@Model.UsuarioId';
 
-            function openDiaRegistros(el) {
-                var fecha = el.getAttribute('data-fecha');
-                if (!fecha) return;
-                var qs = '?id=' + encodeURIComponent(usuarioId) + '&fecha=' + encodeURIComponent(fecha);
-                // Use assign so back button still works predictably
-                window.location.assign('/DatosGenerales/Index' + qs);
-            }
+        function openDiaRegistros(el) {
+            var fecha = el.getAttribute('data-fecha');
+            if (!fecha) return;
+            var qs = '?id=' + encodeURIComponent(usuarioId) + '&fecha=' + encodeURIComponent(fecha);
+            window.location.assign('/DatosGenerales/Index' + qs);
+        }
 
-            document.addEventListener('DOMContentLoaded', function() {
-                document.querySelectorAll('.cal-cell.clickable').forEach(function(cell) {
-                    cell.addEventListener('click', function() {
-                        openDiaRegistros(this);
-                    });
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.cal-cell.clickable').forEach(function(cell) {
+                cell.addEventListener('click', function() {
+                    openDiaRegistros(this);
                 });
             });
-        })();
-    </script>
-</div>
+        });
+    })();
+</script>

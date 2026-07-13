@@ -1,8 +1,305 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio - Monitoreo Cardíaco Inteligente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    /* Forzamos a que el contenedor del Layout ocupe todo el ancho y alto disponible solo en esta página */
+    @@media (min-width: 992px) {
+        body {
+            overflow: hidden; /* Evita cualquier scroll accidental */
+        }
+        /* Modificamos el contenedor padre del Layout para que sea de pantalla completa */
+        .vb-content.container {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            height: calc(100vh - 122px); /* Descuenta exactamente Navbar (64px) y Footer (58px) */
+            display: flex;
+            align-items: stretch;
+        }
+
+        .vb-content main {
+            width: 100%;
+            height: 100%;
+        }
+    }
+
+    /* Contenedor de pantalla completa dividida */
+    .full-screen-split {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+    }
+
+    @@media (min-width: 992px) {
+        .full-screen-split {
+            flex-direction: row;
+        }
+    }
+
+    /* ── PANEL IZQUIERDO: HERO & ACCIONES (Limpio y espacioso) ── */
+    .panel-left {
+        flex: 1.1;
+        padding: 4rem 6rem; /* Más espacio al rellenar toda la pantalla */
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: #fafbfc; /* Fondo claro continuo */
+    }
+
+    .hero-title {
+        font-size: 3.2rem; /* Letras más grandes e imponentes */
+        font-weight: 800;
+        color: var(--gray-900);
+        text-transform: uppercase;
+        letter-spacing: -0.5px;
+        line-height: 1.15;
+        margin-bottom: 1.5rem;
+    }
+
+        .hero-title span {
+            background: linear-gradient(135deg, var(--teal-700), var(--teal-500));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+    .hero-subtitle {
+        font-size: 1.05rem;
+        color: var(--gray-700);
+        line-height: 1.7;
+        margin-bottom: 2.5rem;
+        max-width: 600px;
+    }
+
+    .cta-container {
+        display: flex;
+        gap: 1.25rem;
+    }
+
+    .btn-main-cta {
+        padding: 1rem 2.25rem;
+        background: linear-gradient(135deg, var(--teal-700), var(--teal-600));
+        color: var(--white);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        border-radius: 12px;
+        text-decoration: none;
+        box-shadow: 0 4px 18px rgba(13,148,136,0.25);
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+    }
+
+        .btn-main-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(13,148,136,0.35);
+            color: var(--white);
+        }
+
+    .btn-secondary-cta {
+        padding: 1rem 2.25rem;
+        background: var(--white);
+        color: var(--teal-700);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        border-radius: 12px;
+        border: 1.5px solid var(--gray-300);
+        text-decoration: none;
+        transition: all 0.2s ease;
+        font-size: 0.9rem;
+    }
+
+        .btn-secondary-cta:hover {
+            background: #f8fafc;
+            border-color: var(--teal-600);
+            color: var(--teal-700);
+        }
+
+    /* ── PANEL DERECHO: CARRUSEL ESMERALDA PROFUNDO (Edge to Edge) ── */
+    .panel-right {
+        flex: 0.9;
+        background: linear-gradient(145deg, #09333f 0%, #0d4856 60%, #115e59 100%);
+        padding: 4rem 6rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        color: var(--white);
+    }
+
+    .info-slide {
+        display: none;
+        animation: fadeEffect 0.5s ease-in-out;
+    }
+
+        .info-slide.active {
+            display: block;
+        }
+
+    @@keyframes fadeEffect {
+        from {
+            opacity: 0;
+            transform: translateX(15px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .slide-icon {
+        font-size: 2.2rem;
+        background: rgba(255, 255, 255, 0.08);
+        width: 4rem;
+        height: 4rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        margin-bottom: 1.75rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .panel-right h3 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1.25rem;
+        color: var(--white);
+    }
+
+    .panel-right p {
+        font-size: 0.98rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.75;
+    }
+
+    /* Controles del Carrusel */
+    .carousel-indicators-custom {
+        display: flex;
+        gap: 8px;
+        margin-top: 2.5rem;
+    }
+
+    .indicator-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.25);
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .indicator-dot.active {
+            background: var(--teal-400);
+            width: 26px;
+            border-radius: 6px;
+        }
+
+    /* Ajustes responsivos para móviles */
+    @@media (max-width: 991px) {
+        .panel-left, .panel-right {
+            padding: 3rem 1.5rem;
+        }
+    }
+</style>
+
+<div class="full-screen-split">
+    <!-- Mitad Izquierda: Branding y Botones -->
+    <div class="panel-left">
+        <h1 class="hero-title">Transformando el cuidado<br>del <span>corazón humano</span></h1>
+        <p class="hero-subtitle">
+            Combinamos tecnología IoT médica de vanguardia con un ecosistema web inteligente para ofrecer monitoreo cardíaco continuo, proactivo, seguro y sustentable. Protegemos vidas en tiempo real.
+        </p>
+
+        <div class="cta-container">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="Usuarios" asp-action="Index" class="btn-main-cta">Ir a Mi Tablero</a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="btn-main-cta">Acceder al Portal</a>
+                <a asp-controller="Account" asp-action="RegistroMedico" class="btn-secondary-cta">Registro Médico</a>
+            }
+        </div>
+    </div>
+
+    <!-- Mitad Derecha: Carrusel Fluido Orgánico -->
+    <div class="panel-right">
+        <!-- Slide 1 -->
+        <div class="info-slide active" data-index="0">
+            <div class="slide-icon">🚀</div>
+            <h3>¿Qué hace VitalBand?</h3>
+            <p>Diseñamos una solución integral de salud que conecta un dispositivo wearable inteligente con una app móvil y este portal web profesional, permitiendo el seguimiento clínico constante de signos vitales.</p>
+        </div>
+
+        <!-- Slide 2 -->
+        <div class="info-slide" data-index="1">
+            <div class="slide-icon">🎯</div>
+            <h3>Nuestra Misión</h3>
+            <p>Brindar tranquilidad a pacientes y herramientas de alta precisión a especialistas médicos para prevenir incidentes cardiovasculares mediante la detección oportuna de anomalías y alertas automatizadas.</p>
+        </div>
+
+        <!-- Slide 3 -->
+        <div class="info-slide" data-index="2">
+            <div class="slide-icon">👁️‍🗨️</div>
+            <h3>Nuestra Visión</h3>
+            <p>Consolidarnos como el sistema de monitoreo preventivo cardíaco de referencia tecnológica y médica, reduciendo los tiempos de respuesta de emergencia y humanizando el seguimiento de la salud digital.</p>
+        </div>
+
+        <!-- Slide 4 -->
+        <div class="info-slide" data-index="3">
+            <div class="slide-icon">🩺</div>
+            <h3>¿Por qué nació VitalBand?</h3>
+            <p>Nació de la falta de herramientas preventivas fuera del entorno hospitalario tradicional. Desarrollamos una plataforma capaz de romper las barreras de la distancia entre el médico y el paciente, resguardando la vida mediante datos en tiempo real.</p>
+        </div>
+
+        <!-- Indicadores Inferiores -->
+        <div class="carousel-indicators-custom">
+            <button class="indicator-dot active" onclick="goToSlide(0)"></button>
+            <button class="indicator-dot" onclick="goToSlide(1)"></button>
+            <button class="indicator-dot" onclick="goToSlide(2)"></button>
+            <button class="indicator-dot" onclick="goToSlide(3)"></button>
+        </div>
+    </div>
 </div>
+
+<script>
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.info-slide');
+    const dots = document.querySelectorAll('.indicator-dot');
+    let slideInterval;
+
+    function goToSlide(index) {
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+
+        currentSlide = index;
+
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+
+        resetTimer();
+    }
+
+    function nextSlide() {
+        let next = (currentSlide + 1) % slides.length;
+        goToSlide(next);
+    }
+
+    function resetTimer() {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, 6000); // 6 segundos por sección para una lectura más cómoda
+    }
+
+    resetTimer();
+</script>

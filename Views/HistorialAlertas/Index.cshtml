@@ -7,14 +7,21 @@
     <style>
         .alertas-container {
             max-width: 1100px;
-            margin: 2rem auto;
+            margin: 1rem auto;
             background: rgba(255,255,255,0.22);
             backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
             -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
             border: 1px solid rgba(255,255,255,0.5);
             border-radius: 24px;
-            padding: 1.75rem;
+            padding: 1.5rem;
             box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+        }
+
+        @@media (min-width: 768px) {
+            .alertas-container {
+                margin: 2rem auto;
+                padding: 1.75rem;
+            }
         }
 
         .alertas-header {
@@ -22,58 +29,155 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            gap: 1rem;
         }
 
             .alertas-header h1 {
-                font-size: 1.5rem;
-                font-weight: 600;
+                font-size: 1.3rem;
+                font-weight: 700;
+                color: #09333f;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin: 0;
             }
 
-        .btn-volver {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            color: white;
-            padding: 0.4rem 1rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.875rem;
+        @@media (min-width: 768px) {
+            .alertas-header h1 {
+                font-size: 1.5rem;
+            }
         }
 
-        table {
+        .btn-volver {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1.5px solid rgba(13,148,136,0.2);
+            color: #334155;
+            padding: 0.5rem 1.2rem;
+            border-radius: 10px;
+            text-decoration: none !important;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .btn-volver:hover {
+                background: #ffffff;
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(13, 148, 136, 0.1);
+            }
+
+        .table-responsive-wrapper {
+            width: 100%;
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1.5px solid #cbd5e1;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
+            background: #ffffff;
+        }
+
+        .doc-alertas-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 750px;
         }
 
-        th {
-            text-align: left;
-            padding: 0.75rem 0.5rem;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--gray-600);
-            border-bottom: 1px solid var(--gray-100);
-        }
+            .doc-alertas-table th {
+                text-align: left;
+                padding: 0.85rem 1rem;
+                font-size: 0.75rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                color: #ffffff;
+                background-color: #09333f;
+                border-right: 1px solid #cbd5e1;
+                border-bottom: 2px solid #cbd5e1;
+            }
 
-        td {
-            padding: 0.8rem 0.5rem;
-            border-bottom: 1px solid var(--gray-50);
-        }
+                .doc-alertas-table th:last-child {
+                    border-right: none;
+                }
+
+            .doc-alertas-table td {
+                padding: 0.85rem 1rem;
+                font-size: 0.9rem;
+                color: #334155;
+                border-right: 1px solid #cbd5e1;
+                border-bottom: 1px solid #cbd5e1;
+                vertical-align: middle;
+            }
+
+            .doc-alertas-table tr:last-child td {
+                border-bottom: none; 
+            }
+
+            .doc-alertas-table td:last-child {
+                border-right: none;
+            }
+
+            .doc-alertas-table tbody tr:nth-child(odd) {
+                background-color: #d9effb;
+            }
+
+            .doc-alertas-table tbody tr:nth-child(even) {
+                background-color: #ffffff;
+            }
+
+            .doc-alertas-table tbody tr:hover {
+                background-color: #e0f2fe !important;
+            }
 
         .badge-respondida {
-            background: var(--green-50);
-            color: var(--green-600);
-            padding: 4px 10px;
-            border-radius: 20px;
+            background-color: #f0fdf4;
+            color: #16a34a;
+            border: 1px solid #bbf7d0;
+            padding: 4px 12px;
+            border-radius: 999px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-block;
         }
 
         .badge-pendiente {
-            background: var(--red-50);
-            color: var(--red-600);
-            padding: 4px 10px;
-            border-radius: 20px;
+            background-color: #fef2f2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 4px 12px;
+            border-radius: 999px;
             font-size: 0.75rem;
-            font-weight: 500;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            display: inline-block;
         }
+
+        .btn-atender {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff !important;
+            padding: 0.4rem 0.9rem;
+            border-radius: 8px;
+            text-decoration: none !important;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.15);
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+        }
+
+            .btn-atender:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+            }
     </style>
 }
 
@@ -83,34 +187,37 @@
         <a asp-controller="Usuarios" asp-action="Index" class="btn-volver">Volver</a>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Fecha y hora</th>
-                <th>Ubicación</th>
-                <th>Estado</th>
-                <th>Descripción</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var alerta in Model)
-            {
+    <div class="table-responsive-wrapper">
+        <table class="doc-alertas-table">
+            <thead>
                 <tr>
-                    <td>@alerta.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@alerta.Ubicacion</td>
-                    <td>
-                        @if (alerta.Respondida == true)
-                        {
-                            <span class="badge-respondida">Respondida</span>
-                        }
-                        else
-                        {
-                            <span class="badge-pendiente">Pendiente</span>
-                        }
-                    </td>
-                    <td>@alerta.DescripcionEvento</td>
+                    <th>Fecha y hora</th>
+                    <th>Ubicación</th>
+                    <th>Estado</th>
+                    <th>Descripción</th>
                 </tr>
-            }
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach (var alerta in Model)
+                {
+                    <tr>
+                        <td style="font-weight: 700;">@alerta.FechaHora.ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@alerta.Ubicacion</td>
+                        <td style="text-align: center;">
+                            @if (alerta.Respondida == true)
+                            {
+                                <span class="badge-respondida">Respondida</span>
+                            }
+                            else
+                            {
+                                <span class="badge-pendiente">Pendiente</span>
+                            }
+                        </td>
+                        <td>@alerta.DescripcionEvento</td>
+                        
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 </div>

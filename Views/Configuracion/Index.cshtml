@@ -3,16 +3,17 @@
 @{
     ViewData["Title"] = "Configuración - VitalBand";
     var claimId = User.FindFirst("UsuarioBaseId")?.Value;
-    string doctorAvatarUrl = "/images/avatar-placeholder.png";
+
+    string doctorAvatarUrl = "/img/paciente/avatar-placeholder.png";
     if (!string.IsNullOrEmpty(claimId))
     {
-        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "uploads", "avatars");
+        var uploadsDir = System.IO.Path.Combine(Env.ContentRootPath, "wwwroot", "img", "pacientes");
         if (System.IO.Directory.Exists(uploadsDir))
         {
             var files = System.IO.Directory.GetFiles(uploadsDir, claimId + ".*");
             if (files.Length > 0)
             {
-                doctorAvatarUrl = "/uploads/avatars/" + System.IO.Path.GetFileName(files[0]);
+                doctorAvatarUrl = "/img/pacientes/" + System.IO.Path.GetFileName(files[0]);
             }
         }
     }
@@ -20,356 +21,577 @@
 
 @section Styles {
     <style>
-        .config-container {
-            max-width: 1200px;
+        .config-wrapper {
+            max-width: 1100px;
             margin: 2rem auto;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 2rem;
+            padding: 0 1rem;
         }
 
-        .config-card {
-            background: rgba(255,255,255,0.22);
-            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            border: 1px solid rgba(255,255,255,0.5);
+        .doctor-profile-hero {
+            background: linear-gradient(135deg, #09333f 0%, #0d4856 100%);
             border-radius: 24px;
-            padding: 1.75rem;
-            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 10px 30px rgba(9, 51, 63, 0.15);
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
         }
 
-            .config-card h2 {
-                font-size: 1.25rem;
-                margin-bottom: 1rem;
-                border-left: 3px solid var(--teal-600, #0891b2);
-                padding-left: 0.75rem;
+        .hero-avatar-wrapper {
+            position: relative;
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            border: 3px solid #0d9488;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+            .hero-avatar-wrapper img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
             }
 
-        .tabla-config {
+        .hero-text h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin: 0 0 0.25rem;
+        }
+
+        .hero-text p {
+            font-size: 0.85rem;
+            color: #2dd4bf;
+            margin: 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-upload-custom {
+            margin-top: 0.5rem;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.4rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: inline-block;
+        }
+
+            .btn-upload-custom:hover {
+                background: #0d9488;
+                border-color: #2dd4bf;
+            }
+
+        .config-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(15, 23, 42, 0.05);
+            padding: 0.4rem;
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
+            max-width: 500px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 0.6rem 1rem;
+            border: none;
+            background: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+            .tab-btn.active {
+                background: #ffffff;
+                color: #09333f;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            }
+
+        .config-panel {
+            display: none;
+            animation: fadeInView 0.25s ease-out forwards;
+        }
+
+            .config-panel.active {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+        @@media (min-width: 992px) {
+            .config-panel.active {
+                grid-template-columns: 1.4fr 1fr;
+            }
+        }
+
+        @@keyframes fadeInView {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .glass-card-premium {
+            background: rgba(255,255,255,0.45);
+            backdrop-filter: blur(30px) saturate(160%);
+            -webkit-backdrop-filter: blur(30px) saturate(160%);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: 0 10px 30px rgba(9, 51, 63, 0.04);
+        }
+
+        .panel-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #09333f;
+            margin-bottom: 1.25rem;
+        }
+
+            .panel-title svg {
+                width: 20px;
+                height: 20px;
+                color: #0d9488;
+            }
+
+        .table-custom-holder {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .modern-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1.5rem;
         }
 
-            .tabla-config th, .tabla-config td {
-                padding: 0.65rem 0.6rem;
-                text-align: left;
-                border-bottom: 1px solid rgba(6,182,212,0.1);
-                font-size: 0.875rem;
-            }
-
-            .tabla-config th {
+            .modern-table th {
+                background: #09333f;
+                color: #ffffff;
                 font-size: 0.72rem;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.6px;
-                color: var(--teal-700, #0a6775);
-                background: rgba(6,182,212,0.05);
+                padding: 0.85rem 1.2rem;
             }
 
-            .tabla-config tr:hover td {
-                background: rgba(6,182,212,0.04);
+            .modern-table td {
+                padding: 0.9rem 1.2rem;
+                font-size: 0.88rem;
+                color: #334155;
+                border-bottom: 1px solid #f1f5f9;
+                vertical-align: middle;
             }
+
+            .modern-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .modern-table tbody tr:nth-child(odd) {
+                background-color: #f8fafc;
+            }
+
+            .modern-table tbody tr:hover {
+                background-color: #f0fdfa !important;
+            }
+
+        .color-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: monospace;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
 
         .color-muestra {
             display: inline-block;
-            width: 26px;
-            height: 26px;
-            border-radius: 8px;
-            vertical-align: middle;
-            background-image: linear-gradient( 135deg, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.1) 45%, rgba(0,0,0,0.08) 100% );
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.6), inset 0 -1px 2px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.18);
-            border: 1px solid rgba(255,255,255,0.35);
-        }
-
-        .form-agregar {
-            margin-top: 1.25rem;
-            padding-top: 1.25rem;
-            border-top: 1px solid rgba(6,182,212,0.12);
-            background: rgba(6,182,212,0.03);
-            border-radius: 12px;
-            padding: 1.25rem;
-        }
-
-            .form-agregar h3 {
-                font-size: 0.95rem;
-                font-weight: 600;
-                margin-bottom: 1rem;
-                color: var(--teal-700, #0a6775);
-            }
-
-            .form-agregar input, .form-agregar select {
-                width: 100%;
-                padding: 0.6rem 0.9rem;
-                margin-bottom: 0.6rem;
-                background: rgba(255,255,255,0.6);
-                backdrop-filter: blur(8px);
-                -webkit-backdrop-filter: blur(8px);
-                border: 1.5px solid rgba(6,182,212,0.18);
-                border-radius: 10px;
-                font-family: inherit;
-                font-size: 0.875rem;
-                color: var(--gray-900, #0f172a);
-                outline: none;
-                transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-            }
-
-                .form-agregar input:focus, .form-agregar select:focus {
-                    border-color: rgba(6,182,212,0.5);
-                    background: rgba(255,255,255,0.85);
-                    box-shadow: 0 0 0 3px rgba(6,182,212,0.12);
-                }
-
-        .btn-guardar {
-            background: linear-gradient(135deg, #0891b2, #06b6d4);
-            color: white;
-            border: none;
-            padding: 0.4rem 1rem;
+            width: 22px;
+            height: 22px;
             border-radius: 6px;
-            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.15);
         }
 
-        .color-palette {
-            display: grid;
-            grid-template-columns: repeat(6, 28px);
-            gap: 5px;
-            margin-bottom: 0.6rem;
-        }
-
-        .color-swatch {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
-            border: 2px solid transparent;
-            cursor: pointer;
-            transition: transform 0.1s, border-color 0.1s, box-shadow 0.1s;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-        }
-
-            .color-swatch:hover {
-                transform: scale(1.2);
-                z-index: 1;
-            }
-
-            .color-swatch.selected {
-                border-color: #0891b2;
-                box-shadow: 0 0 0 3px rgba(6,182,212,0.4);
-                transform: scale(1.15);
-            }
-
-        .doctor-avatar-card {
-            background: rgba(255,255,255,0.22);
-            border: 1px solid rgba(6,182,212,0.18);
-            border-radius: 24px;
+        .action-cell-buttons {
             display: flex;
-            align-items: center;
-            gap: 1rem;
-            padding: 1.35rem;
-            box-shadow: 0 8px 24px rgba(8,145,178,0.12);
-            margin-bottom: 1.5rem;
+            gap: 12px;
+            justify-content: flex-end;
         }
 
-        .doctor-avatar-photo {
-            width: 92px;
-            height: 92px;
-            border-radius: 999px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.6);
-            background: linear-gradient(180deg, rgba(255,255,255,0.65), rgba(255,255,255,0.35));
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .doctor-avatar-photo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .doctor-avatar-actions {
-            display: grid;
-            gap: 0.5rem;
-        }
-
-        .doctor-avatar-actions button {
-            background: rgba(15,23,42,0.08);
-            color: #0f172a;
-            border: 1px solid rgba(15,23,42,0.08);
-            border-radius: 10px;
-            padding: 0.75rem 1rem;
-            cursor: pointer;
+        .btn-link-edit {
+            color: #0d9488;
+            background: none;
+            border: none;
             font-weight: 600;
-        }
-
-        .doctor-avatar-actions button:hover {
-            background: rgba(15,23,42,0.14);
-        }
-
-        .doctor-avatar-actions .upload-label {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
             cursor: pointer;
+            font-size: 0.85rem;
         }
 
-        .doctor-avatar-actions .upload-label input {
-            display: none;
+            .btn-link-edit:hover {
+                text-decoration: underline;
+                color: #0f766e;
+            }
+
+        .btn-link-delete {
+            color: #ef4444;
+            background: none;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
         }
 
-        .doctor-avatar-actions .hint {
-            font-size: 0.82rem;
-            color: #475569;
+            .btn-link-delete:hover {
+                color: #b91c1c;
+                text-decoration: underline;
+            }
+
+        .input-group-custom {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1rem;
+        }
+
+            .input-group-custom label {
+                font-size: 0.75rem;
+                font-weight: 700;
+                color: #475569;
+                text-transform: uppercase;
+            }
+
+            .input-group-custom input, .input-group-custom select {
+                width: 100%;
+            }
+
+        .btn-save-premium {
+            background: linear-gradient(135deg, #0f766e, #0d9488);
+            color: #ffffff;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            width: 100%;
         }
 
         .color-hex-preview {
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 0.6rem;
-            font-size: 0.8rem;
-            color: var(--gray-600, #475569);
+            gap: 10px;
+            margin: 0.5rem 0 1rem;
+            font-weight: 600;
+            font-size: 0.88rem;
         }
 
         .color-hex-dot {
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             border-radius: 50%;
             border: 1px solid rgba(0,0,0,0.15);
             cursor: pointer;
-            transition: transform 0.12s, box-shadow 0.12s;
         }
-
-            .color-hex-dot:hover {
-                transform: scale(1.15);
-                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            }
 
         .color-palette {
             display: none;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            background: #ffffff;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 1rem;
         }
 
             .color-palette.open {
                 display: grid;
             }
+
+        .color-swatch {
+            aspect-ratio: 1;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+            .color-swatch.selected {
+                border: 2px solid #09333f;
+            }
+
+        .vb-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .vb-modal-window {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(13, 148, 136, 0.25);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 420px;
+            padding: 2rem;
+            box-shadow: 0 20px 50px rgba(9, 51, 63, 0.25);
+            animation: modalScaleUp 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @@keyframes modalScaleUp {
+            from {
+                transform: scale(0.92);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header-custom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+            .modal-header-custom h3 {
+                font-size: 1.2rem;
+                font-weight: 700;
+                color: #09333f;
+                margin: 0;
+            }
+
+        .modal-close-x {
+            background: none;
+            border: none;
+            font-size: 1.25rem;
+            color: #64748b;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .modal-actions-wrapper {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-modal-cancel {
+            background: #e2e8f0;
+            color: #334155;
+            border: none;
+            padding: 0.65rem 1.2rem;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            flex: 1;
+        }
     </style>
 }
 
-<div class="config-container">
-    <div class="config-card">
-        <div class="doctor-avatar-card">
-            <div class="doctor-avatar-photo">
-                <img src="@doctorAvatarUrl" alt="Avatar médico" />
-            </div>
-            <div class="doctor-avatar-actions">
-                <label class="upload-label" for="doctorAvatarInput">
-                    <span>Cambiar foto de perfil</span>
-                    <input id="doctorAvatarInput" type="file" accept="image/*" />
-                </label>
-                <span class="hint">Sube tu foto para que los pacientes te reconozcan.</span>
+<div class="config-wrapper">
+    <div class="doctor-profile-hero">
+        <div class="hero-avatar-wrapper">
+            <img src="@doctorAvatarUrl" alt="Médico" id="imgDoctorConfig" />
+        </div>
+        <div class="hero-text">
+            <h1>@User.Identity?.Name</h1>
+            <p>Panel de Gestión Operativa · Configuración Global</p>
+            <label class="btn-upload-custom" for="doctorAvatarInput">
+                <span>Actualizar fotografía</span>
+                <input id="doctorAvatarInput" type="file" accept="image/*" style="display:none;" />
+            </label>
+        </div>
+    </div>
+
+    <div class="config-tabs">
+        <button class="tab-btn active" onclick="switchTab('tab-rangos', this)">
+            Rangos de Pulso
+        </button>
+        <button class="tab-btn" onclick="switchTab('tab-alertas', this)">
+            Umbrales de Alerta
+        </button>
+    </div>
+
+    <div id="tab-rangos" class="config-panel active">
+        <div class="glass-card-premium">
+            <div class="panel-title">Parámetros de Evaluación Médica</div>
+            <div class="table-custom-holder">
+                <table class="modern-table">
+                    <thead>
+                        <tr><th>Identificador</th><th>Límites Clínicos</th><th>Color</th><th></th></tr>
+                    </thead>
+                    <tbody id="bodyRangosPulso"></tbody>
+                </table>
             </div>
         </div>
-        <h2>Colores de pulsaciones</h2>
-        <table class="tabla-config">
-            <thead>
-                <tr><th>Rango</th><th>Límites (BPM)</th><th>Color</th><th></th></tr>
-            </thead>
-            <tbody>
-                @foreach (var r in Model.RangosPulso)
-                {
-                    <tr>
-                        <td>@r.Nombre</td>
-                        <td>@r.Minimo - @(r.Maximo == 200 ? "∞" : r.Maximo.ToString())</td>
-                        <td><span class="color-muestra" style="background-color:@r.ColorHex"></span> @r.ColorHex</td>
-                        <td><a href="#">Editar</a></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        <div class="form-agregar">
-            <h3>Agregar nuevo rango</h3>
-            <form asp-action="AgregarRango" method="post">
-                <input type="text" name="Nombre" placeholder="Nombre (ej. Normal-alto)" required />
-                <input type="number" name="Minimo" placeholder="Mínimo BPM" required />
-                <input type="number" name="Maximo" placeholder="Máximo BPM (0 para infinito)" required />
-                <input type="hidden" name="ColorHex" id="colorRango" value="#2E7D32" />
+
+        <div class="glass-card-premium">
+            <div class="panel-title">Nuevo Rango Local</div>
+            <form id="formRangoLocal" onsubmit="guardarRangoLocal(event)">
+                <div class="input-group-custom">
+                    <label>Nombre del Rango</label>
+                    <input type="text" id="rangoNombre" placeholder="Ej. Frecuencia Elevada" required />
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="input-group-custom" style="flex:1;">
+                        <label>Mínimo BPM</label>
+                        <input type="number" id="rangoMinimo" required />
+                    </div>
+                    <div class="input-group-custom" style="flex:1;">
+                        <label>Maximum BPM</label>
+                        <input type="number" id="rangoMaximo" required />
+                    </div>
+                </div>
+                <input type="hidden" id="colorRango" value="#2E7D32" />
                 <div class="color-hex-preview">
                     <div class="color-hex-dot" id="dotRango" style="background:#2E7D32"></div>
                     <span id="hexRango">#2E7D32</span>
                 </div>
                 <div class="color-palette" id="paletteRango"></div>
-                <button type="submit" class="btn-guardar">Agregar rango</button>
+                <button type="submit" class="btn-save-premium">Registrar Rango</button>
             </form>
         </div>
     </div>
 
-    <div class="config-card">
-        <h2>Tipos de alerta</h2>
-        <table class="tabla-config">
-            <thead><tr><th>Nombre</th><th>Umbral (BPM)</th><th>Color</th><th>Activo</th></tr></thead>
-            <tbody>
-                @foreach (var t in Model.TiposAlerta)
-                {
-                    <tr>
-                        <td>@t.Nombre</td>
-                        <td>@t.UmbralMinimo - @t.UmbralMaximo</td>
-                        <td><span class="color-muestra" style="background-color:@t.ColorHex"></span></td>
-                        <td>@(t.Activo ? "✅" : "❌")</td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-        <div class="form-agregar">
-            <h3>Nuevo tipo de alerta</h3>
-            <form asp-action="AgregarTipoAlerta" method="post">
-                <input type="text" name="Nombre" placeholder="Nombre (ej. Taquicardia)" required />
-                <input type="number" name="UmbralMinimo" placeholder="Mínimo BPM" required />
-                <input type="number" name="UmbralMaximo" placeholder="Máximo BPM" required />
-                <input type="hidden" name="ColorHex" id="colorAlerta" value="#D32F2F" />
+    <div id="tab-alertas" class="config-panel">
+        <div class="glass-card-premium">
+            <div class="panel-title">Umbrales Críticos de Dispositivos IoT</div>
+            <div class="table-custom-holder">
+                <table class="modern-table">
+                    <thead>
+                        <tr><th>Tipo de Emergencia</th><th>Rango de Disparo</th><th>Color Identificador</th><th></th></tr>
+                    </thead>
+                    <tbody id="bodyTiposAlerta"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="glass-card-premium">
+            <div class="panel-title">Nueva Alerta de Red</div>
+            <form id="formAlertaLocal" onsubmit="guardarAlertaLocal(event)">
+                <div class="input-group-custom">
+                    <label>Nombre de la Anomalía</label>
+                    <input type="text" id="alertaNombre" placeholder="Ej. Taquicardia Severa" required />
+                </div>
+                <div style="display:flex; gap:1rem;">
+                    <div class="input-group-custom" style="flex:1;">
+                        <label>Mínimo BPM</label>
+                        <input type="number" id="alertaMinimo" required />
+                    </div>
+                    <div class="input-group-custom" style="flex:1;">
+                        <label>Máximo BPM</label>
+                        <input type="number" id="alertaMaximo" required />
+                    </div>
+                </div>
+                <input type="hidden" id="colorAlerta" value="#D32F2F" />
                 <div class="color-hex-preview">
                     <div class="color-hex-dot" id="dotAlerta" style="background:#D32F2F"></div>
                     <span id="hexAlerta">#D32F2F</span>
                 </div>
                 <div class="color-palette" id="paletteAlerta"></div>
-                <label><input type="checkbox" name="Activo" value="true" checked /> Activo</label>
-                <button type="submit" class="btn-guardar">Agregar alerta</button>
+                <button type="submit" class="btn-save-premium">Registrar Alerta</button>
             </form>
         </div>
     </div>
 </div>
 
+<div class="vb-modal-overlay" id="editModalOverlay">
+    <div class="vb-modal-window">
+        <div class="modal-header-custom">
+            <h3 id="modalEditTitle">Editar Parámetro</h3>
+            <button type="button" class="modal-close-x" onclick="cerrarModalEdicion()">×</button>
+        </div>
+        <form id="formModalEdicion" onsubmit="procesarGuardadoEdicion(event)">
+            <input type="hidden" id="modalEditKey" />
+            <input type="hidden" id="modalEditIndex" />
+
+            <div class="input-group-custom">
+                <label>Nombre / Identificador</label>
+                <input type="text" id="modalEditNombre" required />
+            </div>
+            <div style="display:flex; gap:1rem;">
+                <div class="input-group-custom" style="flex:1;">
+                    <label>Mínimo BPM</label>
+                    <input type="number" id="modalEditMinimo" required />
+                </div>
+                <div class="input-group-custom" style="flex:1;">
+                    <label>Máximo BPM</label>
+                    <input type="number" id="modalEditMaximo" required />
+                </div>
+            </div>
+            <input type="hidden" id="colorModal" />
+            <div class="input-group-custom">
+                <label>Color Identificador</label>
+                <div class="color-hex-preview">
+                    <div class="color-hex-dot" id="dotModal"></div>
+                    <span id="hexModal">#ffffff</span>
+                </div>
+                <div class="color-palette" id="paletteModal"></div>
+            </div>
+            <div class="modal-actions-wrapper">
+                <button type="button" class="btn-modal-cancel" onclick="cerrarModalEdicion()">Cancelar</button>
+                <button type="submit" class="btn-save-premium" style="flex:1.2;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
+        function switchTab(panelId, btn) {
+            document.querySelectorAll('.config-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(panelId).classList.add('active');
+            btn.classList.add('active');
+        }
+
         const COLORES = [
-            // Rojos
-            '#FFCDD2','#EF9A9A','#E57373','#F44336','#D32F2F','#B71C1C',
-            // Naranjas
-            '#FFE0B2','#FFCC80','#FFA726','#FB8C00','#E65100','#BF360C',
-            // Amarillos
-            '#FFF9C4','#FFF176','#FFEE58','#FDD835','#F9A825','#F57F17',
-            // Verdes claros
-            '#F1F8E9','#DCEDC8','#AED581','#8BC34A','#558B2F','#33691E',
-            // Verdes
-            '#E8F5E9','#A5D6A7','#66BB6A','#43A047','#2E7D32','#1B5E20',
-            // Teals
-            '#E0F2F1','#80CBC4','#26A69A','#00897B','#00695C','#004D40',
-            // Cianes
-            '#E0F7FA','#80DEEA','#26C6DA','#00ACC1','#00838F','#006064',
-            // Azules
-            '#E3F2FD','#90CAF9','#42A5F5','#1E88E5','#1565C0','#0D47A1',
-            // Índigos / violetas
-            '#EDE7F6','#B39DDB','#7E57C2','#5E35B1','#4527A0','#311B92',
-            // Rosados / fucsias
-            '#FCE4EC','#F48FB1','#EC407A','#D81B60','#880E4F','#4A148C',
-            // Grises
-            '#F5F5F5','#BDBDBD','#757575','#424242','#212121','#000000',
+            '#F44336','#D32F2F','#B71C1C','#FFA726','#FB8C00','#E65100',
+            '#FFEE58','#FDD835','#F57F17','#8BC34A','#558B2F','#33691E',
+            '#66BB6A','#2E7D32','#1B5E20','#26A69A','#00897B','#004D40',
+            '#26C6DA','#00ACC1','#006064','#42A5F5','#1E88E5','#0D47A1'
         ];
 
         function buildPalette(containerId, hiddenId, dotId, hexId, defaultColor) {
             const container = document.getElementById(containerId);
-            const hidden    = document.getElementById(hiddenId);
-            const dot       = document.getElementById(dotId);
-            const hexSpan   = document.getElementById(hexId);
+            const hidden = document.getElementById(hiddenId);
+            const dot = document.getElementById(dotId);
+            const hexSpan = document.getElementById(hexId);
 
             dot.addEventListener('click', () => container.classList.toggle('open'));
 
@@ -377,7 +599,6 @@
                 const swatch = document.createElement('div');
                 swatch.className = 'color-swatch' + (color === defaultColor ? ' selected' : '');
                 swatch.style.background = color;
-                swatch.title = color;
                 swatch.addEventListener('click', () => {
                     container.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
                     swatch.classList.add('selected');
@@ -392,34 +613,171 @@
 
         buildPalette('paletteRango',  'colorRango',  'dotRango',  'hexRango',  '#2E7D32');
         buildPalette('paletteAlerta', 'colorAlerta', 'dotAlerta', 'hexAlerta', '#D32F2F');
+        buildPalette('paletteModal',  'colorModal',  'dotModal',  'hexModal',  '#2E7D32');
 
-        document.addEventListener('DOMContentLoaded', function() {
-            var fileInput = document.getElementById('doctorAvatarInput');
-            if (!fileInput) return;
+        const DEFAULT_RANGOS = [
+            { nombre: "Bradicardia", minimo: 0, maximo: 49, color: "#B71C1C" },
+            { nombre: "Normal", minimo: 50, maximo: 100, color: "#2E7D32" },
+            { nombre: "Taquicardia", minimo: 101, maximo: 200, color: "#D32F2F" }
+        ];
 
-            fileInput.addEventListener('change', function(e) {
-                var f = e.target.files && e.target.files[0];
-                if (!f) return;
+        const DEFAULT_ALERTAS = [
+            { nombre: "Crítica Baja", minimo: 0, maximo: 45, color: "#B71C1C" },
+            { nombre: "Crítica Alta", minimo: 115, maximo: 220, color: "#D32F2F" }
+        ];
 
-                var form = new FormData();
-                form.append('avatar', f);
+        function inicializarTablas() {
+            if (!localStorage.getItem('vb_rangos_pulso')) localStorage.setItem('vb_rangos_pulso', JSON.stringify(DEFAULT_RANGOS));
+            if (!localStorage.getItem('vb_tipos_alerta')) localStorage.setItem('vb_tipos_alerta', JSON.stringify(DEFAULT_ALERTAS));
+            renderizarTablasLocales();
+        }
 
-                fetch('/Account/UploadAvatar', {
-                    method: 'POST',
-                    body: form
-                })
-                .then(function(res) { return res.json(); })
-                .then(function(data) {
-                    if (data && data.url) {
-                        document.querySelector('.doctor-avatar-photo img').src = data.url;
-                    } else {
-                        alert('No se pudo subir la foto.');
-                    }
-                })
-                .catch(function() {
-                    alert('Error al subir la foto.');
-                });
+        function renderizarTablasLocales() {
+            const rangos = JSON.parse(localStorage.getItem('vb_rangos_pulso'));
+            const alertas = JSON.parse(localStorage.getItem('vb_tipos_alerta'));
+
+            const bodyRangos = document.getElementById('bodyRangosPulso');
+            bodyRangos.innerHTML = '';
+            rangos.forEach((r, idx) => {
+                bodyRangos.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td style="font-weight:700; color:#09333f;">${r.nombre}</td>
+                        <td>${r.minimo} - ${r.maximo} BPM</td>
+                        <td><span class="color-tag"><span class="color-muestra" style="background-color:${r.color}"></span> ${r.color}</span></td>
+                        <td>
+                            <div class="action-cell-buttons">
+                                <button class="btn-link-edit" onclick="abrirModalEdicion('vb_rangos_pulso', ${idx})">Editar</button>
+                                <button class="btn-link-delete" onclick="eliminarItem('vb_rangos_pulso', ${idx})">Remover</button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
             });
+
+            const bodyAlertas = document.getElementById('bodyTiposAlerta');
+            bodyAlertas.innerHTML = '';
+            alertas.forEach((a, idx) => {
+                bodyAlertas.insertAdjacentHTML('beforeend', `
+                    <tr>
+                        <td style="font-weight:700; color:#09333f;">${a.nombre}</td>
+                        <td>${a.minimo} - ${a.maximo} BPM</td>
+                        <td><span class="color-tag"><span class="color-muestra" style="background-color:${a.color}"></span> ${a.color}</span></td>
+                        <td>
+                            <div class="action-cell-buttons">
+                                <button class="btn-link-edit" onclick="abrirModalEdicion('vb_tipos_alerta', ${idx})">Editar</button>
+                                <button class="btn-link-delete" onclick="eliminarItem('vb_tipos_alerta', ${idx})">Remover</button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function abrirModalEdicion(storageKey, index) {
+            const list = JSON.parse(localStorage.getItem(storageKey));
+            const item = list[index];
+
+            document.getElementById('modalEditTitle').innerText = storageKey === 'vb_rangos_pulso' ? 'Editar Rango de Pulso' : 'Editar Umbral de Alerta';
+            document.getElementById('modalEditKey').value = storageKey;
+            document.getElementById('modalEditIndex').value = index;
+
+            document.getElementById('modalEditNombre').value = item.nombre;
+            document.getElementById('modalEditMinimo').value = item.minimo;
+            document.getElementById('modalEditMaximo').value = item.maximo;
+            document.getElementById('colorModal').value = item.color;
+
+            document.getElementById('dotModal').style.background = item.color;
+            document.getElementById('hexModal').innerText = item.color;
+
+            const palette = document.getElementById('paletteModal');
+            palette.classList.remove('open');
+            palette.querySelectorAll('.color-swatch').forEach(s => {
+                s.classList.remove('selected');
+                if(s.style.background === item.color) s.classList.add('selected');
+            });
+
+            document.getElementById('editModalOverlay').style.display = 'flex';
+        }
+
+        function cerrarModalEdicion() {
+            document.getElementById('editModalOverlay').style.display = 'none';
+        }
+
+        function procesarGuardadoEdicion(e) {
+            e.preventDefault();
+            const key = document.getElementById('modalEditKey').value;
+            const idx = parseInt(document.getElementById('modalEditIndex').value);
+            const list = JSON.parse(localStorage.getItem(key));
+
+            list[idx] = {
+                nombre: document.getElementById('modalEditNombre').value,
+                minimo: parseInt(document.getElementById('modalEditMinimo').value),
+                maximo: parseInt(document.getElementById('modalEditMaximo').value),
+                color: document.getElementById('colorModal').value
+            };
+
+            localStorage.setItem(key, JSON.stringify(list));
+            cerrarModalEdicion();
+            renderizarTablasLocales();
+        }
+
+        function guardarRangoLocal(e) {
+            e.preventDefault();
+            const list = JSON.parse(localStorage.getItem('vb_rangos_pulso'));
+            list.push({
+                nombre: document.getElementById('rangoNombre').value,
+                minimo: parseInt(document.getElementById('rangoMinimo').value),
+                maximo: parseInt(document.getElementById('rangoMaximo').value),
+                color: document.getElementById('colorRango').value
+            });
+            localStorage.setItem('vb_rangos_pulso', JSON.stringify(list));
+            document.getElementById('formRangoLocal').reset();
+            renderizarTablasLocales();
+        }
+
+        function guardarAlertaLocal(e) {
+            e.preventDefault();
+            const list = JSON.parse(localStorage.getItem('vb_tipos_alerta'));
+            list.push({
+                nombre: document.getElementById('alertaNombre').value,
+                minimo: parseInt(document.getElementById('alertaMinimo').value),
+                maximo: parseInt(document.getElementById('alertaMaximo').value),
+                color: document.getElementById('colorAlerta').value
+            });
+            localStorage.setItem('vb_tipos_alerta', JSON.stringify(list));
+            document.getElementById('formAlertaLocal').reset();
+            renderizarTablasLocales();
+        }
+
+        function eliminarItem(key, idx) {
+            const list = JSON.parse(localStorage.getItem(key));
+            list.splice(idx, 1);
+            localStorage.setItem(key, JSON.stringify(list));
+            renderizarTablasLocales();
+        }
+
+        document.getElementById('doctorAvatarInput').addEventListener('change', function(e) {
+            var f = e.target.files && e.target.files[0];
+            if (!f) return;
+
+            var form = new FormData();
+            form.append('avatar', f);
+
+            fetch('/Account/UploadAvatar', { method: 'POST', body: form })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.url) {
+                    const nuevaRutaConBusiting = data.url + '?t=' + new Date().getTime();
+                    document.getElementById('imgDoctorConfig').src = nuevaRutaConBusiting;
+                    const navAvatar = document.querySelector('#headerAvatar img');
+                    if(navAvatar) navAvatar.src = nuevaRutaConBusiting;
+                } else {
+                    alert('No se pudo actualizar la foto de perfil.');
+                }
+            })
+            .catch(() => alert('Error en la carga de archivos.'));
         });
+
+        document.addEventListener('DOMContentLoaded', inicializarTablas);
     </script>
 }

@@ -26,7 +26,6 @@ namespace VitalBand.Controllers
             _apiUrlProvider = apiUrlProvider;
         }
 
-        // GET: Configuracion
         public async Task<IActionResult> Index()
         {
             if (User.IsInRole("Medico") || User.IsInRole("medico"))
@@ -49,7 +48,6 @@ namespace VitalBand.Controllers
                 var response = await client.GetAsync(_apiUrlProvider.GetApiUrl($"/api/ConfiguracionApi/paciente/{idPaciente}"));
                 if (!response.IsSuccessStatusCode) return NotFound();
 
-                // Leemos la respuesta unificada que trae el paciente y la cédula del médico
                 var jsonDoc = await response.Content.ReadFromJsonAsync<JsonElement>();
                 var paciente = JsonSerializer.Deserialize<Paciente>(jsonDoc.GetProperty("paciente").GetRawText());
                 string? cedulaActual = jsonDoc.GetProperty("cedulaActual").GetString();
@@ -57,7 +55,6 @@ namespace VitalBand.Controllers
 
                 if (paciente == null) return NotFound();
 
-                // Calculamos la edad de manera segura
                 int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
                 if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) { edadCalculada--; }
 
@@ -80,7 +77,6 @@ namespace VitalBand.Controllers
             return Forbid();
         }
 
-        // POST: Configuracion/AgregarRango (Solo Médicos)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
@@ -94,7 +90,6 @@ namespace VitalBand.Controllers
             return RedirectToAction("Index");
         }
 
-        // POST: Configuracion/AgregarTipoAlerta (Solo Médicos)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "medico,Medico")]
@@ -107,7 +102,6 @@ namespace VitalBand.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: Configuracion/VerificarCedula
         [HttpGet]
         [Authorize(Roles = "paciente,Paciente")]
         public async Task<IActionResult> VerificarCedula(string cedula)
@@ -125,10 +119,9 @@ namespace VitalBand.Controllers
                 return Json(await response.Content.ReadFromJsonAsync<object>());
             }
 
-            return Json(new { existe = false, mensaje = "Error al conectar con el servicio de verificación. ❌" });
+            return Json(new { existe = false, mensaje = "Error utilizar verificación" });
         }
 
-        // POST: Configuracion/ActualizarPerfil (Solo Pacientes)
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "paciente,Paciente")]
@@ -145,11 +138,11 @@ namespace VitalBand.Controllers
 
             if (response.IsSuccessStatusCode)
             {
-                TempData["Mensaje"] = "¡Perfil, género y expediente actualizados correctamente a través de la API! ❤️✨";
+                TempData["Mensaje"] = "¡Perfil actualizado correctamente";
             }
             else
             {
-                TempData["Error"] = "No se pudo actualizar el expediente del paciente a través del servicio.";
+                TempData["Error"] = "No se pudo actualizar el perfil";
             }
 
             return RedirectToAction("Index");

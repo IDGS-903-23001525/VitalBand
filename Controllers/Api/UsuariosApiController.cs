@@ -17,33 +17,21 @@ namespace VitalBand.Controllers.Api
 
         private readonly VitalBandContext _context;
 
-
-
         public UsuariosApiController(VitalBandContext context)
 
         {
-
             _context = context;
 
         }
-
-
-
-        // POST: api/UsuariosApi/login
 
         [HttpPost("login")]
 
         public async Task<IActionResult> Login([FromBody] Login loginInfo)
 
         {
-
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.email == loginInfo.Email && u.password_hash == loginInfo.Password);
 
             if (usuario == null) return Unauthorized();
-
-
-
-            // Lógica unificada de Control de Sesión Única por Inactividad
 
             string nuevoTokenSesion = Guid.NewGuid().ToString();
 
@@ -51,19 +39,13 @@ namespace VitalBand.Controllers.Api
 
             usuario.sesion_expiracion = DateTime.Now.AddMinutes(20);
 
-
-
             _context.Usuarios.Update(usuario);
 
             await _context.SaveChangesAsync();
 
-
-
             string nombreMostrar = "Usuario VitalBand";
 
             int perfilId = 0;
-
-
 
             if (usuario.rol.ToLower() == "medico")
 
@@ -74,23 +56,17 @@ namespace VitalBand.Controllers.Api
                 if (medico != null) { nombreMostrar = medico.nombre; perfilId = medico.id; }
 
             }
-
             else
 
             {
-
                 var paciente = await _context.Pacientes.FirstOrDefaultAsync(p => p.usuario_id == usuario.id);
 
                 if (paciente != null) { nombreMostrar = paciente.nombre; perfilId = paciente.id; }
 
             }
-
-
-
             return Ok(new
 
             {
-
                 id = usuario.id,
 
                 email = usuario.email,
@@ -107,16 +83,11 @@ namespace VitalBand.Controllers.Api
 
         }
 
-
-
-        // POST: api/UsuariosApi/logout/{id}
-
         [HttpPost("logout/{id}")]
 
         public async Task<IActionResult> Logout(int id)
 
         {
-
             var usuario = await _context.Usuarios.FindAsync(id);
 
             if (usuario != null)
@@ -132,24 +103,16 @@ namespace VitalBand.Controllers.Api
             }
 
             return Ok();
-
         }
-
-
-
-        // POST: api/UsuariosApi/forgot-password
 
         [HttpPost("forgot-password")]
 
         public async Task<IActionResult> ForgotPassword([FromBody] string email)
 
         {
-
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.email == email);
 
             if (usuario == null) return NotFound();
-
-
 
             string tokenUrl = Guid.NewGuid().ToString();
 
@@ -159,27 +122,18 @@ namespace VitalBand.Controllers.Api
 
             await _context.SaveChangesAsync();
 
-
-
             return Ok(new { token = tokenUrl });
 
         }
-
-
-
-        // POST: api/UsuariosApi/reset-password
 
         [HttpPost("reset-password")]
 
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel model)
 
         {
-
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.email == model.Email && u.token_sesion == model.Token && u.sesion_expiracion > DateTime.Now);
 
             if (usuario == null) return BadRequest();
-
-
 
             usuario.password_hash = model.Password;
 
@@ -192,10 +146,6 @@ namespace VitalBand.Controllers.Api
             return Ok();
 
         }
-
-
-
-        // POST: api/UsuariosApi/registro-medico
 
         [HttpPost("registro-medico")]
 
@@ -239,13 +189,12 @@ namespace VitalBand.Controllers.Api
 
                 }
 
-                catch (Exception ex) // 👈 Agrega (Exception ex)
+                catch (Exception ex)
 
                 {
 
                     await transaction.RollbackAsync();
 
-                    // Te regresa el error exacto (por ejemplo: si falta una columna o si el ID está duplicado)
 
                     return StatusCode(500, ex.InnerException?.Message ?? ex.Message);
 
@@ -255,21 +204,12 @@ namespace VitalBand.Controllers.Api
 
         }
 
-
-
-        // GET: api/UsuariosApi/ObtenerUsuarioIdPorPaciente/{pacienteId}
-
         [HttpGet("ObtenerUsuarioIdPorPaciente/{pacienteId}")]
 
         public async Task<IActionResult> ObtenerUsuarioIdPorPaciente(int pacienteId)
 
         {
-
-            // Buscamos al paciente por su ID de Perfil/Paciente
-
             var paciente = await _context.Pacientes.FindAsync(pacienteId);
-
-
 
             if (paciente == null)
 
@@ -278,11 +218,6 @@ namespace VitalBand.Controllers.Api
                 return NotFound(new { mensaje = "Paciente no encontrado." });
 
             }
-
-
-
-            // Si se encuentra, devolvemos un objeto con su usuario_id real de telemetría
-
             return Ok(new { usuarioIdReal = paciente.usuario_id });
 
         }

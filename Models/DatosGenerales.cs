@@ -16,5 +16,6 @@ namespace VitalBand.Models
         public DateTime FechaRegistro { get; set; }
         public int TotalAlertas { get; set; }
         public List<LecturaDiaria> LecturasHoy { get; set; } = new();
+        public string FotoRuta { get; set; } = string.Empty;
     }
 }

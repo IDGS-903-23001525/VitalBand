@@ -5,252 +5,375 @@
 
 @section Styles {
     <style>
-        .users-container {
-            max-width: 1100px;
-            margin: 2rem auto;
-            background: rgba(255,255,255,0.22);
-            backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            -webkit-backdrop-filter: blur(40px) saturate(180%) brightness(1.05);
-            border: 1px solid rgba(255,255,255,0.5);
-            border-radius: 24px;
-            padding: 1.75rem;
-            box-shadow: 0 8px 40px rgba(8,145,178,0.15), inset 0 1px 0 rgba(255,255,255,0.7);
-        }
-
-        .users-header {
-            margin-bottom: 1.5rem;
-        }
-
-            .users-header h1 {
-                font-size: 1.5rem;
-                font-weight: 700;
-                margin-bottom: 0.25rem;
-                background: linear-gradient(90deg, var(--teal-700, #0a6775), var(--teal-500, #06b6d4));
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                background-clip: text;
+        @@media (min-width: 992px) {
+            body {
+                overflow: hidden;
             }
 
-            .users-header p {
-                color: var(--gray-600);
-                font-size: 0.875rem;
+            .vb-content.container {
+                max-width: 100% !important;
+                width: 100% !important;
+                padding: 0 !important;
+                margin: 0 !important;
+                height: calc(100vh - 122px);
+                display: flex;
+                align-items: stretch;
             }
 
-        table {
+            .vb-content main {
+                width: 100%;
+                height: 100%;
+            }
+        }
+
+        .dashboard-split {
+            display: flex;
+            flex-direction: column;
             width: 100%;
-            border-collapse: collapse;
-            background: transparent;
+            height: 100%;
         }
 
-        th {
-            text-align: left;
-            padding: 0.75rem 0.75rem;
-            font-size: 0.72rem;
+        @@media (min-width: 992px) {
+            .dashboard-split {
+                flex-direction: row;
+            }
+        }
+
+        .dash-sidebar {
+            flex: 0.35;
+            background: linear-gradient(145deg, #09333f 0%, #0d4856 60%, #115e59 100%);
+            padding: 3rem 2.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            gap: 1.5rem;
+            color: var(--white);
+            border-right: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .sidebar-header h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--teal-700, #0a6775);
-            border-bottom: 2px solid rgba(6,182,212,0.2);
-            background: transparent;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
         }
 
-        td {
-            padding: 0.9rem 0.75rem;
-            border-bottom: 1px solid var(--gray-50);
-            vertical-align: middle;
-            background: inherit;
+        .sidebar-header p {
+            font-size: 0.88rem;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.4;
         }
 
-            th:nth-child(1), td:nth-child(1) {
-                width: 28%;
-            }
-
-            th:nth-child(2), td:nth-child(2) {
-                width: 10%;
-            }
-
-            th:nth-child(3), td:nth-child(3) {
-                width: 12%;
-            }
-
-            th:nth-child(4), td:nth-child(4) {
-                width: 15%;
-            }
-
-            th:nth-child(5), td:nth-child(5) {
-                width: 35%;
-            }
-
-        tr.alerta-activa,
-        tr.alerta-activa td {
-            background-color: #FCEBEB !important;
-        }
-
-        th:nth-child(5), td:nth-child(5) {
-            width: 40%;
-            white-space: nowrap;
-        }
-
-        .btn-alerta {
-            background: #D32F2F;
+        .sidebar-divider {
             border: none;
-            color: white;
-            padding: 0.4rem 1rem;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-            transition: transform 0.1s;
+            border-top: 1px solid rgba(255,255,255,0.12);
+            margin: 0.5rem 0;
         }
 
-            .btn-alerta:hover {
-                background: #B71C1C;
-                transform: scale(1.02);
-            }
-
-        .notif-badge {
-            background: #FF9800;
-            color: #000;
-            font-weight: bold;
-        }
-
-        .btn-accion {
-            display: inline-block;
-            background: rgba(6,182,212,0.1);
-            border: 1px solid rgba(6,182,212,0.3);
-            border-radius: 8px;
-            padding: 0.35rem 0.9rem;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-decoration: none;
-            color: var(--teal-700, #0a6775);
-            transition: all 0.1s;
-            margin: 0 4px 0 0;
-        }
-
-            .btn-accion:hover {
-                background: rgba(6,182,212,0.2);
-                border-color: var(--teal-500, #06b6d4);
-            }
-
-        .btn-alerta {
-            background: var(--red-600);
-            border-color: var(--red-600);
-            color: white;
-            position: relative;
-        }
-
-            .btn-alerta:hover {
-                background: var(--red-500);
-            }
-
-        .notif-badge {
-            position: absolute;
-            top: -6px;
-            right: -6px;
-            background: #ff4444;
-            color: white;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 0.65rem;
-            font-weight: bold;
+        .metric-card-mini {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
             display: flex;
             align-items: center;
+            gap: 15px;
+        }
+
+            .metric-card-mini .icon {
+                font-size: 1.5rem;
+                background: rgba(255,255,255,0.08);
+                width: 3rem;
+                height: 3rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 12px;
+            }
+
+            .metric-card-mini.alert-active-bg {
+                background: rgba(220, 38, 38, 0.1);
+                border-color: rgba(220, 38, 38, 0.2);
+            }
+
+                .metric-card-mini.alert-active-bg .icon {
+                    background: rgba(220, 38, 38, 0.2);
+                }
+
+        .metric-info span {
+            display: block;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .metric-info strong {
+            font-size: 1.35rem;
+            font-weight: 700;
+        }
+
+        .dash-main-content {
+            flex: 1.65;
+            padding: 3rem 4rem;
+            background: #fafbfc;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .table-title-area {
+            margin-bottom: 2rem;
+        }
+
+            .table-title-area h1 {
+                font-size: 1.65rem;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                color: var(--gray-900);
+                margin-bottom: 0.25rem;
+            }
+
+            .table-title-area p {
+                color: var(--gray-600);
+                font-size: 0.92rem;
+            }
+
+        .vb-table-responsive {
+            width: 100%;
+            background: var(--white);
+            border: 1px solid var(--gray-200);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.01);
+        }
+
+        .vb-patient-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .vb-patient-table th {
+                background: #f8fafc !important;
+                color: var(--teal-700) !important;
+                font-size: 0.75rem !important;
+                font-weight: 700 !important;
+                text-transform: uppercase;
+                letter-spacing: 0.8px;
+                padding: 1rem 1.25rem !important;
+                border-bottom: 1.5px solid var(--gray-200) !important;
+            }
+
+            .vb-patient-table td {
+                padding: 1.1rem 1.25rem !important;
+                border-bottom: 1px solid var(--gray-100) !important;
+                vertical-align: middle;
+                font-size: 0.92rem;
+                color: var(--gray-700);
+            }
+
+            .vb-patient-table tr td:first-child {
+                border-left: 4px solid transparent;
+            }
+
+            .vb-patient-table tr.normal-active:hover td {
+                background-color: #f8fafc;
+            }
+
+            .vb-patient-table tr.normal-active td:first-child {
+                border-left-color: var(--teal-500);
+            }
+
+            .vb-patient-table tr.alerta-activa td {
+                background-color: #fff5f5;
+            }
+
+                .vb-patient-table tr.alerta-activa td:first-child {
+                    border-left-color: var(--red-600);
+                }
+
+            .vb-patient-table tr.alerta-activa:hover td {
+                background-color: #fef2f2;
+            }
+
+        .actions-cell-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-action-outline {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 0.95rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--teal-700);
+            background-color: var(--white);
+            border: 1.5px solid var(--gray-300);
+            border-radius: 10px;
+            text-decoration: none !important;
+            transition: all 0.15s ease;
+        }
+
+            .btn-action-outline:hover {
+                color: var(--teal-700);
+                border-color: var(--teal-600);
+                background-color: rgba(13, 148, 136, 0.04);
+                transform: translateY(-1px);
+            }
+
+        .btn-alert-danger {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1.1rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--white);
+            background: linear-gradient(135deg, var(--red-600), #b91c1c);
+            border: none;
+            border-radius: 10px;
+            text-decoration: none !important;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+            transition: all 0.15s ease;
+        }
+
+            .btn-alert-danger:hover {
+                color: var(--white);
+                opacity: 0.92;
+                box-shadow: 0 6px 16px rgba(220, 38, 38, 0.28);
+                transform: translateY(-1px);
+            }
+
+        .badge-pulse {
+            background-color: var(--white);
+            color: var(--red-600);
+            font-size: 0.7rem;
+            font-weight: 800;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            box-shadow: 0 0 0 1px white;
+            margin-left: 6px;
         }
 
-        .btn-inactivo {
-            background: var(--gray-50);
-            border-color: var(--gray-100);
-            color: var(--gray-400);
-            cursor: default;
-            pointer-events: none;
+        .status-pill-safe {
+            display: inline-flex;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--teal-700);
+            background: var(--teal-100);
+            padding: 0.25rem 0.65rem;
+            border-radius: 20px;
         }
 
-        tr.row-paciente {
-            cursor: pointer;
-        }
-
-            tr.row-paciente:hover td {
-                background: rgba(6,182,212,0.04);
+        @@media (max-width: 991px) {
+            .dash-main-content, .dash-sidebar {
+                padding: 2rem 1.5rem;
             }
-
-        tr.alerta-activa.row-paciente:hover td {
-            background: rgba(220,38,38,0.06);
         }
-
-        .tr-acciones {
-            display: none;
-        }
-
-            .tr-acciones.visible {
-                display: table-row;
-            }
-
-            .tr-acciones td {
-                padding: 0.55rem 0.75rem 0.75rem 1.5rem;
-                background: rgba(6,182,212,0.04);
-                border-bottom: 1px solid rgba(6,182,212,0.12);
-            }
     </style>
 }
 
-<div class="users-container">
-    <div class="users-header">
-        <h1>Pacientes monitoreados</h1>
-        <p>Lista de usuarios con dispositivo VitalBand activo</p>
+<div class="dashboard-split">
+    <div class="dash-sidebar">
+        <div class="sidebar-header">
+            <h2>VitalBand Core</h2>
+            <p>Ecosistema de monitoreo en tiempo real para especialistas autorizados.</p>
+        </div>
+
+        <hr class="sidebar-divider" />
+
+        <div class="metric-card-mini">
+            <div class="icon">🩺</div>
+            <div class="metric-info">
+                <span>Total Pacientes</span>
+                <strong>@Model.Count() asignados</strong>
+            </div>
+        </div>
+
+        @{
+            var alertasActivas = Model.Count(u => u.TieneAlertaHoy);
+        }
+        <div class="metric-card-mini @(alertasActivas > 0 ? "alert-active-bg" : "")">
+            <div class="icon">🚨</div>
+            <div class="metric-info">
+                <span>Alertas Críticas</span>
+                <strong style="color: @(alertasActivas > 0 ? "var(--red-500)" : "inherit")">
+                    @alertasActivas pendientes
+                </strong>
+            </div>
+        </div>
+
+        <div class="metric-card-mini">
+            <div class="icon">⚡</div>
+            <div class="metric-info">
+                <span>Servidor de Señales</span>
+                <strong style="color: var(--teal-400);">En Línea Activo</strong>
+            </div>
+        </div>
     </div>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Edad</th>
-                <th>Sexo</th>
-                <th>Pulso promedio hoy</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var user in Model)
-            {
-                <tr class="row-paciente @(user.TieneAlertaHoy ? "alerta-activa" : "")" onclick="toggleAcciones('@user.Id')">
-                    <td><strong>@user.Nombre</strong></td>
-                    <td>@user.Edad años</td>
-                    <td>@user.Sexo</td>
-                    <td>@user.PulsoPromedioHoy BPM</td>
-                    <td>
-                        @if (user.TieneAlertaHoy)
-                        {
-                            <!-- 🛠️ CORRECCIÓN: Cambiamos asp-route-alertaId="@user.Id" por el ID de la Alerta real -->
-                            <a asp-controller="AtenderAlerta" asp-action="Index" asp-route-alertaId="@user.AlertaIdPendiente" class="btn btn-danger position-relative">
-                                Atender alerta
-                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">1</span>
-                            </a>
-                        }
-                        else
-                        {
-                            <span class="badge bg-light text-muted">Sin alertas</span>
-                        }
-                    </td>
-                </tr>
-                <tr class="tr-acciones" id="acciones-@user.Id">
-                    <td colspan="5">
-                        <a asp-controller="DatosGenerales" asp-action="Index" asp-route-id="@user.Id" class="btn-accion" onclick="event.stopPropagation()">Ver registros</a>
-                        <a asp-controller="HistorialAlertas" asp-action="Index" asp-route-usuarioId="@user.Id" class="btn-accion" onclick="event.stopPropagation()">Historial alertas</a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+    <div class="dash-main-content">
+        <div class="table-title-area">
+            <h1>Pacientes Monitoreados</h1>
+            <p>Monitoreo proactivo de frecuencia cardíaca e incidentes diarios</p>
+        </div>
 
-@section Scripts {
-    <script>
-        function toggleAcciones(id) {
-            const tr = document.getElementById('acciones-' + id);
-            if(tr) {
-                tr.classList.toggle('visible');
-            }
-        }
-    </script>
-}
+        <div class="vb-table-responsive">
+            <table class="vb-patient-table">
+                <thead>
+                    <tr>
+                        <th style="width: 26%;">Nombre Completo</th>
+                        <th style="width: 12%;">Edad</th>
+                        <th style="width: 12%;">Sexo</th>
+                        <th style="width: 18%;">Pulso Promedio</th>
+                        <th style="width: 32%;">Acciones Inmediatas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in Model)
+                    {
+                        <tr class="@(user.TieneAlertaHoy ? "alerta-activa" : "normal-active")">
+                            <td><strong>@user.Nombre</strong></td>
+                            <td>@user.Edad años</td>
+                            <td>@user.Sexo</td>
+                            <td>
+                                <span style="font-weight: 600; color: @(user.TieneAlertaHoy ? "var(--red-600)" : "var(--gray-900)");">
+                                    @user.PulsoPromedioHoy BPM
+                                </span>
+                            </td>
+                            <td>
+                                <div class="actions-cell-wrapper">
+                                    <a asp-controller="DatosGenerales" asp-action="Index" asp-route-id="@user.Id" class="btn-action-outline">
+                                        📈 Registros
+                                    </a>
+                                    <a asp-controller="HistorialAlertas" asp-action="Index" asp-route-usuarioId="@user.Id" class="btn-action-outline">
+                                        📋 Historial
+                                    </a>
+
+                                    @if (user.TieneAlertaHoy)
+                                    {
+                                        <a asp-controller="AtenderAlerta" asp-action="Index" asp-route-alertaId="@user.AlertaIdPendiente" class="btn-alert-danger">
+                                            🚨 Atender <span class="badge-pulse">1</span>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-pill-safe">💚 Estable</span>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

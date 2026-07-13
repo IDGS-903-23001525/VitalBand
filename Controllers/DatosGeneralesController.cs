@@ -35,17 +35,14 @@ namespace VitalBand.Controllers
 
             if (!responsePaciente.IsSuccessStatusCode) return NotFound();
 
-            // 🛠️ CORRECCIÓN: Desarmamos el JSON compuesto que devuelve la API (trae paciente y cedulaActual)
             var jsonDoc = await responsePaciente.Content.ReadFromJsonAsync<JsonElement>();
             var paciente = JsonSerializer.Deserialize<Paciente>(jsonDoc.GetProperty("paciente").GetRawText());
 
             if (paciente == null) return NotFound();
 
-            // Calculamos la edad de la misma forma
             int edadCalculada = DateTime.Today.Year - paciente.fecha_nacimiento.Year;
             if (DateTime.Today.DayOfYear < paciente.fecha_nacimiento.DayOfYear) edadCalculada--;
 
-            // 2. Solicitamos la lista de alertas global para el conteo
             var responseAlertas = await client.GetAsync(_apiUrlProvider.GetApiUrl("/api/AlertasApi"));
 
             int conteoAlertas = 0;
@@ -55,7 +52,6 @@ namespace VitalBand.Controllers
                 conteoAlertas = alertas?.Count(a => a.paciente_id == paciente.id) ?? 0;
             }
 
-            // Fecha seleccionada (por query string) — por defecto hoy
             DateTime fechaSeleccionada;
             if (!string.IsNullOrEmpty(fecha) && DateTime.TryParseExact(fecha, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var fechaParsed))
             {
@@ -66,24 +62,21 @@ namespace VitalBand.Controllers
                 fechaSeleccionada = DateTime.Today;
             }
 
-            // Simulador interno de datos para la fecha solicitada
             var lecturas = GenerarLecturas(paciente.id, fechaSeleccionada);
 
-            // Armamos el modelo original "DatosGenerales" intacto para la vista
             var modelo = new DatosGenerales
             {
-                UsuarioId = paciente.usuario_id, // ID del usuario (para telemetría InfluxDB)
-                PacienteId = paciente.id,        // ID del paciente (para alertas y navegación)
+                UsuarioId = paciente.usuario_id,
+                PacienteId = paciente.id,
                 Nombre = paciente.nombre,
                 Edad = edadCalculada,
                 Genero = paciente.genero ?? "No especificado",
                 DescripcionMedica = paciente.historial_medico_breve ?? "Sin antecedentes registrados en el expediente.",
                 FechaRegistro = paciente.Usuario?.fecha_registro ?? DateTime.Now,
                 TotalAlertas = conteoAlertas,
-                LecturasHoy = lecturas
+                LecturasHoy = lecturas.OrderByDescending(l => l.Hora).ToList()
             };
 
-            // ViewBags para Chart.js
             ViewBag.HorasJson = JsonSerializer.Serialize(lecturas.Select(l => l.Hora.ToString("HH:mm")));
             ViewBag.FechaSeleccionada = fechaSeleccionada.ToString("yyyy-MM-dd");
             ViewBag.PulsosJson = JsonSerializer.Serialize(lecturas.Select(l => l.Pulso));
@@ -93,11 +86,9 @@ namespace VitalBand.Controllers
             return View(modelo);
         }
 
-        // Método auxiliar del simulador de sensores
         private List<LecturaDiaria> GenerarLecturas(int pacienteId, DateTime fecha)
         {
             var random = new Random(pacienteId);
-            // Usamos la fecha proporcionada para generar horas del día
             var ahora = fecha.Date;
             var lecturas = new List<LecturaDiaria>();
 

@@ -107,6 +107,6 @@ app.UseAuthorization();   // Luego autorización
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Account}/{action=Login}/{id?}");  // Redirige a Login por defecto
+    pattern: "{controller=Home}/{action=Index}/{id?}");  // Redirige a Login por defecto
 
 app.Run();
