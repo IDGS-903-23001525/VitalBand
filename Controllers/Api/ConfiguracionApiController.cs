@@ -94,7 +94,8 @@ namespace VitalBand.Controllers.Api
             {
                 try
                 {
-                    string passwordSegura = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                    // string passwordSegura = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                    string passwordSegura = model.Password;
 
                     var nuevoUsuario = new Usuario
                     {
