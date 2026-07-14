@@ -74,6 +74,16 @@ namespace VitalBand.Controllers.Api
             return Ok();
         }
 
+        [HttpGet("patologias")]
+        public async Task<IActionResult> GetPatologias()
+        {
+            var patologias = await _context.PatologiasCatalogo
+                .Select(p => new { p.id, p.nombre_enfermedad, p.descripcion })
+                .ToListAsync();
+
+            return Ok(patologias);
+        }
+
         [HttpGet("pacientes")]
         public async Task<IActionResult> GetTodosLosPacientes()
         {
