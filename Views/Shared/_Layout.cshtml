@@ -572,7 +572,6 @@
                         </div>
                     </div>
 
-                    // 🛠️ CORREGIDO PARA EVITAR ERROR RZ1010
                     string? avatarUrl = null;
                     var claimId = User.FindFirst("UsuarioBaseId")?.Value;
                     var isDoctor = User.IsInRole("Medico") || User.IsInRole("medico");
@@ -594,7 +593,7 @@
                         <div class="vb-avatar" id="headerAvatar" asp-append-version="true">
                             @if (!string.IsNullOrEmpty(avatarUrl))
                             {
-                                <img src="@avatarUrl" alt="avatar" style="width:100%;height:100%;object-fit:cover;" />
+                                <img src="@avatarUrl" alt="avatar" style="width:100%;height:100%;object-fit:cover;" asp-append-version="true" />
                             }
                             else
                             {
