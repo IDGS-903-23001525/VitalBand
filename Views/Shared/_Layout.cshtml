@@ -350,7 +350,6 @@
                 animation: bounceNotification 0.3s ease-out;
             }
 
-            /* ── 🛠️ DISEÑO DE LA VENTANITA DESPLEGABLE DE ALERTAS ── */
             .vb-notification-dropdown {
                 position: absolute;
                 top: 50px;
@@ -363,7 +362,7 @@
                 border-radius: 16px;
                 box-shadow: 0 12px 35px rgba(9, 51, 63, 0.15);
                 z-index: 1000;
-                display: none; /* Inicia oculto */
+                display: none;
                 flex-direction: column;
                 overflow: hidden;
                 animation: slideFadeIn 0.2s ease-out;
@@ -553,28 +552,29 @@
             <div class="vb-nav-actions">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <!-- ── 🛠️ CORREGIDO: CAMPANA CON DROP-DOWN INTERACTIVO ── -->
-                    <div class="vb-notification-wrapper" id="notificationWrapper" style="position: relative; display: inline-block;">
-                        <button type="button" class="vb-icon-btn" id="btnCampana" title="Notificaciones de Emergencia">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-                            </svg>
-                        </button>
-                        <span id="notificationBadge" class="fb-badge" style="display: none;">0</span>
+                    var isDoctor = User.IsInRole("Medico") || User.IsInRole("medico");
 
-                        <!-- Ventanita Flotante Desplegable -->
-                        <div class="vb-notification-dropdown" id="notifDropdown">
-                            <div class="dropdown-alert-header">Incidentes en Proceso</div>
-                            <div class="dropdown-alert-body" id="dropdownAlertContainer">
-                                <!-- Se llenará dinámicamente con JS -->
+                    // ── 🛠️ VALIDACIÓN 1 (BACKEND): SOLO RENDERIZA LA CAMPANA SI ES MÉDICO ──
+                    if (isDoctor)
+                    {
+                        <div class="vb-notification-wrapper" id="notificationWrapper" style="position: relative; display: inline-block;">
+                            <button type="button" class="vb-icon-btn" id="btnCampana" title="Notificaciones de Emergencia">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                                </svg>
+                            </button>
+                            <span id="notificationBadge" class="fb-badge" style="display: none;">0</span>
+
+                            <div class="vb-notification-dropdown" id="notifDropdown">
+                                <div class="dropdown-alert-header">Incidentes en Proceso</div>
+                                <div class="dropdown-alert-body" id="dropdownAlertContainer"></div>
                             </div>
                         </div>
-                    </div>
+                    }
 
                     string? avatarUrl = null;
                     var claimId = User.FindFirst("UsuarioBaseId")?.Value;
-                    var isDoctor = User.IsInRole("Medico") || User.IsInRole("medico");
 
                     if (!string.IsNullOrEmpty(claimId))
                     {
@@ -681,6 +681,9 @@
         const dropdown = document.getElementById('notifDropdown');
         const container = document.getElementById('dropdownAlertContainer');
 
+        // ── 🛠️ VALIDACIÓN 2 (FRONTEND): DETIENE LA EJECUCIÓN SI LA CAMPANA NO EXISTE EN EL DOM ──
+        if (!btnCampana) return;
+
         async function verificarAlertasPendientes() {
         try {
         const response = await fetch('/api/AlertasApi');
@@ -688,9 +691,7 @@
 
         const alertas = await response.json();
 
-        // 🛠️ FILTRO BLINDADO: Validamos contra todas las formas de "true"
         const pendientes = alertas.filter(a => {
-        // Convertimos todo a string y minúsculas para evitar falsos positivos
         const valAtendida = String(a.atendida).toLowerCase();
         const valRespondida = String(a.respondida).toLowerCase();
         const valMensaje = String(a.mensaje_enviado).toLowerCase();
@@ -700,7 +701,6 @@
         valRespondida === "true" || valRespondida === "1" ||
         valMensaje === "true" || valMensaje === "1";
 
-        // Solo retornamos las que NO están gestionadas
         return !estaGestionada;
         });
 

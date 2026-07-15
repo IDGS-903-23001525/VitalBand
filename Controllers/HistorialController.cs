@@ -38,6 +38,7 @@ namespace VitalBand.Controllers
         {
             if (año == 0) año = DateTime.Today.Year;
             if (mes == 0) mes = DateTime.Today.Month;
+
             var medicoIdStr = User.FindFirst("PerfilId")?.Value;
             if (string.IsNullOrEmpty(medicoIdStr)) return Challenge();
             int idMedicoLogueado = int.Parse(medicoIdStr);
@@ -96,6 +97,7 @@ namespace VitalBand.Controllers
 
             if (!responsePaciente.IsSuccessStatusCode) return NotFound("No se encontró el perfil del paciente.");
 
+            // 🛠️ DESENVOLVEMOS CORRECTAMENTE EL JSON DEL PACIENTE PARA EVITAR CELDAS VACÍAS
             var opcionesJson = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var jsonCompleto = await responsePaciente.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>(opcionesJson);
 
@@ -155,7 +157,6 @@ namespace VitalBand.Controllers
                     .ToList();
 
                 bool tieneAlertaEseDia = alertasDeEsteDia.Any();
-
                 int promedioPulso = pulsoBaseEstable;
 
                 var lecturaDeEsteDia = datosTelemetriaMensual.FirstOrDefault(lectura =>
@@ -270,19 +271,53 @@ namespace VitalBand.Controllers
                 datosTelemetriaMensual = await responseTelemetria.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>() ?? new List<Dictionary<string, object>>();
             }
 
-            var datosGrafica = new List<double>();
+            // ── 🛠️ NUEVA LÓGICA DE DETECCIÓN CLÍNICA MULTI-MÉTRICA PARA LA GRÁFICA PDF ──
+            var datosPromedio = new List<double>();
+            var datosMaximo = new List<double>();
+            var datosMinimo = new List<double>();
             int diasEnMes = DateTime.DaysInMonth(año, mes);
+            int pulsoBase = 72;
+
             for (int dia = 1; dia <= diasEnMes; dia++)
             {
+                var alertasDia = alertasMesBD.Where(a => a.fecha_hora.Value.Day == dia).ToList();
                 var lecturaDeEsteDia = datosTelemetriaMensual.FirstOrDefault(lectura =>
-                    lectura.TryGetValue("dia", out var d) && d != null && Convert.ToInt32(d.ToString()) == dia);
+                    lectura.TryGetValue("dia", out var d) && d != null && Convert.ToInt32(d.ToString(), CultureInfo.InvariantCulture) == dia);
 
-                if (lecturaDeEsteDia != null && lecturaDeEsteDia.TryGetValue("bpmPromedio", out var bpmVal) && bpmVal != null)
+                if (lecturaDeEsteDia != null)
                 {
-                    double bpmParseado = Convert.ToDouble(bpmVal.ToString());
-                    if (bpmParseado > 0) { datosGrafica.Add(Math.Round(bpmParseado, 1)); continue; }
+                    lecturaDeEsteDia.TryGetValue("bpmPromedio", out var avgVal);
+                    lecturaDeEsteDia.TryGetValue("bpmMaximo", out var maxVal);
+                    lecturaDeEsteDia.TryGetValue("bpmMinimo", out var minVal);
+
+                    double avg = (avgVal != null) ? Convert.ToDouble(avgVal.ToString(), CultureInfo.InvariantCulture) : pulsoBase;
+                    double max = (maxVal != null) ? Convert.ToDouble(maxVal.ToString(), CultureInfo.InvariantCulture) : avg;
+                    double min = (minVal != null) ? Convert.ToDouble(minVal.ToString(), CultureInfo.InvariantCulture) : avg;
+
+                    if (avg > 0)
+                    {
+                        datosPromedio.Add(Math.Round(avg, 1));
+                        datosMaximo.Add(Math.Round(max, 1));
+
+                        // Si en la vista del día hubo colapsos críticos a 0 BPM, forzamos que el PDF lo plasme
+                        if (alertasDia.Any(a => a.fc_media <= 10)) min = 0;
+                        datosMinimo.Add(Math.Round(min, 1));
+                        continue;
+                    }
                 }
-                datosGrafica.Add(72.0);
+
+                if (alertasDia.Any())
+                {
+                    datosPromedio.Add(Math.Round(alertasDia.Average(a => a.fc_media.GetValueOrDefault()), 1));
+                    datosMaximo.Add(Math.Round(alertasDia.Max(a => a.fc_media.GetValueOrDefault()), 1));
+                    datosMinimo.Add(Math.Round(alertasDia.Min(a => a.fc_media.GetValueOrDefault()), 1));
+                }
+                else
+                {
+                    datosPromedio.Add(pulsoBase);
+                    datosMaximo.Add(pulsoBase);
+                    datosMinimo.Add(pulsoBase);
+                }
             }
 
             string periodoTexto = new DateTime(año, mes, 1).ToString("MMMM yyyy", new CultureInfo("es-MX"));
@@ -294,12 +329,12 @@ namespace VitalBand.Controllers
                 iTextSharp.text.pdf.PdfWriter writer = iTextSharp.text.pdf.PdfWriter.GetInstance(documento, ms);
                 documento.Open();
 
-                iTextSharp.text.BaseColor colorTealHeader = new iTextSharp.text.BaseColor(9, 51, 63);   // #09333f
-                iTextSharp.text.BaseColor colorTealMedio = new iTextSharp.text.BaseColor(13, 148, 136);  // #0d9488
-                iTextSharp.text.BaseColor colorTealClaro = new iTextSharp.text.BaseColor(240, 253, 250); // #f0fdfa
-                iTextSharp.text.BaseColor colorGrisLabel = new iTextSharp.text.BaseColor(100, 116, 139); // #64748b
-                iTextSharp.text.BaseColor colorGrisTexto = new iTextSharp.text.BaseColor(51, 65, 85);    // #334155
-                iTextSharp.text.BaseColor colorGrisBorde = new iTextSharp.text.BaseColor(226, 232, 240); // #e2e8f0
+                iTextSharp.text.BaseColor colorTealHeader = new iTextSharp.text.BaseColor(9, 51, 63);
+                iTextSharp.text.BaseColor colorTealMedio = new iTextSharp.text.BaseColor(13, 148, 136);
+                iTextSharp.text.BaseColor colorTealClaro = new iTextSharp.text.BaseColor(240, 253, 250);
+                iTextSharp.text.BaseColor colorGrisLabel = new iTextSharp.text.BaseColor(100, 116, 139);
+                iTextSharp.text.BaseColor colorGrisTexto = new iTextSharp.text.BaseColor(51, 65, 85);
+                iTextSharp.text.BaseColor colorGrisBorde = new iTextSharp.text.BaseColor(226, 232, 240);
 
                 iTextSharp.text.Font fuenteHeaderBlanca = iTextSharp.text.FontFactory.GetFont("Arial", 16, iTextSharp.text.Font.BOLD, iTextSharp.text.BaseColor.WHITE);
                 iTextSharp.text.Font fuenteHeaderMeta = iTextSharp.text.FontFactory.GetFont("Arial", 9, iTextSharp.text.Font.NORMAL, iTextSharp.text.BaseColor.WHITE);
@@ -310,7 +345,7 @@ namespace VitalBand.Controllers
                 iTextSharp.text.Font fuenteAlertaTitulo = iTextSharp.text.FontFactory.GetFont("Arial", 9.5f, iTextSharp.text.Font.BOLD, colorTealHeader);
                 iTextSharp.text.Font fuenteEjesGrafica = iTextSharp.text.FontFactory.GetFont("Arial", 7.5f, iTextSharp.text.Font.NORMAL, colorGrisLabel);
 
-
+                // 1. Encabezado Maestro
                 iTextSharp.text.pdf.PdfPTable tablaEncabezadoColor = new iTextSharp.text.pdf.PdfPTable(2);
                 tablaEncabezadoColor.WidthPercentage = 100;
                 tablaEncabezadoColor.SetWidths(new float[] { 65f, 35f });
@@ -360,6 +395,7 @@ namespace VitalBand.Controllers
                 tablaEncabezadoColor.SpacingAfter = 25f;
                 documento.Add(tablaEncabezadoColor);
 
+                // 2. Ficha Clínica
                 iTextSharp.text.pdf.PdfPTable tablaFichaPaciente = new iTextSharp.text.pdf.PdfPTable(2);
                 tablaFichaPaciente.WidthPercentage = 100;
                 tablaFichaPaciente.SetWidths(new float[] { 60f, 40f });
@@ -388,6 +424,7 @@ namespace VitalBand.Controllers
                 lineaSeparadoraFicha.SpacingAfter = 25f;
                 documento.Add(lineaSeparadoraFicha);
 
+                // 3. Interpretación médica descriptiva
                 iTextSharp.text.Paragraph tSeccionInterp = new iTextSharp.text.Paragraph("INTERPRETACIÓN MÉDICA AUTOMATIZADA", fuenteSeccion);
                 tSeccionInterp.SpacingAfter = 12f;
                 tSeccionInterp.IndentationLeft = 10f;
@@ -417,6 +454,7 @@ namespace VitalBand.Controllers
                 containerCajaInterp.SpacingAfter = 25f;
                 documento.Add(containerCajaInterp);
 
+                // 4. 🧠 CONSTRUCCIÓN COMPLETA DE LA NUEVA GRÁFICA VECTORIAL DE ALTA FIDELIDAD 🧠
                 iTextSharp.text.Paragraph tSeccionGrafica = new iTextSharp.text.Paragraph("ANÁLISIS DINÁMICO DE FRECUENCIA CARDÍACA", fuenteSeccion);
                 tSeccionGrafica.SpacingAfter = 12f;
                 tSeccionGrafica.IndentationLeft = 10f;
@@ -440,6 +478,7 @@ namespace VitalBand.Controllers
                 int maxBpm = 110;
                 int stepBpm = 10;
 
+                // Líneas guía Y
                 for (int bpm = minBpm; bpm <= maxBpm; bpm += stepBpm)
                 {
                     float ratio = (float)(bpm - minBpm) / (maxBpm - minBpm);
@@ -448,7 +487,7 @@ namespace VitalBand.Controllers
                     if (bpm > minBpm && bpm < maxBpm)
                     {
                         plantillaGrafica.SetLineWidth(0.6f);
-                        plantillaGrafica.SetColorStroke(new iTextSharp.text.BaseColor(241, 245, 249)); // #f1f5f9
+                        plantillaGrafica.SetColorStroke(new iTextSharp.text.BaseColor(241, 245, 249));
                         plantillaGrafica.MoveTo(paddingLeft, yPos);
                         plantillaGrafica.LineTo(canvasWidth - 10f, yPos);
                         plantillaGrafica.Stroke();
@@ -464,6 +503,7 @@ namespace VitalBand.Controllers
                     );
                 }
 
+                // Etiquetas de Días X
                 int[] diasEtiquetas = new int[] { 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31 };
                 float deltaX = graphWidth / (diasEnMes - 1);
 
@@ -483,15 +523,39 @@ namespace VitalBand.Controllers
                     }
                 }
 
-                if (datosGrafica.Any())
+                // ── 🛠️ CORREGIDO: TRAZADO DEL ÁREA CLÍNICA SOMBREADA (MÁX/MÍN) Y LÍNEA DE PROMEDIO ──
+                if (datosPromedio.Any())
                 {
-                    plantillaGrafica.SetLineWidth(2.2f);
+                    // 1. Rellenamos el fondo del rango con un tono Teal traslúcido
+                    plantillaGrafica.SetColorFill(new iTextSharp.text.BaseColor(204, 251, 241));
+                    plantillaGrafica.MoveTo(paddingLeft, paddingBottom + (((float)(datosMinimo[0] - minBpm) / (maxBpm - minBpm)) * graphHeight));
+
+                    // Polígono Inferior (Mínimos)
+                    for (int i = 1; i < datosMinimo.Count; i++)
+                    {
+                        float xPos = paddingLeft + (i * deltaX);
+                        float yPosMin = paddingBottom + (((float)(datosMinimo[i] - minBpm) / (maxBpm - minBpm)) * graphHeight);
+                        plantillaGrafica.LineTo(xPos, yPosMin);
+                    }
+
+                    // Polígono Superior de retorno (Máximos)
+                    for (int i = datosMaximo.Count - 1; i >= 0; i--)
+                    {
+                        float xPos = paddingLeft + (i * deltaX);
+                        float yPosMax = paddingBottom + (((float)(datosMaximo[i] - minBpm) / (maxBpm - minBpm)) * graphHeight);
+                        plantillaGrafica.LineTo(xPos, yPosMax);
+                    }
+
+                    plantillaGrafica.ClosePath();
+                    plantillaGrafica.Fill();
+
+                    // 2. Trazamos la línea sólida central de Promedios
+                    plantillaGrafica.SetLineWidth(2.0f);
                     plantillaGrafica.SetColorStroke(colorTealMedio);
 
-                    for (int i = 0; i < datosGrafica.Count; i++)
+                    for (int i = 0; i < datosPromedio.Count; i++)
                     {
-                        double bpmActual = datosGrafica[i] == 0 ? 72.0 : datosGrafica[i];
-                        float ratioY = (float)(bpmActual - minBpm) / (maxBpm - minBpm);
+                        float ratioY = (float)(datosPromedio[i] - minBpm) / (maxBpm - minBpm);
                         float yPos = paddingBottom + (ratioY * graphHeight);
                         float xPos = paddingLeft + (i * deltaX);
 
@@ -500,12 +564,12 @@ namespace VitalBand.Controllers
                     }
                     plantillaGrafica.Stroke();
 
-                    plantillaGrafica.SetColorFill(new iTextSharp.text.BaseColor(20, 184, 166)); // #14b8a6
-                    float radiusNodo = datosGrafica.Count > 15 ? 1.2f : 2.2f;
-                    for (int i = 0; i < datosGrafica.Count; i += 2)
+                    // 3. Pintamos los nodos marcadores analíticos cada dos días
+                    plantillaGrafica.SetColorFill(new iTextSharp.text.BaseColor(20, 184, 166));
+                    float radiusNodo = 1.8f;
+                    for (int i = 0; i < datosPromedio.Count; i += 2)
                     {
-                        double bpmActual = datosGrafica[i] == 0 ? 72.0 : datosGrafica[i];
-                        float ratioY = (float)(bpmActual - minBpm) / (maxBpm - minBpm);
+                        float ratioY = (float)(datosPromedio[i] - minBpm) / (maxBpm - minBpm);
                         float yPos = paddingBottom + (ratioY * graphHeight);
                         float xPos = paddingLeft + (i * deltaX);
 
@@ -519,8 +583,10 @@ namespace VitalBand.Controllers
                 componenteGraficaImg.Alignment = iTextSharp.text.Element.ALIGN_CENTER;
                 documento.Add(componenteGraficaImg);
 
+                // Forzamos salto de página limpio hacia el reporte tabular
                 documento.NewPage();
 
+                // ────────── 📄 HOJA 2: TABLA DE ALERTAS ──────────
                 iTextSharp.text.Paragraph tTablaSecundario = new iTextSharp.text.Paragraph("REGISTRO DE INCIDENTES CRÍTICOS DETALLADOS", fuenteSeccion);
                 tTablaSecundario.SpacingAfter = 12f;
                 documento.Add(tTablaSecundario);
@@ -568,6 +634,7 @@ namespace VitalBand.Controllers
                 tablaIncidentes.SpacingAfter = 50f;
                 documento.Add(tablaIncidentes);
 
+                // Cierre y bloque de firmas
                 iTextSharp.text.pdf.PdfPTable tablaFirma = new iTextSharp.text.pdf.PdfPTable(2);
                 tablaFirma.WidthPercentage = 100;
                 tablaFirma.SetWidths(new float[] { 50f, 50f });
