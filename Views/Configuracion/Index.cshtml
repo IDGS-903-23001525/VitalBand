@@ -763,18 +763,18 @@
             var form = new FormData();
             form.append('avatar', f);
 
-            fetch('/Account/UploadAvatar', { method: 'POST', body: form })
-            .then(res => res.json())
-            .then(data => {
-                if (data && data.url) {
-                    const nuevaRutaConBusiting = data.url + '?t=' + new Date().getTime();
-                    document.getElementById('imgDoctorConfig').src = nuevaRutaConBusiting;
-                    const navAvatar = document.querySelector('#headerAvatar img');
-                    if(navAvatar) navAvatar.src = nuevaRutaConBusiting;
-                } else {
-                    alert('No se pudo actualizar la foto de perfil.');
-                }
-            })
+            fetch('@Url.Action("UploadAvatar", "Account")', { method: 'POST', body: form })
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.url) {
+                        const nuevaRutaConBusting = data.url + '?t=' + new Date().getTime();
+                        document.getElementById('imgDoctorConfig').src = nuevaRutaConBusting;
+                        const navAvatar = document.querySelector('#headerAvatar img');
+                        if(navAvatar) navAvatar.src = nuevaRutaConBusting;
+                    } else {
+                        alert('No se pudo actualizar la foto de perfil.');
+                    }
+                })
             .catch(() => alert('Error en la carga de archivos.'));
         });
 

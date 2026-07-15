@@ -606,7 +606,11 @@
                 plugins: { legend: { display: false } }
             }
         });
-
+        function obtenerClasePulso(pulso) {
+        if (pulso < 50 || pulso > 110) return "lectura-critica";
+        if ((pulso >= 50 && pulso < 60) || (pulso > 100 && pulso <= 110)) return "lectura-precaucion";
+        return "lectura-normal";
+        }
         async function cargarMetricasRealtime() {
             const userId = '@Model.UsuarioId';
             const grid = document.getElementById('lecturasGrid');

@@ -446,17 +446,22 @@
 
                 var form = new FormData();
                 form.append('avatar', f);
-
-                fetch('/Account/UploadAvatar', { method: 'POST', body: form })
-                .then(res => res.json())
+                fetch('@Url.Action("UploadAvatar", "Account")', { method: 'POST', body: form })
+                .then(res => {
+                    if (!res.ok) throw new Error('Upload failed');
+                    return res.json();
+                })
                 .then(data => {
                     if (data && data.url) {
                         const nuevaRutaConBusting = data.url + '?t=' + new Date().getTime();
                         img.src = nuevaRutaConBusting;
                         const navAvatar = document.querySelector('#headerAvatar img');
                         if (navAvatar) navAvatar.src = nuevaRutaConBusting;
+                    } else {
+                        alert('No se pudo subir la imagen.');
                     }
-                });
+                })
+                .catch(() => alert('Error al procesar la subida del archivo.'));
             });
         });
 
