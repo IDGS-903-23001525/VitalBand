@@ -591,7 +591,7 @@
                     }
 
                     <a class="vb-avatar-link" href="/Configuracion/Index" title="Mi cuenta">
-                        <div class="vb-avatar" id="headerAvatar">
+                        <div class="vb-avatar" id="headerAvatar" asp-append-version="true">
                             @if (!string.IsNullOrEmpty(avatarUrl))
                             {
                                 <img src="@avatarUrl" alt="avatar" style="width:100%;height:100%;object-fit:cover;" />
