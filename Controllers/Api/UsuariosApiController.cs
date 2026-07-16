@@ -16,7 +16,6 @@ namespace VitalBand.Controllers.Api
     {
 
         private readonly VitalBandContext _context;
-
         public UsuariosApiController(VitalBandContext context)
 
         {
@@ -29,9 +28,15 @@ namespace VitalBand.Controllers.Api
         public async Task<IActionResult> Login([FromBody] Login loginInfo)
 
         {
-            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.email == loginInfo.Email && u.password_hash == loginInfo.Password);
-
+            var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.email == loginInfo.Email);
             if (usuario == null) return Unauthorized();
+
+            // Verificamos si la contraseña coincide con el hash guardado con BCrypt
+            bool passwordValida = BCrypt.Net.BCrypt.Verify(loginInfo.Password, usuario.password_hash);
+            if (!passwordValida)
+            {
+                return Unauthorized();
+            }
 
             string nuevoTokenSesion = Guid.NewGuid().ToString();
 
@@ -135,7 +140,7 @@ namespace VitalBand.Controllers.Api
 
             if (usuario == null) return BadRequest();
 
-            usuario.password_hash = model.Password;
+            usuario.password_hash = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
             usuario.token_sesion = null;
 
@@ -167,7 +172,13 @@ namespace VitalBand.Controllers.Api
 
                 {
 
-                    var nuevoUsuario = new Usuario { email = model.Email, password_hash = model.Password, rol = "medico", fecha_registro = DateTime.Now };
+                    var nuevoUsuario = new Usuario
+                    {
+                        email = model.Email,
+                        rol = "medico",
+                        fecha_registro = DateTime.Now,
+                        password_hash = BCrypt.Net.BCrypt.HashPassword(model.Password) // Encriptado con BCrypt
+                    };
 
                     _context.Usuarios.Add(nuevoUsuario);
 
@@ -220,6 +231,33 @@ namespace VitalBand.Controllers.Api
             }
             return Ok(new { usuarioIdReal = paciente.usuario_id });
 
+        }
+
+        [HttpPost("migrar-contrasenas-temporal")]
+        public async Task<IActionResult> MigrarContrasenas()
+        {
+            var usuarios = await _context.Usuarios.ToListAsync();
+            int actualizados = 0;
+
+            foreach (var usuario in usuarios)
+            {
+                // Si el password_hash está vacío o ya parece un hash de BCrypt, nos lo saltamos
+                if (string.IsNullOrEmpty(usuario.password_hash) || usuario.password_hash.StartsWith("$2"))
+                {
+                    continue;
+                }
+
+                // Si es texto plano, le aplicamos BCrypt
+                usuario.password_hash = BCrypt.Net.BCrypt.HashPassword(usuario.password_hash);
+                actualizados++;
+            }
+
+            if (actualizados > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new { mensaje = $"Migración completada. Se actualizaron {actualizados} usuarios." });
         }
 
     }
