@@ -97,7 +97,6 @@ namespace VitalBand.Controllers
 
             if (!responsePaciente.IsSuccessStatusCode) return NotFound("No se encontró el perfil del paciente.");
 
-            // 🛠️ DESENVOLVEMOS CORRECTAMENTE EL JSON DEL PACIENTE PARA EVITAR CELDAS VACÍAS
             var opcionesJson = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
             var jsonCompleto = await responsePaciente.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>(opcionesJson);
 
@@ -271,7 +270,6 @@ namespace VitalBand.Controllers
                 datosTelemetriaMensual = await responseTelemetria.Content.ReadFromJsonAsync<List<Dictionary<string, object>>>() ?? new List<Dictionary<string, object>>();
             }
 
-            // ── 🛠️ NUEVA LÓGICA DE DETECCIÓN CLÍNICA MULTI-MÉTRICA PARA LA GRÁFICA PDF ──
             var datosPromedio = new List<double>();
             var datosMaximo = new List<double>();
             var datosMinimo = new List<double>();
@@ -298,8 +296,6 @@ namespace VitalBand.Controllers
                     {
                         datosPromedio.Add(Math.Round(avg, 1));
                         datosMaximo.Add(Math.Round(max, 1));
-
-                        // Si en la vista del día hubo colapsos críticos a 0 BPM, forzamos que el PDF lo plasme
                         if (alertasDia.Any(a => a.fc_media <= 10)) min = 0;
                         datosMinimo.Add(Math.Round(min, 1));
                         continue;
@@ -345,7 +341,7 @@ namespace VitalBand.Controllers
                 iTextSharp.text.Font fuenteAlertaTitulo = iTextSharp.text.FontFactory.GetFont("Arial", 9.5f, iTextSharp.text.Font.BOLD, colorTealHeader);
                 iTextSharp.text.Font fuenteEjesGrafica = iTextSharp.text.FontFactory.GetFont("Arial", 7.5f, iTextSharp.text.Font.NORMAL, colorGrisLabel);
 
-                // 1. Encabezado Maestro
+                // 1. Encabezado
                 iTextSharp.text.pdf.PdfPTable tablaEncabezadoColor = new iTextSharp.text.pdf.PdfPTable(2);
                 tablaEncabezadoColor.WidthPercentage = 100;
                 tablaEncabezadoColor.SetWidths(new float[] { 65f, 35f });
@@ -424,7 +420,7 @@ namespace VitalBand.Controllers
                 lineaSeparadoraFicha.SpacingAfter = 25f;
                 documento.Add(lineaSeparadoraFicha);
 
-                // 3. Interpretación médica descriptiva
+                // 3. Interpretación médica
                 iTextSharp.text.Paragraph tSeccionInterp = new iTextSharp.text.Paragraph("INTERPRETACIÓN MÉDICA AUTOMATIZADA", fuenteSeccion);
                 tSeccionInterp.SpacingAfter = 12f;
                 tSeccionInterp.IndentationLeft = 10f;
@@ -454,7 +450,7 @@ namespace VitalBand.Controllers
                 containerCajaInterp.SpacingAfter = 25f;
                 documento.Add(containerCajaInterp);
 
-                // 4. 🧠 CONSTRUCCIÓN COMPLETA DE LA NUEVA GRÁFICA VECTORIAL DE ALTA FIDELIDAD 🧠
+                // 4. 🧠 GRÁFICA VECTORIAL DESDE 0 HASTA 120 BPM COMPLETA 🧠
                 iTextSharp.text.Paragraph tSeccionGrafica = new iTextSharp.text.Paragraph("ANÁLISIS DINÁMICO DE FRECUENCIA CARDÍACA", fuenteSeccion);
                 tSeccionGrafica.SpacingAfter = 12f;
                 tSeccionGrafica.IndentationLeft = 10f;
@@ -474,11 +470,11 @@ namespace VitalBand.Controllers
                 plantillaGrafica.Rectangle(paddingLeft, paddingBottom, graphWidth, graphHeight);
                 plantillaGrafica.Stroke();
 
-                int minBpm = 50;
-                int maxBpm = 110;
-                int stepBpm = 10;
+                // 🛠️ ESCALA OPTIMIZADA DESDE 0 BPM HASTA 120 BPM
+                int minBpm = 0;
+                int maxBpm = 120;
+                int stepBpm = 20;
 
-                // Líneas guía Y
                 for (int bpm = minBpm; bpm <= maxBpm; bpm += stepBpm)
                 {
                     float ratio = (float)(bpm - minBpm) / (maxBpm - minBpm);
@@ -503,7 +499,6 @@ namespace VitalBand.Controllers
                     );
                 }
 
-                // Etiquetas de Días X
                 int[] diasEtiquetas = new int[] { 1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31 };
                 float deltaX = graphWidth / (diasEnMes - 1);
 
@@ -523,14 +518,15 @@ namespace VitalBand.Controllers
                     }
                 }
 
-                // ── 🛠️ CORREGIDO: TRAZADO DEL ÁREA CLÍNICA SOMBREADA (MÁX/MÍN) Y LÍNEA DE PROMEDIO ──
                 if (datosPromedio.Any())
                 {
-                    // 1. Rellenamos el fondo del rango con un tono Teal traslúcido
+                    // 1. Dibujar el área sombreada del rango (Máx - Mín) sin desbordes
                     plantillaGrafica.SetColorFill(new iTextSharp.text.BaseColor(204, 251, 241));
-                    plantillaGrafica.MoveTo(paddingLeft, paddingBottom + (((float)(datosMinimo[0] - minBpm) / (maxBpm - minBpm)) * graphHeight));
 
-                    // Polígono Inferior (Mínimos)
+                    float yInicioMin = paddingBottom + (((float)(datosMinimo[0] - minBpm) / (maxBpm - minBpm)) * graphHeight);
+                    plantillaGrafica.MoveTo(paddingLeft, yInicioMin);
+
+                    // Trazar línea inferior de mínimos
                     for (int i = 1; i < datosMinimo.Count; i++)
                     {
                         float xPos = paddingLeft + (i * deltaX);
@@ -538,7 +534,7 @@ namespace VitalBand.Controllers
                         plantillaGrafica.LineTo(xPos, yPosMin);
                     }
 
-                    // Polígono Superior de retorno (Máximos)
+                    // Trazar línea superior de máximos de vuelta
                     for (int i = datosMaximo.Count - 1; i >= 0; i--)
                     {
                         float xPos = paddingLeft + (i * deltaX);
@@ -549,7 +545,7 @@ namespace VitalBand.Controllers
                     plantillaGrafica.ClosePath();
                     plantillaGrafica.Fill();
 
-                    // 2. Trazamos la línea sólida central de Promedios
+                    // 2. Trazar la línea central sólida de Promedios
                     plantillaGrafica.SetLineWidth(2.0f);
                     plantillaGrafica.SetColorStroke(colorTealMedio);
 
@@ -564,7 +560,7 @@ namespace VitalBand.Controllers
                     }
                     plantillaGrafica.Stroke();
 
-                    // 3. Pintamos los nodos marcadores analíticos cada dos días
+                    // 3. Dibujar nodos circulares sobre el promedio cada dos días
                     plantillaGrafica.SetColorFill(new iTextSharp.text.BaseColor(20, 184, 166));
                     float radiusNodo = 1.8f;
                     for (int i = 0; i < datosPromedio.Count; i += 2)
@@ -583,10 +579,9 @@ namespace VitalBand.Controllers
                 componenteGraficaImg.Alignment = iTextSharp.text.Element.ALIGN_CENTER;
                 documento.Add(componenteGraficaImg);
 
-                // Forzamos salto de página limpio hacia el reporte tabular
                 documento.NewPage();
 
-                // ────────── 📄 HOJA 2: TABLA DE ALERTAS ──────────
+                // Tabla Detallada de Alertas (Página 2)
                 iTextSharp.text.Paragraph tTablaSecundario = new iTextSharp.text.Paragraph("REGISTRO DE INCIDENTES CRÍTICOS DETALLADOS", fuenteSeccion);
                 tTablaSecundario.SpacingAfter = 12f;
                 documento.Add(tTablaSecundario);
@@ -634,7 +629,6 @@ namespace VitalBand.Controllers
                 tablaIncidentes.SpacingAfter = 50f;
                 documento.Add(tablaIncidentes);
 
-                // Cierre y bloque de firmas
                 iTextSharp.text.pdf.PdfPTable tablaFirma = new iTextSharp.text.pdf.PdfPTable(2);
                 tablaFirma.WidthPercentage = 100;
                 tablaFirma.SetWidths(new float[] { 50f, 50f });
