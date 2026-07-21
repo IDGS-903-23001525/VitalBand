@@ -19,6 +19,9 @@ namespace VitalBand.DTOs
         public string ParentescoContacto { get; set; } = string.Empty;
         public string TelefonoContacto { get; set; } = string.Empty;
 
+        public string? CedulaMedico { get; set; }
+        public int? MedicoAsignadoId { get; set; }
+
         public List<int> PatologiasIds { get; set; } = new();
     }
 }

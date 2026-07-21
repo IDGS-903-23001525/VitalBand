@@ -1,0 +1,14 @@
+.devcontainer/
+.dockerignore
+.env
+.env.example
+.git/
+.gitignore
+.vs/
+Dockerfile
+VitalBand.slnx
+bin/
+docker-compose.yml
+influxdb/
+init.sql
+obj/

@@ -38,7 +38,24 @@ namespace VitalBand.Controllers.Api
                     .FirstOrDefaultAsync();
             }
 
-            return Ok(new { paciente, cedulaActual, usuarioEmail = paciente.Usuario?.email });
+            var contactoEmergencia = await _context.ContactosEmergencia
+                .Where(c => c.paciente_id == id && c.prioridad == 1)
+                .Select(c => new { c.nombre, c.parentesco, c.telefono })
+                .FirstOrDefaultAsync();
+
+            var patologiasIds = await _context.PacientesPatologias
+                .Where(pp => pp.paciente_id == id)
+                .Select(pp => pp.patologia_id)
+                .ToListAsync();
+
+            return Ok(new
+            {
+                paciente,
+                cedulaActual,
+                usuarioEmail = paciente.Usuario?.email,
+                contactoEmergencia,
+                patologiasIds
+            });
         }
 
         [HttpGet("verificar-cedula")]
@@ -62,13 +79,55 @@ namespace VitalBand.Controllers.Api
 
             paciente.nombre = model.Nombre;
             paciente.genero = model.Sexo;
+            paciente.fecha_nacimiento = model.FechaNacimiento;
+            paciente.tipo_sangre = model.TipoSangre;
             paciente.peso_inicial = model.Peso;
             paciente.altura_inicial = model.Altura;
             paciente.historial_medico_breve = model.HistorialMedico;
-            paciente.medico_asignado_id = model.MedicoAsignadoId; 
+            paciente.medico_asignado_id = model.MedicoAsignadoId;
 
             var usuario = await _context.Usuarios.FirstOrDefaultAsync(u => u.id == paciente.usuario_id);
             if (usuario != null) usuario.email = model.Email;
+
+            var contactoExistente = await _context.ContactosEmergencia
+                .FirstOrDefaultAsync(c => c.paciente_id == id && c.prioridad == 1);
+
+            if (!string.IsNullOrWhiteSpace(model.NombreContacto))
+            {
+                if (contactoExistente != null)
+                {
+                    contactoExistente.nombre = model.NombreContacto;
+                    contactoExistente.parentesco = model.ParentescoContacto;
+                    contactoExistente.telefono = model.TelefonoContacto;
+                }
+                else
+                {
+                    _context.ContactosEmergencia.Add(new ContactoEmergencia
+                    {
+                        paciente_id = id,
+                        nombre = model.NombreContacto,
+                        parentesco = model.ParentescoContacto,
+                        telefono = model.TelefonoContacto,
+                        prioridad = 1
+                    });
+                }
+            }
+
+            if (model.PatologiasIds != null)
+            {
+                var patologiasActuales = _context.PacientesPatologias
+                    .Where(pp => pp.paciente_id == id);
+                _context.PacientesPatologias.RemoveRange(patologiasActuales);
+
+                foreach (var patologiaId in model.PatologiasIds)
+                {
+                    _context.PacientesPatologias.Add(new PacientePatologia
+                    {
+                        paciente_id = id,
+                        patologia_id = patologiaId
+                    });
+                }
+            }
 
             await _context.SaveChangesAsync();
             return Ok();
@@ -125,7 +184,8 @@ namespace VitalBand.Controllers.Api
                         tipo_sangre = model.TipoSangre,
                         peso_inicial = (float)model.Peso,
                         altura_inicial = (float)model.Altura,
-                        historial_medico_breve = model.HistorialMedico
+                        historial_medico_breve = model.HistorialMedico,
+                        medico_asignado_id = model.MedicoAsignadoId
                     };
                     _context.Pacientes.Add(nuevoPaciente);
                     await _context.SaveChangesAsync();

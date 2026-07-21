@@ -11,10 +11,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IConfiguracionService, ConfiguracionService>();
 builder.Services.AddSingleton<IApiUrlProvider, ApiUrlProvider>();
 
-// 2. Configuración de base de datos MySQL por entorno
-var connectionString = builder.Environment.IsProduction()
-    ? builder.Configuration["ConnectionStrings:ProductionMySqlConnection"]
-    : builder.Configuration.GetConnectionString("MySqlConnection");
+var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 
 builder.Services.AddDbContext<VitalBandContext>(options =>
     options.UseMySql(
@@ -37,6 +34,13 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddHttpClient();
 
 var app = builder.Build();
+
+if (app.Environment.IsProduction())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<VitalBandContext>();
+    db.Database.Migrate();
+}
 
 // Middleware pipeline
 if (!app.Environment.IsDevelopment())

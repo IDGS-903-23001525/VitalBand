@@ -1,0 +1,85 @@
+services:
+  mysql_db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    deploy:
+      resources:
+        limits:
+          memory: 600M
+
+  redis_cache:
+    image: redis:alpine
+    container_name: redis_cache
+    restart: always
+
+  evolution_api:
+    image: evoapicloud/evolution-api:latest
+    container_name: evolution_api
+    restart: always
+    environment:
+      - SERVER_URL=http://localhost:8080
+      - AUTHENTICATION_API_KEY=${EVOLUTION_API_KEY}
+      - DATABASE_ENABLED=true
+      - DATABASE_PROVIDER=mysql
+      - DATABASE_CONNECTION_URI=mysql://${MYSQL_USER:-root}:${MYSQL_ROOT_PASSWORD}@mysql_db:3306/evolution_db
+      - CACHE_REDIS_ENABLED=true
+      - CACHE_REDIS_URI=redis://redis_cache:6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql_db
+      - redis_cache
+
+  inbound_db:
+    image: influxdb:3-core
+    container_name: inbound_db
+    restart: always
+    user: root
+    ports:
+      - "8181:8181"
+    environment:
+      - INFLUXDB_TOKEN=${INFLUXDB_TOKEN}
+    entrypoint: ["/docker-entrypoint.sh"]
+    volumes:
+      - inbound_data:/var/lib/influxdb3/data
+      - inbound_plugins:/var/lib/influxdb3/plugins
+      - ./influxdb/entrypoint.sh:/docker-entrypoint.sh:ro
+    command:
+      - influxdb3
+      - serve
+      - --node-id=node0
+      - --object-store=file
+      - --data-dir=/var/lib/influxdb3/data
+      - --plugin-dir=/var/lib/influxdb3/plugins
+      - --admin-token-file=/var/lib/influxdb3/admin-token.json
+
+  vitalband:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: vitalband
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__MySqlConnection=server=mysql_db;port=3306;database=vitalband;user=${MYSQL_USER:-root};password=${MYSQL_ROOT_PASSWORD};
+      - InfluxDB__Url=http://inbound_db:8181
+      - InfluxDB__Token=${INFLUXDB_TOKEN}
+      - InfluxDB__Org=VitalBand
+      - InfluxDB__Bucket=sensores
+    ports:
+      - "80:8080"
+    depends_on:
+      - mysql_db
+      - evolution_api
+      - inbound_db
+
+volumes:
+  mysql_data:
+  inbound_data:
+  inbound_plugins:
