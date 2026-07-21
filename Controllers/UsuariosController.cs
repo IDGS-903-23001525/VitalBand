@@ -62,7 +62,7 @@ namespace VitalBand.Controllers
             {
                 // Mantenemos intacta tu lógica de alertas de hoy
                 var alertasPacienteHoy = todasLasAlertas
-                    .Where(a => a.paciente_id == p.id && a.fecha_hora >= hoy && (a.mensaje_enviado == false || a.mensaje_enviado == null))
+                    .Where(a => a.paciente_id == p.id && a.fecha_hora >= hoy && (a.atendida == false || a.atendida == null))
                     .OrderByDescending(a => a.fecha_hora)
                     .ToList();
 

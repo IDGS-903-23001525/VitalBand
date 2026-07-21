@@ -38,7 +38,7 @@ namespace VitalBand.Controllers
                 Latitud = alertaEspecifica.latitud,
                 Longitud = alertaEspecifica.longitud,
                 FechaHoraAlerta = alertaEspecifica.fecha_hora,
-                Atendida = alertaEspecifica.mensaje_enviado == true,
+                Atendida = alertaEspecifica.atendida == true,
                 RespuestaUsuario = "Sin respuesta o activación de pánico"
             };
 

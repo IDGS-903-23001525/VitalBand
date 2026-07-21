@@ -18,6 +18,7 @@ namespace VitalBand.Models
         public float? latitud { get; set; }
         public float? longitud { get; set; }
         public bool? mensaje_enviado { get; set; } = false;
+        public bool? atendida { get; set; } = false;
 
         [ValidateNever]
         [ForeignKey("paciente_id")]

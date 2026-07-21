@@ -39,7 +39,7 @@ namespace VitalBand.Controllers
                     FechaHora = a.fecha_hora ?? DateTime.Now,
 
                     Ubicacion = $"Lat: {a.latitud}, Lon: {a.longitud}",
-                    Respondida = a.mensaje_enviado ?? false,
+                    Respondida = a.atendida ?? false,
                     DescripcionEvento = $"Frecuencia Cardíaca: {a.fc_media.GetValueOrDefault()} BPM | SpO2: {a.spo2_estabilidad.GetValueOrDefault()}% | HRV: {a.hrv_rmssd.GetValueOrDefault()} ms"
                 }).ToList();
 
