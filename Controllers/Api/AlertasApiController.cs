@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Net.Http;
 using System.Net.Http.Json;
@@ -18,12 +19,14 @@ namespace VitalBand.Controllers.Api
         private readonly VitalBandContext _context;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IHttpClientFactory _httpClientFactory;
+        private readonly string _apiKey;
 
-        public AlertasApiController(VitalBandContext context, IServiceScopeFactory scopeFactory, IHttpClientFactory httpClientFactory)
+        public AlertasApiController(VitalBandContext context, IServiceScopeFactory scopeFactory, IHttpClientFactory httpClientFactory, IConfiguration configuration)
         {
             _context = context;
             _scopeFactory = scopeFactory;
             _httpClientFactory = httpClientFactory;
+            _apiKey = configuration["ApiSettings:ApiKey"] ?? "";
         }
 
         [HttpGet]
@@ -145,6 +148,7 @@ namespace VitalBand.Controllers.Api
                     string patientName = patient?.nombre ?? "Paciente";
 
                     var http = httpFactory.CreateClient();
+                    http.DefaultRequestHeaders.Add("apikey", _apiKey);
                     var random = new Random();
 
                     var locationBody = new
