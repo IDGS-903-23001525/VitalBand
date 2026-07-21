@@ -1,0 +1,7 @@
+vitalband.melchor-ruiz.dev {
+    reverse_proxy vitalband:8080
+}
+
+api-wa.vitalband.melchor-ruiz.dev {
+    reverse_proxy evolution_api:8080
+}

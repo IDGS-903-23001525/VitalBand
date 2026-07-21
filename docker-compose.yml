@@ -30,8 +30,6 @@ services:
       - DATABASE_CONNECTION_URI=mysql://${MYSQL_USER:-root}:${MYSQL_ROOT_PASSWORD}@mysql_db:3306/evolution_db
       - CACHE_REDIS_ENABLED=true
       - CACHE_REDIS_URI=redis://redis_cache:6379
-    ports:
-      - "8080:8080"
     depends_on:
       - mysql_db
       - redis_cache
@@ -72,14 +70,29 @@ services:
       - InfluxDB__Token=${INFLUXDB_TOKEN}
       - InfluxDB__Org=VitalBand
       - InfluxDB__Bucket=sensores
-    ports:
-      - "80:8080"
     depends_on:
       - mysql_db
       - evolution_api
       - inbound_db
 
+  caddy:
+    image: caddy:2-alpine
+    container_name: caddy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - vitalband
+      - evolution_api
+
 volumes:
   mysql_data:
   inbound_data:
   inbound_plugins:
+  caddy_data:
+  caddy_config:
